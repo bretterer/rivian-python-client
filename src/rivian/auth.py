@@ -18,3 +18,10 @@ class RivianAuth:
         client_secret: str | None = None,
     ) -> str:
         """Authenticate against the Rivian API"""
+
+    async def validateOTP(
+        self,
+        otp: str | None = None,
+    ) -> str:
+        """Validate a OTP for 2FA"""
+
