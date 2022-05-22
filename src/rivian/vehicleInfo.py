@@ -17,3 +17,9 @@ class RivianVehicleInfo:
             rivian: Rivian instance
         """
         self._rivian = rivian
+
+    async def getVehicleInfo(
+        self,
+    ) -> None: #TODO: Update return type to correct object
+        """Get the vehicle information stats"""
+
