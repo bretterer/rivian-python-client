@@ -7,9 +7,14 @@ import asyncio
 import json
 import socket
 
+import logging
+
 import aiohttp
 import async_timeout
 from yarl import URL
+
+_LOGGER = logging.getLogger(__name__)
+
 
 class Rivian:
     """Main class for the Rivian API Client"""
@@ -33,19 +38,18 @@ class Rivian:
 
         self._otp_needed = False
 
-
     async def authenticate(
         self,
         username: str,
         password: str,
-    ) -> dict[str, Any]:
+    ) -> ClientRequest:
         """Authenticate against the Rivian API with Username and Password"""
         url = "https://auth.rivianservices.com/auth/api/v1/token/auth"
 
         headers = {
             "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         json_data = {
@@ -53,7 +57,7 @@ class Rivian:
             "username": username,
             "client_id": self.client_id,
             "client_secret": self.client_secret,
-            "pwd": password
+            "pwd": password,
         }
 
         if self._session is None:
@@ -79,8 +83,6 @@ class Rivian:
 
         content_type = response.headers.get("Content-Type", "")
 
-
-
         if response.status == 401:
             self._otp_needed = True
             response_json = await response.json()
@@ -92,12 +94,8 @@ class Rivian:
             response.close()
 
             if content_type == "application/json":
-                raise Exception(
-                    response.status, json.loads(contents.decode("utf8"))
-                )
-            raise Exception(
-                response.status, {"message": contents.decode("utf8")}
-            )
+                raise Exception(response.status, json.loads(contents.decode("utf8")))
+            raise Exception(response.status, {"message": contents.decode("utf8")})
 
         if "application/json" in content_type:
             response_json = await response.json()
@@ -120,7 +118,7 @@ class Rivian:
             "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + self._session_token
+            "Authorization": "Bearer " + self._session_token,
         }
 
         json_data = {
@@ -159,12 +157,8 @@ class Rivian:
             response.close()
 
             if content_type == "application/json":
-                raise Exception(
-                    response.status, json.loads(contents.decode("utf8"))
-                )
-            raise Exception(
-                response.status, {"message": contents.decode("utf8")}
-            )
+                raise Exception(response.status, json.loads(contents.decode("utf8")))
+            raise Exception(response.status, {"message": contents.decode("utf8")})
 
         if "application/json" in content_type:
             response_json = await response.json()
@@ -182,7 +176,7 @@ class Rivian:
         client_secret: str,
     ) -> dict[str, Any]:
         """Validate the OTP"""
-        url = "https://auth.rivianservices.com/auth/api/v1/token/auth"
+        url = "https://auth.rivianservices.com/auth/api/v1/token/refresh"
 
         headers = {
             "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
@@ -225,11 +219,9 @@ class Rivian:
 
             if content_type == "application/json":
                 raise Exception(
-                    response.status, json.loads(contents.decode("utf8"))
+                    response.status, json.loads(contents.decode("utf8")), json_data
                 )
-            raise Exception(
-                response.status, {"message": contents.decode("utf8")}
-            )
+            raise Exception(response.status, {"message": contents.decode("utf8")})
 
         if "application/json" in content_type:
             response_json = await response.json()
@@ -240,8 +232,7 @@ class Rivian:
         return {"message": text}
 
     async def get_vehicle_info(
-        self,
-        vin: str,
+        self, vin: str, access_token: str, properties: dict[str]
     ) -> dict[str, Any]:
         """get the vehicle info"""
         url = "https://cesium.rivianservices.com/v2/vehicle/latest"
@@ -250,11 +241,11 @@ class Rivian:
             "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + self._access_token
+            "Authorization": "Bearer " + access_token,
         }
 
         json_data = {
-            "car":vin,
+            "car": vin,
             "properties": [
                 "body/closures/door_FL_state",
                 "body/closures/door_FL_locked_state",
@@ -318,8 +309,8 @@ class Rivian:
                 "dynamics/tires/tire_RR_pressure_status_valid",
                 "dynamics/powertrain_status/brake_fluid_level_low",
                 "body/wipers/fluid_state",
-                "core/power_modes/power_state"
-            ]
+                "core/power_modes/power_state",
+            ],
         }
 
         if self._session is None:
@@ -351,20 +342,14 @@ class Rivian:
 
             if content_type == "application/json":
                 raise Exception(
-                    response.status, json.loads(contents.decode("utf8"))
+                    response.status,
+                    json.loads(contents.decode("utf8")),
+                    headers,
+                    json_data,
                 )
-            raise Exception(
-                response.status, {"message": contents.decode("utf8")}
-            )
+            raise Exception(response.status, {"message": contents.decode("utf8")})
 
-        if "application/json" in content_type:
-            response_json = await response.json()
-            self._access_token = response_json["access_token"]
-            self._refresh_token = response_json["refresh_token"]
-            return response_json
-
-        text = await response.text()
-        return {"message": text}
+        return response
 
     async def close(self) -> None:
         """Close open client session."""
