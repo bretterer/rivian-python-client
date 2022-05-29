@@ -13,6 +13,8 @@ import aiohttp
 import async_timeout
 from yarl import URL
 
+from rivian.exceptions import RivianExpiredTokenError
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -174,7 +176,7 @@ class Rivian:
         refresh_token: str,
         client_id: str,
         client_secret: str,
-    ) -> dict[str, Any]:
+    ) -> ClientRequest:
         """Validate the OTP"""
         url = "https://auth.rivianservices.com/auth/api/v1/token/refresh"
 
@@ -228,8 +230,7 @@ class Rivian:
             self._access_token = response_json["access_token"]
             return response
 
-        text = await response.text()
-        return {"message": text}
+        return response
 
     async def get_vehicle_info(
         self, vin: str, access_token: str, properties: dict[str]
@@ -340,14 +341,22 @@ class Rivian:
             contents = await response.read()
             response.close()
 
-            if content_type == "application/json":
-                raise Exception(
+            response_json = await response.json()
+            if response.status == 401 and response_json["error_code"] == -40:
+                raise RivianExpiredTokenError(
                     response.status,
-                    json.loads(contents.decode("utf8")),
+                    response_json,
                     headers,
                     json_data,
                 )
-            raise Exception(response.status, {"message": contents.decode("utf8")})
+
+            raise Exception(
+                response.status,
+                json.loads(contents.decode("utf8")),
+                headers,
+                json_data,
+            )
+
 
         return response
 
