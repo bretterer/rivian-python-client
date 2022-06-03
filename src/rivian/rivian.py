@@ -6,6 +6,7 @@ from typing import Any
 import asyncio
 import json
 import socket
+import random
 
 import logging
 
@@ -247,71 +248,7 @@ class Rivian:
 
         json_data = {
             "car": vin,
-            "properties": [
-                "body/closures/door_FL_state",
-                "body/closures/door_FL_locked_state",
-                "body/closures/door_FR_state",
-                "body/closures/door_FR_locked_state",
-                "body/closures/door_RL_state",
-                "body/closures/door_RL_locked_state",
-                "body/closures/door_RR_state",
-                "body/closures/door_RR_locked_state",
-                "body/closures/frunk_state",
-                "body/closures/frunk_locked_state",
-                "body/closures/tailgate_state",
-                "body/closures/tailgate_locked_state",
-                "body/closures/liftgate_state",
-                "body/closures/liftgate_locked_state",
-                "body/closures/tonneau_state",
-                "body/closures/tonneau_locked_state",
-                "body/closures/sidebin_L_state",
-                "body/closures/sidebin_L_locked_state",
-                "body/closures/sidebin_R_state",
-                "body/closures/sidebin_R_locked_state",
-                "body/closures/front_left_window_state",
-                "body/closures/front_right_window_state",
-                "body/closures/rear_left_window_state",
-                "body/closures/rear_right_window_state",
-                "body/closures/gear_guard_locked_state",
-                "$gnss",
-                "energy_storage/charger/adjusted_soc",
-                "energy_storage/charger/vehicle_charger_state",
-                "energy_storage/charger/EMS_charger_remainingtime_min_1",
-                "energy_storage/vehicle_energy/vehicle_range",
-                "energy_storage/icd_cid_notifications/range_threshold",
-                "dynamics/propulsion_status/PRNDL",
-                "thermal/tmm_status/cabin_precondition_state",
-                "thermal/hvac_cabin_control/cabin_temperature",
-                "body/alarm/sound_alarm",
-                "telematics/ota_status/current_version_year",
-                "telematics/ota_status/current_version_week",
-                "telematics/ota_status/current_version_number",
-                "telematics/ota_status/available_version_year",
-                "telematics/ota_status/available_version_week",
-                "telematics/ota_status/available_version_number",
-                "telematics/ota_status/status",
-                "telematics/ota_status/install_duration",
-                "telematics/ota_status/install_progress",
-                "telematics/ota_status/pending_reason_active_mode",
-                "core/ota_status/cgm_ota_install_fast_charging",
-                "core/ota_status/cgm_ota_install_hv_batt_low",
-                "telematics/ota_status/pending_reason_lv_batt",
-                "core/ota_status/cgm_ota_install_not_parked",
-                "telematics/ota_status/pending_reason_other",
-                "telematics/ota_status/status_current",
-                "dynamics/odometer/value",
-                "dynamics/tires/tire_FL_pressure_status",
-                "dynamics/tires/tire_FR_pressure_status",
-                "dynamics/tires/tire_RL_pressure_status",
-                "dynamics/tires/tire_RR_pressure_status",
-                "dynamics/tires/tire_FL_pressure_status_valid",
-                "dynamics/tires/tire_FR_pressure_status_valid",
-                "dynamics/tires/tire_RL_pressure_status_valid",
-                "dynamics/tires/tire_RR_pressure_status_valid",
-                "dynamics/powertrain_status/brake_fluid_level_low",
-                "body/wipers/fluid_state",
-                "core/power_modes/power_state",
-            ],
+            "properties": properties,
         }
 
         if self._session is None:
@@ -356,7 +293,6 @@ class Rivian:
                 headers,
                 json_data,
             )
-
 
         return response
 
