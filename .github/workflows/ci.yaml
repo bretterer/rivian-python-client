@@ -1,0 +1,27 @@
+name: Run Python Tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.6
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 1.1.15
+      - name: Install dependencies
+        run: |
+          poetry install
+      - name: Run tests with poetry and pytest
+        run: poetry run pytest
