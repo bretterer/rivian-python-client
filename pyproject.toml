@@ -2,6 +2,7 @@
 name = "rivian-python-client"
 version = "0.1.0"
 description = "Rivian API Client (Unofficial)"
+readme = "README.md"
 authors = ["Brian Retterer <bretterer@gmail.com>"]
 license = "MIT"
 packages = [
