@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rivian-python-client"
-version = "0.1.4"
+version = "0.1.6"
 description = "Rivian API Client (Unofficial)"
 readme = "README.md"
 authors = ["Brian Retterer <bretterer@gmail.com>"]
