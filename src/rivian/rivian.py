@@ -247,7 +247,7 @@ class Rivian:
         headers = dict()
         headers.update(BASE_HEADERS)
         headers.update({
-            "Authorization": "Bearer " + self._access_token,
+            "Authorization": "Bearer " + access_token,
         })
 
         json_data = {
