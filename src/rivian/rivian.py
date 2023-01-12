@@ -500,14 +500,21 @@ class Rivian:
             ) from exception
 
         if response.status != 200:
+            body = await response.text()
             raise Exception(
-                "Error occurred while reading the graphql response from Rivian."
+                "Error occurred while reading the graphql response from Rivian.",
+                response,
+                response.status,
+                body,
             )
 
         response_json = await response.json()
         if "errors" in response_json:
             raise Exception(
-                "Error occurred while reading the graphql response from Rivian."
+                "Error occurred while reading the graphql response from Rivian.",
+                response,
+                response.status,
+                response_json,
             )
 
         return response
