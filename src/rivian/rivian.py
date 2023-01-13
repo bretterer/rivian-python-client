@@ -7,6 +7,7 @@ import asyncio
 import json
 import socket
 import random
+import uuid
 
 import logging
 
@@ -345,6 +346,7 @@ class Rivian:
                 "Csrf-Token": self._csrf_token,
                 "A-Sess": self._app_session_token,
                 "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
+                "Dc-Cid": f"m-ios-{uuid.uuid4()}"
             }
         )
 
@@ -399,7 +401,7 @@ class Rivian:
 
         response_json = await response.json()
 
-        login_data = response_json["data"]["login"]
+        login_data = response_json["data"]["loginWithOTP"]
 
         self._access_token = login_data["accessToken"]
         self._refresh_token = login_data["refreshToken"]
