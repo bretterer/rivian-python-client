@@ -14,7 +14,7 @@ import aiohttp
 import async_timeout
 from yarl import URL
 
-from rivian.exceptions import RivianExpiredTokenError
+from rivian.exceptions import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,6 +54,7 @@ class Rivian:
         self.request_timeout = request_timeout
 
         self._otp_needed = False
+        self._otp_token = ""
 
     async def authenticate(
         self,
@@ -356,9 +357,53 @@ class Rivian:
         response = await self.__graphql_query(headers, url, graphql_json)
 
         response_json = await response.json()
-        self._access_token = response_json["data"]["login"]["accessToken"]
-        self._refresh_token = response_json["data"]["login"]["refreshToken"]
-        self._user_session_token = response_json["data"]["login"]["userSessionToken"]
+
+        login_data = response_json["data"]["login"]
+
+        if "otpToken" in login_data:
+            self._otp_needed = True
+            self._otp_token = login_data["otpToken"]
+        else:
+            self._access_token = login_data["accessToken"]
+            self._refresh_token = login_data["refreshToken"]
+            self._user_session_token = login_data["userSessionToken"]
+
+        return response
+
+    async def validate_otp_graphql(
+        self,
+        username: str,
+        otpCode: str
+    ) -> dict[str, Any]:
+        """Validates OTP against the Rivian GraphQL API with Username, OTP Code, and OTP Token"""
+
+        url = GRAPHQL_GATEWAY
+
+        headers = dict()
+        headers.update(BASE_HEADERS)
+        headers.update(
+            {
+                "Csrf-Token": self._csrf_token,
+                "A-Sess": self._app_session_token,
+                "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
+            }
+        )
+
+        graphql_json = {
+            "operationName": "LoginWithOTP",
+            "query": "mutation LoginWithOTP($email: String!, $otpCode: String!, $otpToken: String!) {\n  loginWithOTP(email: $email, otpCode: $otpCode, otpToken: $otpToken) {\n    __typename\n    ... on MobileLoginResponse {\n      __typename\n      accessToken\n      refreshToken\n      userSessionToken\n    }\n  }\n}",
+            "variables": {"email": username, "otpCode": otpCode, "otpToken": self._otp_token},
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+
+        response_json = await response.json()
+
+        login_data = response_json["data"]["login"]
+
+        self._access_token = login_data["accessToken"]
+        self._refresh_token = login_data["refreshToken"]
+        self._user_session_token = login_data["userSessionToken"]
 
         return response
 
@@ -499,22 +544,61 @@ class Rivian:
                 "Error occurred while communicating with Rivian."
             ) from exception
 
-        if response.status != 200:
-            body = await response.text()
+        try:
+            response_json = await response.json()
+            if "errors" in response_json:
+                for e in response_json["errors"]:
+                    extensions = e["extensions"]
+                    if extensions["code"] == "UNAUTHENTICATED":
+                        raise RivianUnauthenticated(
+                            response.status,
+                            response_json,
+                            headers,
+                            body,
+                        )
+                    elif extensions["code"] == "DATA_ERROR":
+                        raise RivianDataError(
+                            response.status,
+                            response_json,
+                            headers,
+                            body,
+                        )
+                    elif extensions["code"] == "BAD_CURRENT_PASSWORD":
+                        raise RivianInvalidCredentials(
+                            response.status,
+                            response_json,
+                            headers,
+                            body,
+                        )
+                    elif extensions["code"] == "BAD_USER_INPUT" and extensions["reason"] == "INVALID_OTP":
+                        raise RivianInvalidOTP(
+                            response.status,
+                            response_json,
+                            headers,
+                            body,
+                        )
+                    elif extensions["code"] == "SESSION_MANAGER_ERROR":
+                        raise RivianTemporarilyLockedError(
+                            response.status,
+                            response_json,
+                            headers,
+                            body,
+                        )
+                raise Exception(
+                    "Error occurred while reading the graphql response from Rivian.",
+                    response.status,
+                    response_json,
+                    headers,
+                    body
+                )
+        except Exception as exception:
+            response_body = await response.text()
             raise Exception(
                 "Error occurred while reading the graphql response from Rivian.",
-                response,
                 response.status,
+                response_body,
+                headers,
                 body,
-            )
-
-        response_json = await response.json()
-        if "errors" in response_json:
-            raise Exception(
-                "Error occurred while reading the graphql response from Rivian.",
-                response,
-                response.status,
-                response_json,
             )
 
         return response
