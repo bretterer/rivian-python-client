@@ -346,7 +346,7 @@ class Rivian:
                 "Csrf-Token": self._csrf_token,
                 "A-Sess": self._app_session_token,
                 "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
-                "Dc-Cid": f"m-ios-{uuid.uuid4()}"
+                "Dc-Cid": f"m-ios-{uuid.uuid4()}",
             }
         )
 
@@ -372,11 +372,7 @@ class Rivian:
 
         return response
 
-    async def validate_otp_graphql(
-        self,
-        username: str,
-        otpCode: str
-    ) -> dict[str, Any]:
+    async def validate_otp_graphql(self, username: str, otpCode: str) -> dict[str, Any]:
         """Validates OTP against the Rivian GraphQL API with Username, OTP Code, and OTP Token"""
 
         url = GRAPHQL_GATEWAY
@@ -394,7 +390,11 @@ class Rivian:
         graphql_json = {
             "operationName": "LoginWithOTP",
             "query": "mutation LoginWithOTP($email: String!, $otpCode: String!, $otpToken: String!) {\n  loginWithOTP(email: $email, otpCode: $otpCode, otpToken: $otpToken) {\n    __typename\n    ... on MobileLoginResponse {\n      __typename\n      accessToken\n      refreshToken\n      userSessionToken\n    }\n  }\n}",
-            "variables": {"email": username, "otpCode": otpCode, "otpToken": self._otp_token},
+            "variables": {
+                "email": username,
+                "otpCode": otpCode,
+                "otpToken": self._otp_token,
+            },
         }
 
         response = await self.__graphql_query(headers, url, graphql_json)
@@ -572,7 +572,10 @@ class Rivian:
                             headers,
                             body,
                         )
-                    elif extensions["code"] == "BAD_USER_INPUT" and extensions["reason"] == "INVALID_OTP":
+                    elif (
+                        extensions["code"] == "BAD_USER_INPUT"
+                        and extensions["reason"] == "INVALID_OTP"
+                    ):
                         raise RivianInvalidOTP(
                             response.status,
                             response_json,
@@ -591,17 +594,10 @@ class Rivian:
                     response.status,
                     response_json,
                     headers,
-                    body
+                    body,
                 )
         except Exception as exception:
-            response_body = await response.text()
-            raise Exception(
-                "Error occurred while reading the graphql response from Rivian.",
-                response.status,
-                response_body,
-                headers,
-                body,
-            )
+            raise exception
 
         return response
 
