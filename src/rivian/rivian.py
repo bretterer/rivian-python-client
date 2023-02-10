@@ -29,6 +29,7 @@ BASE_HEADERS = {
     "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
     "Accept": "application/json",
     "Content-Type": "application/json",
+    "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
 }
 
 
