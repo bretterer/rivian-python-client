@@ -29,6 +29,7 @@ BASE_HEADERS = {
     "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
     "Accept": "application/json",
     "Content-Type": "application/json",
+    "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
 }
 
 
@@ -345,7 +346,6 @@ class Rivian:
             {
                 "Csrf-Token": self._csrf_token,
                 "A-Sess": self._app_session_token,
-                "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
                 "Dc-Cid": f"m-ios-{uuid.uuid4()}"
             }
         )
