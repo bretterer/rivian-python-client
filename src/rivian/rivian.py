@@ -1,21 +1,24 @@
 """Asynchronous Python client for the Rivian API."""
 from __future__ import annotations
 
-from typing import Any
-
 import asyncio
 import json
-import socket
-import random
-import uuid
-
 import logging
+import random
+import socket
+import uuid
+from collections.abc import Callable
+from typing import Any
 
 import aiohttp
 import async_timeout
+from aiohttp import ClientRequest, ClientResponse, ClientWebSocketResponse
 from yarl import URL
 
 from rivian.exceptions import *
+
+from .const import VEHICLE_STATE_PROPERTIES
+from .ws_monitor import WebSocketMonitor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,13 +27,20 @@ AUTH_BASEPATH = "https://auth.rivianservices.com/auth/api/v1"
 GRAPHQL_BASEPATH = "https://rivian.com/api/gql"
 GRAPHQL_GATEWAY = GRAPHQL_BASEPATH + "/gateway/graphql"
 GRAPHQL_CHARGING = GRAPHQL_BASEPATH + "/chrg/user/graphql"
+GRAPHQL_WEBSOCKET = "wss://api.rivian.com/gql-consumer-subscriptions/graphql"
+
+APOLLO_CLIENT_NAME = "com.rivian.ios.consumer-apollo-ios"
 
 BASE_HEADERS = {
     "User-Agent": "RivianApp/707 CFNetwork/1237 Darwin/20.4.0",
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
+    "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
 }
+
+LOCATION_TEMPLATE = "{ latitude longitude timeStamp }"
+VALUE_TEMPLATE = "{ timeStamp value }"
+TEMPLATE_MAP = {"gnssLocation": LOCATION_TEMPLATE}
 
 
 class Rivian:
@@ -58,15 +68,18 @@ class Rivian:
         self._otp_needed = False
         self._otp_token = ""
 
+        self._ws_monitor: WebSocketMonitor | None = None
+        self._subscriptions: dict[str, str] = {}
+
     async def authenticate(
         self,
         username: str,
         password: str,
-    ) -> ClientRequest:
+    ) -> ClientResponse | dict[str, str]:
         """Authenticate against the Rivian API with Username and Password"""
         url = url = AUTH_BASEPATH + "/token/auth"
 
-        headers = dict()
+        headers = {}
         headers.update(BASE_HEADERS)
 
         json_data = {
@@ -340,13 +353,13 @@ class Rivian:
 
         url = GRAPHQL_GATEWAY
 
-        headers = dict()
+        headers = {}
         headers.update(BASE_HEADERS)
         headers.update(
             {
                 "Csrf-Token": self._csrf_token,
                 "A-Sess": self._app_session_token,
-                "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
+                "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
                 "Dc-Cid": f"m-ios-{uuid.uuid4()}",
             }
         )
@@ -384,7 +397,7 @@ class Rivian:
             {
                 "Csrf-Token": self._csrf_token,
                 "A-Sess": self._app_session_token,
-                "Apollographql-Client-Name": "com.rivian.ios.consumer-apollo-ios",
+                "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
             }
         )
 
@@ -450,31 +463,18 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
-    async def get_vehicle_state(
-        self, vin: str, properties: dict[str]
-    ) -> ClientResponse:
+    async def get_vehicle_state(self, vin: str, properties: set[str]) -> ClientResponse:
         """get vehicle state (graphql)"""
         url = GRAPHQL_GATEWAY
 
-        headers = dict()
+        headers = {}
         headers.update(BASE_HEADERS)
         headers.update(
             {"A-Sess": self._app_session_token, "U-Sess": self._user_session_token}
         )
 
-        graphql_query = "query GetVehicleState($vehicleID: String!) {\n  vehicleState(id: $vehicleID) {\n    "
-        gnss_attribute_template = (
-            "{\n      latitude\n      longitude\n      timeStamp\n    }\n"
-        )
-        generic_sensor_template = "{\n      timeStamp\n      value\n    }\n"
-
-        for key in properties:
-            template = generic_sensor_template
-            if key == "gnssLocation":
-                template = gnss_attribute_template
-
-            graphql_query += f"{key} {template}"
-        graphql_query += "}"
+        graphql_query = "query GetVehicleState($vehicleID: String!) {\n  vehicleState(id: $vehicleID) "
+        graphql_query += self._build_vehicle_state_fragment(properties)
         graphql_query += "}"
 
         graphql_json = {
@@ -523,6 +523,58 @@ class Rivian:
         }
 
         return await self.__graphql_query(headers, url, graphql_json)
+
+    async def subscribe_for_vehicle_updates(
+        self,
+        vin: str,
+        properties: set[str] | None = None,
+        callback: Callable = None,
+    ) -> Callable | None:
+        """Open a web socket connection to receive updates."""
+        if not properties:
+            properties = VEHICLE_STATE_PROPERTIES
+
+        try:
+            await self._ws_connect()
+            async with async_timeout.timeout(self.request_timeout):
+                await self._ws_monitor.connection_ack.wait()
+            payload = {
+                "operationName": "VehicleState",
+                "query": f"subscription VehicleState($vehicleID: String!) {{ vehicleState(id: $vehicleID) {self._build_vehicle_state_fragment(properties)} }}",
+                "variables": {"vehicleID": vin},
+            }
+            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
+            _LOGGER.debug("%s subscribed to updates", vin)
+            return unsubscribe
+        except Exception as ex:  # pylint: disable=broad-except
+            _LOGGER.error(ex)
+
+    async def _ws_connect(self) -> ClientWebSocketResponse:
+        """Initiate a websocket connection."""
+
+        async def connection_init(websocket: ClientWebSocketResponse) -> None:
+            await websocket.send_json(
+                {
+                    "payload": {
+                        "client-name": APOLLO_CLIENT_NAME,
+                        "client-version": "1.13.0-1494",
+                        "dc-cid": f"m-ios-{uuid.uuid4()}",
+                        "u-sess": self._user_session_token,
+                    },
+                    "type": "connection_init",
+                }
+            )
+
+        if not self._ws_monitor:
+            self._ws_monitor = WebSocketMonitor(
+                self, GRAPHQL_WEBSOCKET, connection_init
+            )
+        ws_monitor = self._ws_monitor
+        if ws_monitor.websocket is None or ws_monitor.websocket.closed:
+            await ws_monitor.new_connection(True)
+        if ws_monitor.monitor is None or ws_monitor.monitor.done():
+            await ws_monitor.start_monitor()
+        return ws_monitor.websocket
 
     async def __graphql_query(self, headers: dict(str, str), url: str, body: str):
         """execute and return arbitrary graphql query"""
@@ -604,6 +656,8 @@ class Rivian:
 
     async def close(self) -> None:
         """Close open client session."""
+        if self._ws_monitor:
+            await self._ws_monitor.close()
         if self._session and self._close_session:
             await self._session.close()
 
@@ -620,3 +674,8 @@ class Rivian:
             _exc_info: Exec type.
         """
         await self.close()
+
+    def _build_vehicle_state_fragment(self, properties: set[str]) -> str:
+        """Build GraphQL vehicle state fragment from properties."""
+        frag = " ".join(f"{p} {TEMPLATE_MAP.get(p,VALUE_TEMPLATE)}" for p in properties)
+        return f"{{ {frag} }}"
