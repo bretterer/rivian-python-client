@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import random
 import socket
 import uuid
 from collections.abc import Callable
@@ -13,11 +12,18 @@ from typing import Any
 import aiohttp
 import async_timeout
 from aiohttp import ClientRequest, ClientResponse, ClientWebSocketResponse
-from yarl import URL
-
-from rivian.exceptions import *
 
 from .const import VEHICLE_STATE_PROPERTIES
+from .exceptions import (
+    RivianApiException,
+    RivianApiRateLimitError,
+    RivianDataError,
+    RivianExpiredTokenError,
+    RivianInvalidCredentials,
+    RivianInvalidOTP,
+    RivianTemporarilyLockedError,
+    RivianUnauthenticated,
+)
 from .ws_monitor import WebSocketMonitor
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,6 +64,7 @@ class Rivian:
         self._session_token = ""
         self._access_token = ""
         self._refresh_token = ""
+        self._csrf_token = ""
         self._app_session_token = ""
         self._user_session_token = ""
 
@@ -591,58 +598,47 @@ class Rivian:
                     headers=headers,
                 )
         except asyncio.TimeoutError as exception:
-            raise Exception(
+            raise RivianApiException(
                 "Timeout occurred while connecting to Rivian API."
             ) from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise Exception(
+            raise RivianApiException(
                 "Error occurred while communicating with Rivian."
             ) from exception
 
         try:
             response_json = await response.json()
-            if "errors" in response_json:
-                for e in response_json["errors"]:
-                    extensions = e["extensions"]
-                    if extensions["code"] == "UNAUTHENTICATED":
+            if errors := response_json.get("errors"):
+                for error in errors:
+                    extensions = error["extensions"]
+                    if (code := extensions["code"]) == "UNAUTHENTICATED":
                         raise RivianUnauthenticated(
-                            response.status,
-                            response_json,
-                            headers,
-                            body,
+                            response.status, response_json, headers, body
                         )
-                    elif extensions["code"] == "DATA_ERROR":
+                    if code == "DATA_ERROR":
                         raise RivianDataError(
-                            response.status,
-                            response_json,
-                            headers,
-                            body,
+                            response.status, response_json, headers, body
                         )
-                    elif extensions["code"] == "BAD_CURRENT_PASSWORD":
+                    if code == "BAD_CURRENT_PASSWORD":
                         raise RivianInvalidCredentials(
-                            response.status,
-                            response_json,
-                            headers,
-                            body,
+                            response.status, response_json, headers, body
                         )
-                    elif (
-                        extensions["code"] == "BAD_USER_INPUT"
+                    if (
+                        code == "BAD_USER_INPUT"
                         and extensions["reason"] == "INVALID_OTP"
                     ):
                         raise RivianInvalidOTP(
-                            response.status,
-                            response_json,
-                            headers,
-                            body,
+                            response.status, response_json, headers, body
                         )
-                    elif extensions["code"] == "SESSION_MANAGER_ERROR":
+                    if code == "SESSION_MANAGER_ERROR":
                         raise RivianTemporarilyLockedError(
-                            response.status,
-                            response_json,
-                            headers,
-                            body,
+                            response.status, response_json, headers, body
                         )
-                raise Exception(
+                    if code == "RATE_LIMIT":
+                        raise RivianApiRateLimitError(
+                            response.status, response_json, headers, body
+                        )
+                raise RivianApiException(
                     "Error occurred while reading the graphql response from Rivian.",
                     response.status,
                     response_json,
