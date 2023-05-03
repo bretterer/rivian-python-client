@@ -84,10 +84,9 @@ class Rivian:
         password: str,
     ) -> ClientResponse | dict[str, str]:
         """Authenticate against the Rivian API with Username and Password"""
-        url = url = AUTH_BASEPATH + "/token/auth"
+        url = AUTH_BASEPATH + "/token/auth"
 
-        headers = {}
-        headers.update(BASE_HEADERS)
+        headers = {**BASE_HEADERS}
 
         json_data = {
             "grant_type": "password",
@@ -149,15 +148,9 @@ class Rivian:
         otp: str,
     ) -> dict[str, Any]:
         """Validate the OTP"""
-        url = url = AUTH_BASEPATH + "/token/auth"
+        url = AUTH_BASEPATH + "/token/auth"
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {
-                "Authorization": "Bearer " + self._session_token,
-            }
-        )
+        headers = BASE_HEADERS | {"Authorization": "Bearer " + self._session_token}
 
         json_data = {
             "grant_type": "password",
@@ -214,10 +207,9 @@ class Rivian:
         client_secret: str,
     ) -> ClientRequest:
         """Validate the OTP"""
-        url = url = AUTH_BASEPATH + "/token/refresh"
+        url = AUTH_BASEPATH + "/token/refresh"
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
+        headers = {**BASE_HEADERS}
 
         json_data = {
             "token": refresh_token,
@@ -271,13 +263,7 @@ class Rivian:
         """get the vehicle info"""
         url = CESIUM_BASEPATH + "/vehicle/latest"
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {
-                "Authorization": "Bearer " + access_token,
-            }
-        )
+        headers = BASE_HEADERS | {"Authorization": "Bearer " + access_token}
 
         json_data = {
             "car": vin,
@@ -328,12 +314,10 @@ class Rivian:
         return response
 
     async def create_csrf_token(self) -> dict[str, Any]:
-        """create cross-site-request-forgery (csrf) token"""
-
+        """Create cross-site-request-forgery (csrf) token."""
         url = GRAPHQL_GATEWAY
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
+        headers = {**BASE_HEADERS}
 
         graphql_json = {
             "operationName": "CreateCSRFToken",
@@ -357,19 +341,14 @@ class Rivian:
         password: str,
     ) -> dict[str, Any]:
         """Authenticate against the Rivian GraphQL API with Username and Password"""
-
         url = GRAPHQL_GATEWAY
 
-        headers = {}
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {
-                "Csrf-Token": self._csrf_token,
-                "A-Sess": self._app_session_token,
-                "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
-                "Dc-Cid": f"m-ios-{uuid.uuid4()}",
-            }
-        )
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
+            "Dc-Cid": f"m-ios-{uuid.uuid4()}",
+        }
 
         graphql_json = {
             "operationName": "Login",
@@ -395,18 +374,13 @@ class Rivian:
 
     async def validate_otp_graphql(self, username: str, otpCode: str) -> dict[str, Any]:
         """Validates OTP against the Rivian GraphQL API with Username, OTP Code, and OTP Token"""
-
         url = GRAPHQL_GATEWAY
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {
-                "Csrf-Token": self._csrf_token,
-                "A-Sess": self._app_session_token,
-                "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
-            }
-        )
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
+        }
 
         graphql_json = {
             "operationName": "LoginWithOTP",
@@ -434,15 +408,14 @@ class Rivian:
         """get user information (user.id, vehicle vins)"""
         url = GRAPHQL_GATEWAY
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {"A-Sess": self._app_session_token, "U-Sess": self._user_session_token}
-        )
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
 
         graphql_json = {
             "operationName": "getUserInfo",
-            "query": "query getUserInfo {\n    currentUser {\n        __typename\n        id\n        vehicles {\n        id\n        vin\n        vas {\n            __typename\n            vasVehicleId\n            vehiclePublicKey\n        }\n        roles\n        state\n        createdAt\n        updatedAt\n        vehicle {\n            __typename\n            id\n            vin\n            modelYear\n            make\n            model\n            expectedBuildDate\n            plannedBuildDate\n            expectedGeneralAssemblyStartDate\n            actualGeneralAssemblyDate\n        }\n        }\n    }\n}",
+            "query": "query getUserInfo {\n    currentUser {\n        __typename\n        id\n        vehicles {\n        id\n        vin\n        name\n        vas {\n            __typename\n            vasVehicleId\n            vehiclePublicKey\n        }\n        roles\n        state\n        createdAt\n        updatedAt\n        vehicle {\n            __typename\n            id\n            vin\n            modelYear\n            make\n            model\n            expectedBuildDate\n            plannedBuildDate\n            expectedGeneralAssemblyStartDate\n            actualGeneralAssemblyDate\n        }\n        }\n    }\n}",
             "variables": None,
         }
 
@@ -452,15 +425,11 @@ class Rivian:
         """get wallboxes (graphql)"""
         url = GRAPHQL_CHARGING
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {
-                "Csrf-Token": self._csrf_token,
-                "A-Sess": self._app_session_token,
-                "U-Sess": self._user_session_token,
-            }
-        )
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
 
         graphql_json = {
             "operationName": "getRegisteredWallboxes",
@@ -474,11 +443,10 @@ class Rivian:
         """get vehicle state (graphql)"""
         url = GRAPHQL_GATEWAY
 
-        headers = {}
-        headers.update(BASE_HEADERS)
-        headers.update(
-            {"A-Sess": self._app_session_token, "U-Sess": self._user_session_token}
-        )
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
 
         graphql_query = "query GetVehicleState($vehicleID: String!) {\n  vehicleState(id: $vehicleID) "
         graphql_query += self._build_vehicle_state_fragment(properties)
@@ -498,9 +466,7 @@ class Rivian:
         """get live charging session data (graphql)"""
         url = GRAPHQL_CHARGING
 
-        headers = dict()
-        headers.update(BASE_HEADERS)
-        headers.update({"U-Sess": self._user_session_token})
+        headers = BASE_HEADERS | {"U-Sess": self._user_session_token}
 
         graphql_query = "query getLiveSessionData($vehicleId: ID!) {\n  getLiveSessionData(vehicleId: $vehicleId) {\n    __typename\n   "
         detail_sensors = [
