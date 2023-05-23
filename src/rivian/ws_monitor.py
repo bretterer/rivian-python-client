@@ -114,8 +114,12 @@ class WebSocketMonitor:
 
     async def _resubscribe_all(self) -> None:
         """Resubscribe all subscriptions."""
-        async with async_timeout.timeout(10):
-            await self.connection_ack.wait()
+        try:
+            async with async_timeout.timeout(10):
+                await self.connection_ack.wait()
+        except asyncio.TimeoutError:
+            _LOGGER.error("A timeout occurred while attempting to resubscribe")
+            return
         for _id, (_, payload) in self._subscriptions.items():
             await self._subscribe(_id, payload)
 
@@ -153,6 +157,8 @@ class WebSocketMonitor:
         attempt = 0
         while not self._disconnect:
             while self.connected or not self._subscriptions:
+                if self._receiver_task.done():  # Need to restart the receiver
+                    self._receiver_task = asyncio.ensure_future(self._receiver())
                 await asyncio.sleep(1)
             if not self._disconnect:
                 try:
