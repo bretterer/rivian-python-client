@@ -132,6 +132,8 @@ class WebSocketMonitor:
                 msg = await websocket.receive(timeout=60)
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     self._log_message(msg)
+                    if msg.extra == "Unauthenticated":
+                        self._disconnect = True
                     break
                 self._last_received = datetime.now(timezone.utc)
                 if msg.type == WSMsgType.TEXT:
@@ -156,7 +158,7 @@ class WebSocketMonitor:
         """Monitor a web socket connection."""
         attempt = 0
         while not self._disconnect:
-            while self.connected or not self._subscriptions:
+            while self.connected:
                 if self._receiver_task.done():  # Need to restart the receiver
                     self._receiver_task = asyncio.ensure_future(self._receiver())
                 await asyncio.sleep(1)
