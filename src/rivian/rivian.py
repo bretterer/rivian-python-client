@@ -511,7 +511,7 @@ class Rivian:
 
     async def subscribe_for_vehicle_updates(
         self,
-        vin: str,
+        vehicle_id: str,
         properties: set[str] | None = None,
         callback: Callable = None,
     ) -> Callable | None:
@@ -526,10 +526,10 @@ class Rivian:
             payload = {
                 "operationName": "VehicleState",
                 "query": f"subscription VehicleState($vehicleID: String!) {{ vehicleState(id: $vehicleID) {self._build_vehicle_state_fragment(properties)} }}",
-                "variables": {"vehicleID": vin},
+                "variables": {"vehicleID": vehicle_id},
             }
             unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
-            _LOGGER.debug("%s subscribed to updates", vin)
+            _LOGGER.debug("%s subscribed to updates", vehicle_id)
             return unsubscribe
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.error(ex)
