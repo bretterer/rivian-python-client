@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import async_timeout
-from aiohttp import ClientWebSocketResponse, WSMsgType
+from aiohttp import ClientWebSocketResponse, WSMessage, WSMsgType
 
 if TYPE_CHECKING:
     from .rivian import Rivian
@@ -81,6 +81,7 @@ class WebSocketMonitor:
         await cancel_task(self._receiver_task)
         self._disconnect = False
         # pylint: disable=protected-access
+        assert self._account._session
         self._ws = await self._account._session.ws_connect(
             url=self._url, headers={"sec-websocket-protocol": "graphql-transport-ws"}
         )
@@ -94,7 +95,7 @@ class WebSocketMonitor:
     ) -> Callable[[], Awaitable[None]] | None:
         """Start a subscription."""
         if not self.connected:
-            return
+            return None
         _id = str(uuid4())
         self._subscriptions[_id] = (callback, payload)
         await self._subscribe(_id, payload)
@@ -104,12 +105,14 @@ class WebSocketMonitor:
             if _id in self._subscriptions:
                 del self._subscriptions[_id]
                 if self.connected:
+                    assert self._ws
                     await self._ws.send_json({"id": _id, "type": "complete"})
 
         return unsubscribe
 
     async def _subscribe(self, _id: str, payload: dict[str, Any]) -> None:
         """Send a subscribe request."""
+        assert self._ws
         await self._ws.send_json({"id": _id, "payload": payload, "type": "subscribe"})
 
     async def _resubscribe_all(self) -> None:
@@ -142,8 +145,7 @@ class WebSocketMonitor:
                         self._connection_ack.set()
                     elif data_type == "next":
                         if (_id := data.get("id")) in self._subscriptions:
-                            if callback := self._subscriptions[_id][0]:
-                                callback(data)
+                            self._subscriptions[_id][0](data)
                     else:
                         self._log_message(msg)
                 elif msg.type == WSMsgType.ERROR:
@@ -159,7 +161,8 @@ class WebSocketMonitor:
         attempt = 0
         while not self._disconnect:
             while self.connected:
-                if self._receiver_task.done():  # Need to restart the receiver
+                if self._receiver_task and self._receiver_task.done():
+                    # Need to restart the receiver
                     self._receiver_task = asyncio.ensure_future(self._receiver())
                 await asyncio.sleep(1)
             if not self._disconnect:
@@ -191,7 +194,9 @@ class WebSocketMonitor:
             await self._ws.close()
         await cancel_task(self._monitor_task, self._receiver_task)
 
-    def _log_message(self, message: str | Exception, is_error: bool = False) -> None:
+    def _log_message(
+        self, message: str | Exception | WSMessage, is_error: bool = False
+    ) -> None:
         """Log a message."""
         log_method = _LOGGER.error if is_error else _LOGGER.debug
         log_method(message)
