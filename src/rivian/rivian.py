@@ -7,7 +7,7 @@ import logging
 import socket
 import uuid
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Type
 
 import aiohttp
 import async_timeout
@@ -57,6 +57,15 @@ LIVE_SESSION_VALUE_RECORD_KEYS = {
     "vehicleChargerState",
 }
 VALUE_RECORD_TEMPLATE = "{ __typename value updatedAt }"
+
+ERROR_CODE_CLASS_MAP: dict[str, Type[RivianApiException]] = {
+    "BAD_CURRENT_PASSWORD": RivianInvalidCredentials,
+    "DATA_ERROR": RivianDataError,
+    "INTERNAL_SERVER_ERROR": RivianApiException,
+    "RATE_LIMIT": RivianApiRateLimitError,
+    "SESSION_MANAGER_ERROR": RivianTemporarilyLockedError,
+    "UNAUTHENTICATED": RivianUnauthenticated,
+}
 
 
 class Rivian:
@@ -579,34 +588,16 @@ class Rivian:
             response_json = await response.json()
             if errors := response_json.get("errors"):
                 for error in errors:
-                    extensions = error["extensions"]
-                    if (code := extensions["code"]) == "UNAUTHENTICATED":
-                        raise RivianUnauthenticated(
-                            response.status, response_json, headers, body
-                        )
-                    if code == "DATA_ERROR":
-                        raise RivianDataError(
-                            response.status, response_json, headers, body
-                        )
-                    if code == "BAD_CURRENT_PASSWORD":
-                        raise RivianInvalidCredentials(
-                            response.status, response_json, headers, body
-                        )
-                    if (
-                        code == "BAD_USER_INPUT"
-                        and extensions["reason"] == "INVALID_OTP"
-                    ):
-                        raise RivianInvalidOTP(
-                            response.status, response_json, headers, body
-                        )
-                    if code == "SESSION_MANAGER_ERROR":
-                        raise RivianTemporarilyLockedError(
-                            response.status, response_json, headers, body
-                        )
-                    if code == "RATE_LIMIT":
-                        raise RivianApiRateLimitError(
-                            response.status, response_json, headers, body
-                        )
+                    if extensions := error.get("extensions"):
+                        code = extensions["code"]
+                        if err_cls := ERROR_CODE_CLASS_MAP.get(code):
+                            raise err_cls(response.status, response_json, headers, body)
+                        if code == "BAD_USER_INPUT" and (
+                            extensions["reason"] == "INVALID_OTP"
+                        ):
+                            raise RivianInvalidOTP(
+                                response.status, response_json, headers, body
+                            )
                 raise RivianApiException(
                     "Error occurred while reading the graphql response from Rivian.",
                     response.status,

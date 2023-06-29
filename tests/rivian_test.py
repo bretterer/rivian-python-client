@@ -4,9 +4,19 @@ from unittest.mock import patch
 
 import aiohttp
 import pytest
+from aresponses import ResponsesMockServer
 
 from rivian import Rivian
-from rivian.exceptions import RivianExpiredTokenError
+from rivian.exceptions import (
+    RivianApiException,
+    RivianApiRateLimitError,
+    RivianDataError,
+    RivianExpiredTokenError,
+    RivianInvalidCredentials,
+    RivianInvalidOTP,
+    RivianTemporarilyLockedError,
+    RivianUnauthenticated,
+)
 
 
 @pytest.mark.asyncio
@@ -751,4 +761,71 @@ async def test_get_live_charging_session(aresponses):
             response_json["data"]["getLiveSessionData"]["vehicleChargerState"]["value"]
             == "charging_active"
         )
+        await rivian.close()
+
+
+async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
+    """Test GraphQL error responses."""
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
+        response={"errors": [{"extensions": {"code": "RATE_LIMIT"}}]},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian("", "")
+        with pytest.raises(RivianApiRateLimitError):
+            await rivian.get_vehicle_state("vin", {})
+        await rivian.close()
+
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
+        response={"errors": [{"extensions": {"code": "DATA_ERROR"}}]},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian("", "")
+        with pytest.raises(RivianDataError):
+            await rivian.get_vehicle_state("vin", {})
+        await rivian.close()
+
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
+        response={"errors": [{"extensions": {"code": "SESSION_MANAGER_ERROR"}}]},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian("", "")
+        with pytest.raises(RivianTemporarilyLockedError):
+            await rivian.get_vehicle_state("vin", {})
+        await rivian.close()
+
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
+        response={"errors": [{}]},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian("", "")
+        with pytest.raises(RivianApiException):
+            await rivian.get_vehicle_state("vin", {})
+        await rivian.close()
+
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
+        response={
+            "errors": [
+                {"extensions": {"code": "BAD_USER_INPUT", "reason": "INVALID_OTP"}}
+            ]
+        },
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian("", "")
+        with pytest.raises(RivianInvalidOTP):
+            await rivian.authenticate_graphql("", "")
         await rivian.close()
