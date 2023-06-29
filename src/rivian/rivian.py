@@ -13,7 +13,7 @@ import aiohttp
 import async_timeout
 from aiohttp import ClientRequest, ClientResponse, ClientWebSocketResponse
 
-from .const import VEHICLE_STATE_PROPERTIES
+from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES
 from .exceptions import (
     RivianApiException,
     RivianApiRateLimitError,
@@ -47,6 +47,16 @@ BASE_HEADERS = {
 LOCATION_TEMPLATE = "{ latitude longitude timeStamp }"
 VALUE_TEMPLATE = "{ timeStamp value }"
 TEMPLATE_MAP = {"gnssLocation": LOCATION_TEMPLATE}
+
+LIVE_SESSION_VALUE_RECORD_KEYS = {
+    "kilometersChargedPerHour",
+    "power",
+    "rangeAddedThisSession",
+    "timeRemaining",
+    "totalChargedEnergy",
+    "vehicleChargerState",
+}
+VALUE_RECORD_TEMPLATE = "{ __typename value updatedAt }"
 
 
 class Rivian:
@@ -461,38 +471,31 @@ class Rivian:
         return await self.__graphql_query(headers, url, graphql_json)
 
     async def get_live_charging_session(
-        self, user_id: str, vin: str, properties: dict[str]
+        self, vin: str, properties: set[str] | None = None
     ) -> ClientResponse:
-        """get live charging session data (graphql)"""
-        url = GRAPHQL_CHARGING
+        """Get live charging session data."""
+        if not properties:
+            properties = LIVE_SESSION_PROPERTIES
 
+        url = GRAPHQL_CHARGING
         headers = BASE_HEADERS | {"U-Sess": self._user_session_token}
 
-        graphql_query = "query getLiveSessionData($vehicleId: ID!) {\n  getLiveSessionData(vehicleId: $vehicleId) {\n    __typename\n   "
-        detail_sensors = [
-            "vehicleChargerState",
-            "timeRemaining",
-            "kilometersChargedPerHour",
-            "power",
-            "rangeAddedThisSession",
-            "totalChargedEnergy",
-        ]
-        detail_sensor_template = (
-            "{\n      __typename\n      value\n      updatedAt\n    }\n"
+        fragment = " ".join(
+            f"{p} {VALUE_RECORD_TEMPLATE if p in LIVE_SESSION_VALUE_RECORD_KEYS else ''}"
+            for p in properties
         )
-
-        for key in properties:
-            template = ""
-            if key in detail_sensors:
-                template = detail_sensor_template
-            graphql_query += f"{key} {template}"
-        graphql_query += "}"
-        graphql_query += "}"
+        graphql_query = f"""
+            query getLiveSessionData($vehicleId: ID!) {{
+                getLiveSessionData(vehicleId: $vehicleId) {{
+                    __typename
+                    {fragment}
+                }}
+            }}"""
 
         graphql_json = {
             "operationName": "getLiveSessionData",
             "query": graphql_query,
-            "variables": {"userId": user_id, "vehicleId": vin},
+            "variables": {"vehicleId": vin},
         }
 
         return await self.__graphql_query(headers, url, graphql_json)

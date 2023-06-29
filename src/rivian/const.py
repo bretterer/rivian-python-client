@@ -3,6 +3,23 @@ from __future__ import annotations
 
 from typing import Final
 
+LIVE_SESSION_PROPERTIES: Final[set[str]] = {
+    "chargerId",
+    "currentCurrency",
+    "currentPrice",
+    "isFreeSession",
+    "isRivianCharger",
+    "kilometersChargedPerHour",
+    "locationId",
+    "power",
+    "rangeAddedThisSession",
+    "startTime",
+    "timeElapsed",
+    "timeRemaining",
+    "totalChargedEnergy",
+    "vehicleChargerState",
+}
+
 VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     # VehicleLocation
     "gnssLocation",
