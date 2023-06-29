@@ -794,6 +794,18 @@ async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
         "rivian.com",
         "/api/gql/gateway/graphql",
         "POST",
+        response={"errors": [{"extensions": {"code": "SESSION_MANAGER_ERROR"}}]},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian("", "")
+        with pytest.raises(RivianTemporarilyLockedError):
+            await rivian.get_vehicle_state("vin", {})
+        await rivian.close()
+
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
         response={"errors": [{}]},
     )
     async with aiohttp.ClientSession():
