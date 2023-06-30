@@ -65,7 +65,7 @@ ERROR_CODE_CLASS_MAP: dict[str, Type[RivianApiException]] = {
 }
 
 
-def send_deprecation_warning(old_name: str, new_name: str) -> None:
+def send_deprecation_warning(old_name: str, new_name: str) -> None:  # pragma: no cover
     """Send a deprecation warning."""
     message = f"{old_name} has been deprecated in favor of {new_name}, the alias will be removed in the future"
     warn(
@@ -158,7 +158,9 @@ class Rivian:
             self._refresh_token = login_data["refreshToken"]
             self._user_session_token = login_data["userSessionToken"]
 
-    async def authenticate_graphql(self, username: str, password: str) -> None:
+    async def authenticate_graphql(
+        self, username: str, password: str
+    ) -> None:  # pragma: no cover
         """### DEPRECATED (use `authenticate` instead)
 
         Authenticate against the Rivian GraphQL API with Username and Password.
@@ -196,7 +198,9 @@ class Rivian:
         self._refresh_token = login_data["refreshToken"]
         self._user_session_token = login_data["userSessionToken"]
 
-    async def validate_otp_graphql(self, username: str, otpCode: str) -> None:
+    async def validate_otp_graphql(
+        self, username: str, otpCode: str
+    ) -> None:  # pragma: no cover
         """### DEPRECATED (use `validate_otp` instead)
 
         Validates OTP against the Rivian GraphQL API with Username, OTP Code, and OTP Token.
@@ -381,14 +385,15 @@ class Rivian:
                 for error in errors:
                     if extensions := error.get("extensions"):
                         code = extensions["code"]
-                        if err_cls := ERROR_CODE_CLASS_MAP.get(code):
-                            raise err_cls(response.status, response_json, headers, body)
-                        if code == "BAD_USER_INPUT" and (
-                            extensions["reason"] == "INVALID_OTP"
+                        if (code, extensions.get("reason")) in (
+                            ("BAD_USER_INPUT", "INVALID_OTP"),
+                            ("UNAUTHENTICATED", "OTP_TOKEN_EXPIRED"),
                         ):
                             raise RivianInvalidOTP(
                                 response.status, response_json, headers, body
                             )
+                        if err_cls := ERROR_CODE_CLASS_MAP.get(code):
+                            raise err_cls(response.status, response_json, headers, body)
                 raise RivianApiException(
                     "Error occurred while reading the graphql response from Rivian.",
                     response.status,
