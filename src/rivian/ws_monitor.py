@@ -115,7 +115,7 @@ class WebSocketMonitor:
     async def _resubscribe_all(self) -> None:
         """Resubscribe all subscriptions."""
         try:
-            async with async_timeout.timeout(10):
+            async with async_timeout.timeout(self._account.request_timeout):
                 await self.connection_ack.wait()
         except asyncio.TimeoutError:
             _LOGGER.error("A timeout occurred while attempting to resubscribe")
