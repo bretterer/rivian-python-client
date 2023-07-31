@@ -243,6 +243,43 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def get_vehicle_images(
+        self,
+        *,
+        extension: str | None = None,
+        resolution: str | None = None,
+        vehicle_version: str | None = None,
+        preorder_version: str | None = None,
+    ) -> ClientResponse:
+        """Get vehicle images.
+
+        Known parameter values:
+          - extension: `png`, `webp`
+          - resolution: `@1x`, `@2x`, `@3x` (for png); `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi` (for webp)
+          - vehicle_version/preorder_version: `1`, `2` (all other values return v1 images)
+        """
+        url = GRAPHQL_GATEWAY
+
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+
+        graphql_query = "query getVehicleImages( $extension: String $resolution: String $versionForVehicle: String $versionForPreOrder: String ) { getVehicleOrderMobileImages( resolution: $resolution extension: $extension version: $versionForPreOrder ) { ...image } getVehicleMobileImages( resolution: $resolution extension: $extension version: $versionForVehicle ) { ...image } } fragment image on VehicleMobileImage { orderId vehicleId url extension resolution size design placement }"
+
+        graphql_json = {
+            "operationName": "getVehicleImages",
+            "query": graphql_query,
+            "variables": {
+                "extension": extension,
+                "resolution": resolution,
+                "versionForVehicle": vehicle_version,
+                "versionForPreOrder": preorder_version,
+            },
+        }
+
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_vehicle_state(
         self, vin: str, properties: set[str] | None = None
     ) -> ClientResponse:
