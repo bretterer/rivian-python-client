@@ -2,23 +2,22 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import socket
 import uuid
 from collections.abc import Callable
 from typing import Any, Type
+from warnings import warn
 
 import aiohttp
 import async_timeout
-from aiohttp import ClientRequest, ClientResponse, ClientWebSocketResponse
+from aiohttp import ClientResponse, ClientWebSocketResponse
 
 from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES
 from .exceptions import (
     RivianApiException,
     RivianApiRateLimitError,
     RivianDataError,
-    RivianExpiredTokenError,
     RivianInvalidCredentials,
     RivianInvalidOTP,
     RivianTemporarilyLockedError,
@@ -28,8 +27,6 @@ from .ws_monitor import WebSocketMonitor
 
 _LOGGER = logging.getLogger(__name__)
 
-CESIUM_BASEPATH = "https://cesium.rivianservices.com/v2"
-AUTH_BASEPATH = "https://auth.rivianservices.com/auth/api/v1"
 GRAPHQL_BASEPATH = "https://rivian.com/api/gql"
 GRAPHQL_GATEWAY = GRAPHQL_BASEPATH + "/gateway/graphql"
 GRAPHQL_CHARGING = GRAPHQL_BASEPATH + "/chrg/user/graphql"
@@ -68,27 +65,40 @@ ERROR_CODE_CLASS_MAP: dict[str, Type[RivianApiException]] = {
 }
 
 
+def send_deprecation_warning(old_name: str, new_name: str) -> None:  # pragma: no cover
+    """Send a deprecation warning."""
+    message = f"{old_name} has been deprecated in favor of {new_name}, the alias will be removed in the future"
+    warn(
+        message,
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    _LOGGER.warning(message)
+
+
 class Rivian:
     """Main class for the Rivian API Client"""
 
     def __init__(
         self,
-        client_id: str,
-        client_secret: str,
         request_timeout: int = 10,
         session: aiohttp.client.ClientSession | None = None,
+        *,
+        access_token: str = "",
+        refresh_token: str = "",
+        csrf_token: str = "",
+        app_session_token: str = "",
+        user_session_token: str = "",
     ) -> None:
         self._session = session
         self._close_session = False
-        self._session_token = ""
-        self._access_token = ""
-        self._refresh_token = ""
-        self._csrf_token = ""
-        self._app_session_token = ""
-        self._user_session_token = ""
 
-        self.client_id = client_id
-        self.client_secret = client_secret
+        self._access_token = access_token
+        self._refresh_token = refresh_token
+        self._csrf_token = csrf_token
+        self._app_session_token = app_session_token
+        self._user_session_token = user_session_token
+
         self.request_timeout = request_timeout
 
         self._otp_needed = False
@@ -97,242 +107,7 @@ class Rivian:
         self._ws_monitor: WebSocketMonitor | None = None
         self._subscriptions: dict[str, str] = {}
 
-    async def authenticate(
-        self,
-        username: str,
-        password: str,
-    ) -> ClientResponse | dict[str, str]:
-        """Authenticate against the Rivian API with Username and Password"""
-        url = AUTH_BASEPATH + "/token/auth"
-
-        headers = {**BASE_HEADERS}
-
-        json_data = {
-            "grant_type": "password",
-            "username": username,
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "pwd": password,
-        }
-
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-            self._close_session = True
-
-        try:
-            async with async_timeout.timeout(self.request_timeout):
-                response = await self._session.request(
-                    "POST",
-                    url,
-                    json=json_data,
-                    headers=headers,
-                )
-        except asyncio.TimeoutError as exception:
-            raise Exception(
-                "Timeout occurred while connecting to Rivian API."
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise Exception(
-                "Error occurred while communicating with Rivian."
-            ) from exception
-
-        content_type = response.headers.get("Content-Type", "")
-
-        if response.status == 401:
-            self._otp_needed = True
-            response_json = await response.json()
-            self._session_token = response_json["session_token"]
-            return response
-
-        if response.status // 100 in [4, 5]:
-            contents = await response.read()
-            response.close()
-
-            if content_type == "application/json":
-                raise Exception(response.status, json.loads(contents.decode("utf8")))
-            raise Exception(response.status, {"message": contents.decode("utf8")})
-
-        if "application/json" in content_type:
-            response_json = await response.json()
-            self._access_token = response_json["access_token"]
-            self._refresh_token = response_json["refresh_token"]
-            return response
-
-        text = await response.text()
-        return {"message": text}
-
-    async def validate_otp(
-        self,
-        username: str,
-        otp: str,
-    ) -> dict[str, Any]:
-        """Validate the OTP"""
-        url = AUTH_BASEPATH + "/token/auth"
-
-        headers = BASE_HEADERS | {"Authorization": "Bearer " + self._session_token}
-
-        json_data = {
-            "grant_type": "password",
-            "username": username,
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "otp_token": otp,
-        }
-
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-            self._close_session = True
-
-        try:
-            async with async_timeout.timeout(self.request_timeout):
-                response = await self._session.request(
-                    "POST",
-                    url,
-                    json=json_data,
-                    headers=headers,
-                )
-        except asyncio.TimeoutError as exception:
-            raise Exception(
-                "Timeout occurred while connecting to Rivian API."
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise Exception(
-                "Error occurred while communicating with Rivian."
-            ) from exception
-
-        content_type = response.headers.get("Content-Type", "")
-
-        if response.status // 100 in [4, 5]:
-            contents = await response.read()
-            response.close()
-
-            if content_type == "application/json":
-                raise Exception(response.status, json.loads(contents.decode("utf8")))
-            raise Exception(response.status, {"message": contents.decode("utf8")})
-
-        if "application/json" in content_type:
-            response_json = await response.json()
-            self._access_token = response_json["access_token"]
-            self._refresh_token = response_json["refresh_token"]
-            return response
-
-        text = await response.text()
-        return {"message": text}
-
-    async def refresh_access_token(
-        self,
-        refresh_token: str,
-        client_id: str,
-        client_secret: str,
-    ) -> ClientRequest:
-        """Validate the OTP"""
-        url = AUTH_BASEPATH + "/token/refresh"
-
-        headers = {**BASE_HEADERS}
-
-        json_data = {
-            "token": refresh_token,
-            "client_id": client_id,
-            "client_secret": client_secret,
-        }
-
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-            self._close_session = True
-
-        try:
-            async with async_timeout.timeout(self.request_timeout):
-                response = await self._session.request(
-                    "POST",
-                    url,
-                    json=json_data,
-                    headers=headers,
-                )
-        except asyncio.TimeoutError as exception:
-            raise Exception(
-                "Timeout occurred while connecting to Rivian API."
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise Exception(
-                "Error occurred while communicating with Rivian."
-            ) from exception
-
-        content_type = response.headers.get("Content-Type", "")
-
-        if response.status // 100 in [4, 5]:
-            contents = await response.read()
-            response.close()
-
-            if content_type == "application/json":
-                raise Exception(
-                    response.status, json.loads(contents.decode("utf8")), json_data
-                )
-            raise Exception(response.status, {"message": contents.decode("utf8")})
-
-        if "application/json" in content_type:
-            response_json = await response.json()
-            self._access_token = response_json["access_token"]
-            return response
-
-        return response
-
-    async def get_vehicle_info(
-        self, vin: str, access_token: str, properties: dict[str]
-    ) -> dict[str, Any]:
-        """get the vehicle info"""
-        url = CESIUM_BASEPATH + "/vehicle/latest"
-
-        headers = BASE_HEADERS | {"Authorization": "Bearer " + access_token}
-
-        json_data = {
-            "car": vin,
-            "properties": properties,
-        }
-
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-            self._close_session = True
-
-        try:
-            async with async_timeout.timeout(self.request_timeout):
-                response = await self._session.request(
-                    "POST",
-                    url,
-                    json=json_data,
-                    headers=headers,
-                )
-        except asyncio.TimeoutError as exception:
-            raise Exception(
-                "Timeout occurred while connecting to Rivian API."
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise Exception(
-                "Error occurred while communicating with Rivian."
-            ) from exception
-
-        if response.status // 100 in [4, 5]:
-            contents = await response.read()
-            response.close()
-
-            response_json = await response.json()
-            if response.status == 401 and response_json["error_code"] == -40:
-                raise RivianExpiredTokenError(
-                    response.status,
-                    response_json,
-                    headers,
-                    json_data,
-                )
-
-            raise Exception(
-                response.status,
-                json.loads(contents.decode("utf8")),
-                headers,
-                json_data,
-            )
-
-        return response
-
-    async def create_csrf_token(self) -> dict[str, Any]:
+    async def create_csrf_token(self) -> None:
         """Create cross-site-request-forgery (csrf) token."""
         url = GRAPHQL_GATEWAY
 
@@ -352,13 +127,7 @@ class Rivian:
         self._csrf_token = csrf_data["csrfToken"]
         self._app_session_token = csrf_data["appSessionToken"]
 
-        return response
-
-    async def authenticate_graphql(
-        self,
-        username: str,
-        password: str,
-    ) -> dict[str, Any]:
+    async def authenticate(self, username: str, password: str) -> None:
         """Authenticate against the Rivian GraphQL API with Username and Password"""
         url = GRAPHQL_GATEWAY
 
@@ -389,9 +158,17 @@ class Rivian:
             self._refresh_token = login_data["refreshToken"]
             self._user_session_token = login_data["userSessionToken"]
 
-        return response
+    async def authenticate_graphql(
+        self, username: str, password: str
+    ) -> None:  # pragma: no cover
+        """### DEPRECATED (use `authenticate` instead)
 
-    async def validate_otp_graphql(self, username: str, otpCode: str) -> dict[str, Any]:
+        Authenticate against the Rivian GraphQL API with Username and Password.
+        """
+        send_deprecation_warning("authenticate_graphql", "authenticate")
+        return await self.authenticate(username=username, password=password)
+
+    async def validate_otp(self, username: str, otp_code: str) -> None:
         """Validates OTP against the Rivian GraphQL API with Username, OTP Code, and OTP Token"""
         url = GRAPHQL_GATEWAY
 
@@ -406,7 +183,7 @@ class Rivian:
             "query": "mutation LoginWithOTP($email: String!, $otpCode: String!, $otpToken: String!) {\n  loginWithOTP(email: $email, otpCode: $otpCode, otpToken: $otpToken) {\n    __typename\n    ... on MobileLoginResponse {\n      __typename\n      accessToken\n      refreshToken\n      userSessionToken\n    }\n  }\n}",
             "variables": {
                 "email": username,
-                "otpCode": otpCode,
+                "otpCode": otp_code,
                 "otpToken": self._otp_token,
             },
         }
@@ -421,10 +198,18 @@ class Rivian:
         self._refresh_token = login_data["refreshToken"]
         self._user_session_token = login_data["userSessionToken"]
 
-        return response
+    async def validate_otp_graphql(
+        self, username: str, otpCode: str
+    ) -> None:  # pragma: no cover
+        """### DEPRECATED (use `validate_otp` instead)
+
+        Validates OTP against the Rivian GraphQL API with Username, OTP Code, and OTP Token.
+        """
+        send_deprecation_warning("validate_otp_graphql", "validate_otp")
+        return await self.validate_otp(username=username, otp_code=otpCode)
 
     async def get_user_information(self) -> ClientResponse:
-        """get user information (user.id, vehicle vins)"""
+        """Get user information."""
         url = GRAPHQL_GATEWAY
 
         headers = BASE_HEADERS | {
@@ -441,7 +226,7 @@ class Rivian:
         return await self.__graphql_query(headers, url, graphql_json)
 
     async def get_registered_wallboxes(self) -> ClientResponse:
-        """get wallboxes (graphql)"""
+        """Get registered wallboxes."""
         url = GRAPHQL_CHARGING
 
         headers = BASE_HEADERS | {
@@ -458,8 +243,13 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
-    async def get_vehicle_state(self, vin: str, properties: set[str]) -> ClientResponse:
-        """get vehicle state (graphql)"""
+    async def get_vehicle_state(
+        self, vin: str, properties: set[str] | None = None
+    ) -> ClientResponse:
+        """Get vehicle state."""
+        if not properties:
+            properties = VEHICLE_STATE_PROPERTIES
+
         url = GRAPHQL_GATEWAY
 
         headers = BASE_HEADERS | {
@@ -512,8 +302,8 @@ class Rivian:
     async def subscribe_for_vehicle_updates(
         self,
         vehicle_id: str,
+        callback: Callable[[dict[str, Any]], None],
         properties: set[str] | None = None,
-        callback: Callable = None,
     ) -> Callable | None:
         """Open a web socket connection to receive updates."""
         if not properties:
@@ -521,6 +311,7 @@ class Rivian:
 
         try:
             await self._ws_connect()
+            assert self._ws_monitor
             async with async_timeout.timeout(self.request_timeout):
                 await self._ws_monitor.connection_ack.wait()
             payload = {
@@ -533,6 +324,7 @@ class Rivian:
             return unsubscribe
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.error(ex)
+            return None
 
     async def _ws_connect(self) -> ClientWebSocketResponse:
         """Initiate a websocket connection."""
@@ -557,12 +349,15 @@ class Rivian:
         ws_monitor = self._ws_monitor
         if ws_monitor.websocket is None or ws_monitor.websocket.closed:
             await ws_monitor.new_connection(True)
+            assert ws_monitor.websocket
         if ws_monitor.monitor is None or ws_monitor.monitor.done():
             await ws_monitor.start_monitor()
         return ws_monitor.websocket
 
-    async def __graphql_query(self, headers: dict(str, str), url: str, body: str):
-        """execute and return arbitrary graphql query"""
+    async def __graphql_query(
+        self, headers: dict[str, str], url: str, body: dict[str, Any]
+    ) -> ClientResponse:
+        """Execute and return arbitrary graphql query."""
         if self._session is None:
             self._session = aiohttp.ClientSession()
             self._close_session = True
@@ -590,14 +385,15 @@ class Rivian:
                 for error in errors:
                     if extensions := error.get("extensions"):
                         code = extensions["code"]
-                        if err_cls := ERROR_CODE_CLASS_MAP.get(code):
-                            raise err_cls(response.status, response_json, headers, body)
-                        if code == "BAD_USER_INPUT" and (
-                            extensions["reason"] == "INVALID_OTP"
+                        if (code, extensions.get("reason")) in (
+                            ("BAD_USER_INPUT", "INVALID_OTP"),
+                            ("UNAUTHENTICATED", "OTP_TOKEN_EXPIRED"),
                         ):
                             raise RivianInvalidOTP(
                                 response.status, response_json, headers, body
                             )
+                        if err_cls := ERROR_CODE_CLASS_MAP.get(code):
+                            raise err_cls(response.status, response_json, headers, body)
                 raise RivianApiException(
                     "Error occurred while reading the graphql response from Rivian.",
                     response.status,
