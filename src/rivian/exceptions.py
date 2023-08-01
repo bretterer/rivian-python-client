@@ -31,3 +31,11 @@ class RivianTemporarilyLockedError(RivianApiException):
 
 class RivianApiRateLimitError(RivianApiException):
     """Rivian API is being rate limited."""
+
+
+class RivianPhoneLimitReachedError(RivianApiException):
+    """Rivian phone limit has been reached."""
+
+
+class RivianBadRequestError(RivianApiException):
+    """Rivian API bad request."""

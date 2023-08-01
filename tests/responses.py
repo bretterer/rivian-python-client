@@ -654,6 +654,20 @@ WALLBOXES_RESPONSE = {
     }
 }
 
+DISENROLL_PHONE_BAD_REQUEST_RESPONSE = {
+    "errors": [
+        {
+            "extensions": {
+                "code": "BAD_REQUEST_ERROR",
+                "reason": "DISENROLL_PHONE_BAD_REQUEST",
+            },
+            "message": "Bad request error",
+            "path": ["disenrollPhone"],
+        }
+    ],
+    "data": None,
+}
+
 
 def error_response(
     code: str | None = None, reason: str | None = None

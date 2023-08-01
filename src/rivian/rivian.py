@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import socket
+import time
 import uuid
 from collections.abc import Callable
 from typing import Any, Type
@@ -13,16 +14,19 @@ import aiohttp
 import async_timeout
 from aiohttp import ClientResponse, ClientWebSocketResponse
 
-from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES
+from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES, VehicleCommand
 from .exceptions import (
     RivianApiException,
     RivianApiRateLimitError,
+    RivianBadRequestError,
     RivianDataError,
     RivianInvalidCredentials,
     RivianInvalidOTP,
+    RivianPhoneLimitReachedError,
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
+from .utils import generate_key_pair, generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,6 +61,7 @@ VALUE_RECORD_TEMPLATE = "{ __typename value updatedAt }"
 
 ERROR_CODE_CLASS_MAP: dict[str, Type[RivianApiException]] = {
     "BAD_CURRENT_PASSWORD": RivianInvalidCredentials,
+    "BAD_REQUEST_ERROR": RivianBadRequestError,
     "DATA_ERROR": RivianDataError,
     "INTERNAL_SERVER_ERROR": RivianApiException,
     "RATE_LIMIT": RivianApiRateLimitError,
@@ -208,6 +213,58 @@ class Rivian:
         send_deprecation_warning("validate_otp_graphql", "validate_otp")
         return await self.validate_otp(username=username, otp_code=otpCode)
 
+    async def disenroll_phone(self, identity_id: str) -> bool:
+        """Disenroll a phone."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "DisenrollPhone",
+            "variables": {"attrs": {"enrollmentId": identity_id}},
+            "query": "mutation DisenrollPhone($attrs: DisenrollPhoneAttributes!) { disenrollPhone(attrs: $attrs) { __typename success } }",
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return data.get("data", {}).get("disenrollPhone", {}).get("success")
+        return False
+
+    async def enroll_phone(
+        self, user_id: str, vehicle_id: str, device_type: str, device_name: str
+    ) -> str | None:
+        """Enable control of the vehicle by enrolling a phone. If successful, the private key is returned."""
+        public_key, private_key = generate_key_pair()
+
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "EnrollPhone",
+            "variables": {
+                "attrs": {
+                    "userId": user_id,
+                    "vehicleId": vehicle_id,
+                    "publicKey": public_key,
+                    "type": device_type,
+                    "name": device_name,
+                }
+            },
+            "query": "mutation EnrollPhone($attrs: EnrollPhoneAttributes!) { enrollPhone(attrs: $attrs) { __typename success } }",
+        }
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            if data.get("data", {}).get("enrollPhone", {}).get("success"):
+                return private_key
+        return None
+
     async def get_user_information(self) -> ClientResponse:
         """Get user information."""
         url = GRAPHQL_GATEWAY
@@ -239,6 +296,25 @@ class Rivian:
             "operationName": "getRegisteredWallboxes",
             "query": "query getRegisteredWallboxes {\n  getRegisteredWallboxes {\n    __typename\n    wallboxId\n    userId\n    wifiId\n    name\n    linked\n    latitude\n    longitude\n    chargingStatus\n    power\n    currentVoltage\n    currentAmps\n    softwareVersion\n    model\n    serialNumber\n    maxAmps\n    maxVoltage\n    maxPower\n  }\n}",
             "variables": None,
+        }
+
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def get_vehicle_command_state(self, command_id: str) -> ClientResponse:
+        """Get vehicle command state."""
+        url = GRAPHQL_GATEWAY
+
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+
+        graphql_query = "query getVehicleCommand($id: String!) { getVehicleCommand(id: $id) { __typename id command createdAt state responseCode statusCode } }"
+
+        graphql_json = {
+            "operationName": "getVehicleCommand",
+            "query": graphql_query,
+            "variables": {"id": command_id},
         }
 
         return await self.__graphql_query(headers, url, graphql_json)
@@ -336,6 +412,50 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def send_vehicle_command(
+        self,
+        command: VehicleCommand | str,
+        vehicle_id: str,
+        phone_id: str,
+        identity_id: str,
+        vehicle_key: str,
+        private_key: str,
+    ) -> str | None:
+        """Send a command to the vehicle."""
+        command = str(command)
+        timestamp = str(int(time.time()))
+        hmac = generate_vehicle_command_hmac(
+            command, timestamp, vehicle_key, private_key
+        )
+
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "sendVehicleCommand",
+            "variables": {
+                "attrs": {
+                    "command": command,
+                    "hmac": hmac,
+                    "timestamp": str(timestamp),
+                    "vasPhoneId": phone_id,
+                    "deviceId": identity_id,
+                    "vehicleId": vehicle_id,
+                }
+            },
+            "query": "mutation sendVehicleCommand($attrs: VehicleCommandAttributes!) { sendVehicleCommand(attrs: $attrs) { __typename id command state } }",
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            if status := data.get("data", {}).get("sendVehicleCommand", {}):
+                return status.get("id")
+        return None
+
     async def subscribe_for_vehicle_updates(
         self,
         vehicle_id: str,
@@ -427,6 +547,13 @@ class Rivian:
                             ("UNAUTHENTICATED", "OTP_TOKEN_EXPIRED"),
                         ):
                             raise RivianInvalidOTP(
+                                response.status, response_json, headers, body
+                            )
+                        if (code, extensions.get("reason")) == (
+                            "CONFLICT",
+                            "ENROLL_PHONE_LIMIT_REACHED",
+                        ):
+                            raise RivianPhoneLimitReachedError(
                                 response.status, response_json, headers, body
                             )
                         if err_cls := ERROR_CODE_CLASS_MAP.get(code):
