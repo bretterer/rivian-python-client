@@ -432,7 +432,7 @@ class Rivian:
                 and 50 <= limit <= 100
             ):
                 raise RivianBadRequestError(
-                    "Charging limit must include parameter `SOC_limit` with a valid integer between 50 and 100"
+                    "Charging limit must include parameter `SOC_limit` with a valid value between 50 and 100"
                 )
         if command in (
             VehicleCommand.CABIN_HVAC_DEFROST_DEFOG,
@@ -450,8 +450,18 @@ class Rivian:
                 and 0 <= level <= 3
             ):
                 raise RivianBadRequestError(
-                    "HVAC setting must include parameter `level` with a valid integer between 0 and 3"
+                    "HVAC setting must include parameter `level` with a valid value between 0 and 3"
                 )
+        if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP:
+            if not (
+                params
+                and isinstance((temp := params.get("HVAC_set_temp")), (float, int))
+                and (16 <= temp <= 29 or temp in (0, 63.5))
+            ):
+                raise RivianBadRequestError(
+                    "HVAC setting must include parameter `HVAC_set_temp` with a valid value between 16 and 29 or 0/63.5 for LO/HI, respectively"
+                )
+            params["HVAC_set_temp"] = str(params["HVAC_set_temp"])
 
     async def send_vehicle_command(
         self,
@@ -469,6 +479,7 @@ class Rivian:
         Certain commands may require additional details via the `params` mapping.
         Some known examples include:
           - `CABIN_HVAC_*`: params = {"level": 0..3} where 0 is off, 1 is low/on, 2 is medium and 3 is high
+          - `CABIN_PRECONDITIONING_SET_TEMP`: params = {"HVAC_set_temp": "deg_C"} where `deg_C` is a string value between 16 and 29 or 0/63.5 for LO/HI, respectively
           - `CHARGING_LIMITS`: params = {"SOC_limit": 50..100}
         """
         self._validate_vehicle_command(command, params)
