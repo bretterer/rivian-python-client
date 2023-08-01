@@ -420,8 +420,13 @@ class Rivian:
         identity_id: str,
         vehicle_key: str,
         private_key: str,
+        params: dict[str, Any] | None = None,
     ) -> str | None:
-        """Send a command to the vehicle."""
+        """Send a command to the vehicle.
+
+        Certain commands may require additional details via the `params` mapping. Some known examples include:
+          - `CHARGING_LIMITS`: params = {"SOC_limit": <int_value>}
+        """
         command = str(command)
         timestamp = str(int(time.time()))
         hmac = generate_vehicle_command_hmac(
@@ -444,6 +449,7 @@ class Rivian:
                     "vasPhoneId": phone_id,
                     "deviceId": identity_id,
                     "vehicleId": vehicle_id,
+                    "params": params,
                 }
             },
             "query": "mutation sendVehicleCommand($attrs: VehicleCommandAttributes!) { sendVehicleCommand(attrs: $attrs) { __typename id command state } }",
