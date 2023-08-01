@@ -235,8 +235,12 @@ class Rivian:
 
     async def enroll_phone(
         self, user_id: str, vehicle_id: str, device_type: str, device_name: str
-    ) -> str | None:
-        """Enable control of the vehicle by enrolling a phone. If successful, the private key is returned."""
+    ) -> tuple[str, str]:
+        """Enable control of the vehicle by enrolling a phone.
+
+        If successful, the public and private key is returned as a tuple.
+        Otherwise, a `RivianApiException` is raised.
+        """
         public_key, private_key = generate_key_pair()
 
         url = GRAPHQL_GATEWAY
@@ -262,10 +266,12 @@ class Rivian:
         if response.status == 200:
             data = await response.json()
             if data.get("data", {}).get("enrollPhone", {}).get("success"):
-                return private_key
-        return None
+                return (public_key, private_key)
+        raise RivianApiException("Unable to enroll phone")
 
-    async def get_user_information(self) -> ClientResponse:
+    async def get_user_information(
+        self, include_phones: bool = False
+    ) -> ClientResponse:
         """Get user information."""
         url = GRAPHQL_GATEWAY
 
@@ -274,9 +280,12 @@ class Rivian:
             "U-Sess": self._user_session_token,
         }
 
+        vehicles_fragment = "vehicles { id vin name vas { __typename vasVehicleId vehiclePublicKey } roles state createdAt updatedAt vehicle { __typename id vin modelYear make model expectedBuildDate plannedBuildDate expectedGeneralAssemblyStartDate actualGeneralAssemblyDate } }"
+        phones_fragment = "enrolledPhones { __typename vas { __typename vasPhoneId publicKey } enrolled { __typename deviceType deviceName vehicleId identityId shortName } }"
+
         graphql_json = {
             "operationName": "getUserInfo",
-            "query": "query getUserInfo {\n    currentUser {\n        __typename\n        id\n        vehicles {\n        id\n        vin\n        name\n        vas {\n            __typename\n            vasVehicleId\n            vehiclePublicKey\n        }\n        roles\n        state\n        createdAt\n        updatedAt\n        vehicle {\n            __typename\n            id\n            vin\n            modelYear\n            make\n            model\n            expectedBuildDate\n            plannedBuildDate\n            expectedGeneralAssemblyStartDate\n            actualGeneralAssemblyDate\n        }\n        }\n    }\n}",
+            "query": f"query getUserInfo {{ currentUser {{ __typename id {vehicles_fragment} {phones_fragment if include_phones else ''} }} }}",
             "variables": None,
         }
 
@@ -412,6 +421,20 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
+    def _validate_vehicle_command(
+        self, command: VehicleCommand | str, params: dict[str, Any] | None = None
+    ) -> None:
+        """Validate certian vehicle command/param combos."""
+        if command == VehicleCommand.CHARGING_LIMITS:
+            if not (
+                params
+                and isinstance((limit := params.get("SOC_limit")), int)
+                and 50 <= limit <= 100
+            ):
+                raise RivianBadRequestError(
+                    "Charging limit mus include parameter `SOC_limit` with a valid integer between 50 and 100"
+                )
+
     async def send_vehicle_command(
         self,
         command: VehicleCommand | str,
@@ -420,13 +443,17 @@ class Rivian:
         identity_id: str,
         vehicle_key: str,
         private_key: str,
+        *,
         params: dict[str, Any] | None = None,
     ) -> str | None:
         """Send a command to the vehicle.
 
-        Certain commands may require additional details via the `params` mapping. Some known examples include:
-          - `CHARGING_LIMITS`: params = {"SOC_limit": <int_value>}
+        Certain commands may require additional details via the `params` mapping.
+        Some known examples include:
+          - `CHARGING_LIMITS`: params = {"SOC_limit": 50..100}
         """
+        self._validate_vehicle_command(command, params)
+
         command = str(command)
         timestamp = str(int(time.time()))
         hmac = generate_vehicle_command_hmac(
@@ -449,8 +476,8 @@ class Rivian:
                     "vasPhoneId": phone_id,
                     "deviceId": identity_id,
                     "vehicleId": vehicle_id,
-                    "params": params,
                 }
+                | ({"params": params} if params else {})
             },
             "query": "mutation sendVehicleCommand($attrs: VehicleCommandAttributes!) { sendVehicleCommand(attrs: $attrs) { __typename id command state } }",
         }

@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from base64 import b64decode, b64encode
+from typing import cast
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -17,7 +18,8 @@ def base64_encode(data: bytes) -> str:
 
 def decode_private_key(private_key_str: str) -> ec.EllipticCurvePrivateKey:
     """Decode an EC private key."""
-    return serialization.load_pem_private_key(b64decode(private_key_str), password=None)
+    key = serialization.load_pem_private_key(b64decode(private_key_str), password=None)
+    return cast(ec.EllipticCurvePrivateKey, key)
 
 
 def decode_public_key(public_key_str) -> ec.EllipticCurvePublicKey:
@@ -25,6 +27,25 @@ def decode_public_key(public_key_str) -> ec.EllipticCurvePublicKey:
     return ec.EllipticCurvePublicKey.from_encoded_point(
         ec.SECP256R1(), bytes.fromhex(public_key_str)
     )
+
+
+def encode_private_key(private_key: ec.EllipticCurvePrivateKey) -> str:
+    """Encode an EC public key."""
+    return base64_encode(
+        private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+    )
+
+
+def encode_public_key(public_key: ec.EllipticCurvePublicKey) -> str:
+    """Encode an EC public key."""
+    return public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint,
+    ).hex()
 
 
 def generate_key_pair() -> tuple[str, str]:
@@ -39,18 +60,11 @@ def generate_key_pair() -> tuple[str, str]:
     public_key = private_key.public_key()
 
     # Serialize the keys in the standard format
-    private_key_bytes = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    public_key_bytes = public_key.public_bytes(
-        encoding=serialization.Encoding.X962,
-        format=serialization.PublicFormat.UncompressedPoint,
-    )
+    private_key_str = encode_private_key(private_key)
+    public_key_str = encode_public_key(public_key)
 
     # Return the public-private key pair as strings
-    return (public_key_bytes.hex(), base64_encode(private_key_bytes))
+    return (public_key_str, private_key_str)
 
 
 def generate_vehicle_command_hmac(
