@@ -173,6 +173,8 @@ class VehicleCommand(StrEnum):
 
     # Liftgate (R1S only)
     CLOSE_LIFTGATE = "CLOSE_LIFTGATE"
+
+    # Liftgate/tailgate
     OPEN_LIFTGATE_UNLATCH_TAILGATE = "OPEN_LIFTGATE_UNLATCH_TAILGATE"
 
     # OTA
