@@ -26,7 +26,7 @@ from .exceptions import (
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
-from .utils import generate_key_pair, generate_vehicle_command_hmac
+from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
 _LOGGER = logging.getLogger(__name__)
@@ -234,15 +234,18 @@ class Rivian:
         return False
 
     async def enroll_phone(
-        self, user_id: str, vehicle_id: str, device_type: str, device_name: str
-    ) -> tuple[str, str]:
-        """Enable control of the vehicle by enrolling a phone.
+        self,
+        user_id: str,
+        vehicle_id: str,
+        device_type: str,
+        device_name: str,
+        public_key: str,
+    ) -> bool:
+        """Enable control of a vehicle by enrolling a phone.
 
-        If successful, the public and private key is returned as a tuple.
-        Otherwise, a `RivianApiException` is raised.
+        To generate a public/private key for enrollment, use the `utils.generate_key_pair` function.
+        The private key will need to be retained to sign commands sent via the `send_vehicle_command` method.
         """
-        public_key, private_key = generate_key_pair()
-
         url = GRAPHQL_GATEWAY
         headers = BASE_HEADERS | {
             "Csrf-Token": self._csrf_token,
@@ -266,8 +269,8 @@ class Rivian:
         if response.status == 200:
             data = await response.json()
             if data.get("data", {}).get("enrollPhone", {}).get("success"):
-                return (public_key, private_key)
-        raise RivianApiException("Unable to enroll phone")
+                return True
+        return False
 
     async def get_user_information(
         self, include_phones: bool = False
@@ -475,6 +478,9 @@ class Rivian:
         params: dict[str, Any] | None = None,
     ) -> str | None:
         """Send a command to the vehicle.
+
+        To generate a public/private key for commands, use the `utils.generate_key_pair` function.
+        The public key will first need to be enrolled via the `enroll_phone` method, otherwise commands will fail.
 
         Certain commands may require additional details via the `params` mapping.
         Some known examples include:
