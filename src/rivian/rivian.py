@@ -450,10 +450,10 @@ class Rivian:
             if not (
                 params
                 and isinstance((level := params.get("level")), int)
-                and 0 <= level <= 3
+                and 0 <= level <= 4
             ):
                 raise RivianBadRequestError(
-                    "HVAC setting must include parameter `level` with a valid value between 0 and 3"
+                    "HVAC setting must include parameter `level` with a valid value between 0 and 4"
                 )
         if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP:
             if not (
@@ -484,7 +484,7 @@ class Rivian:
 
         Certain commands may require additional details via the `params` mapping.
         Some known examples include:
-          - `CABIN_HVAC_*`: params = {"level": 0..3} where 0 is off, 1 is low/on, 2 is medium and 3 is high
+          - `CABIN_HVAC_*`: params = {"level": 0..4} where 0 is off, 1 is on, 2 is low/level_1, 3 is medium/level_2 and 4 is high/level_3
           - `CABIN_PRECONDITIONING_SET_TEMP`: params = {"HVAC_set_temp": "deg_C"} where `deg_C` is a string value between 16 and 29 or 0/63.5 for LO/HI, respectively
           - `CHARGING_LIMITS`: params = {"SOC_limit": 50..100}
         """
