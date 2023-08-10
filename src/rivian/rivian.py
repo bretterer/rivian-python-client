@@ -285,10 +285,11 @@ class Rivian:
 
         vehicles_fragment = "vehicles { id vin name vas { __typename vasVehicleId vehiclePublicKey } roles state createdAt updatedAt vehicle { __typename id vin modelYear make model expectedBuildDate plannedBuildDate expectedGeneralAssemblyStartDate actualGeneralAssemblyDate vehicleState { supportedFeatures { __typename name status } } } }"
         phones_fragment = "enrolledPhones { __typename vas { __typename vasPhoneId publicKey } enrolled { __typename deviceType deviceName vehicleId identityId shortName } }"
+        _2fa_fragment = "registrationChannels { type }"
 
         graphql_json = {
             "operationName": "getUserInfo",
-            "query": f"query getUserInfo {{ currentUser {{ __typename id {vehicles_fragment} {phones_fragment if include_phones else ''} }} }}",
+            "query": f"query getUserInfo {{ currentUser {{ __typename id {vehicles_fragment} {_2fa_fragment} {phones_fragment if include_phones else ''} }} }}",
             "variables": None,
         }
 
@@ -390,6 +391,24 @@ class Rivian:
             "operationName": "GetVehicleState",
             "query": graphql_query,
             "variables": {"vehicleID": vin},
+        }
+
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
+        """Get vehicle OTA update details."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+
+        graphql_query = "query getOTAUpdateDetails($vehicleId:String!){getVehicle(id:$vehicleId){availableOTAUpdateDetails{url version locale}currentOTAUpdateDetails{url version locale}}}"
+
+        graphql_json = {
+            "operationName": "getOTAUpdateDetails",
+            "query": graphql_query,
+            "variables": {"vehicleId": vehicle_id},
         }
 
         return await self.__graphql_query(headers, url, graphql_json)
