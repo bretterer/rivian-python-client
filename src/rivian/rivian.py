@@ -272,6 +272,22 @@ class Rivian:
                 return True
         return False
 
+    async def get_drivers_and_keys(self, vehicle_id: str) -> ClientResponse:
+        """Get drivers and keys."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+
+        graphql_json = {
+            "operationName": "DriversAndKeys",
+            "query": "query DriversAndKeys($vehicleId:String){getVehicle(id:$vehicleId){__typename id vin invitedUsers{__typename...on ProvisionedUser{firstName lastName email roles userId devices{type mappedIdentityId id hrid deviceName isPaired isEnabled}}...on UnprovisionedUser{email inviteId status}}}}",
+            "variables": {"vehicleId": vehicle_id},
+        }
+
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_user_information(
         self, include_phones: bool = False
     ) -> ClientResponse:
