@@ -11,7 +11,9 @@ else:
 
 LIVE_SESSION_PROPERTIES: Final[set[str]] = {
     "chargerId",
+    "current",
     "currentCurrency",
+    "currentMiles",
     "currentPrice",
     "isFreeSession",
     "isRivianCharger",
@@ -19,6 +21,7 @@ LIVE_SESSION_PROPERTIES: Final[set[str]] = {
     "locationId",
     "power",
     "rangeAddedThisSession",
+    "soc",
     "startTime",
     "timeElapsed",
     "timeRemaining",
@@ -27,12 +30,15 @@ LIVE_SESSION_PROPERTIES: Final[set[str]] = {
 }
 
 VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
+    # VehicleCloudConnection
+    "cloudConnection",
     # VehicleLocation
     "gnssLocation",
     # TimeStamped(String|Float|Int)
     "alarmSoundStatus",
     "batteryHvThermalEvent",
     "batteryHvThermalEventPropagation",
+    "batteryCapacity",
     "batteryLevel",
     "batteryLimit",
     "brakeFluidLow",
@@ -73,6 +79,8 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "gearGuardVideoStatus",
     "gearGuardVideoTermsAccepted",
     "gearStatus",
+    "gnssBearing",
+    "gnssSpeed",
     "otaAvailableVersion",
     "otaAvailableVersionGitHash",
     "otaAvailableVersionNumber",

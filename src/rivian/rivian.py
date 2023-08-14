@@ -45,14 +45,21 @@ BASE_HEADERS = {
     "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
 }
 
+CLOUD_CONNECTION_TEMPLATE = "{ lastSync }"
 LOCATION_TEMPLATE = "{ latitude longitude timeStamp }"
 VALUE_TEMPLATE = "{ timeStamp value }"
-TEMPLATE_MAP = {"gnssLocation": LOCATION_TEMPLATE}
+TEMPLATE_MAP = {
+    "cloudConnection": CLOUD_CONNECTION_TEMPLATE,
+    "gnssLocation": LOCATION_TEMPLATE,
+}
 
 LIVE_SESSION_VALUE_RECORD_KEYS = {
+    "current",
+    "currentMiles",
     "kilometersChargedPerHour",
     "power",
     "rangeAddedThisSession",
+    "soc",
     "timeRemaining",
     "totalChargedEnergy",
     "vehicleChargerState",
