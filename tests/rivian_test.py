@@ -26,6 +26,7 @@ from .responses import (
     VEHICLE_STATE_RESPONSE,
     WALLBOXES_RESPONSE,
     error_response,
+    load_response,
 )
 
 
@@ -233,4 +234,24 @@ async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
         rivian = Rivian()
         with pytest.raises(RivianInvalidOTP):
             await rivian.authenticate("", "")
+        await rivian.close()
+
+
+async def test_get_drivers_and_keys(aresponses: ResponsesMockServer) -> None:
+    """Test get drivers and keys."""
+    host = "rivian.com"
+    path = "/api/gql/gateway/graphql"
+
+    aresponses.add(
+        host, path, "POST", response=load_response("drivers_and_keys_success")
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian()
+
+        response = await rivian.get_drivers_and_keys(vehicle_id="vehicleId")
+        response_json = await response.json()
+        assert response.status == 200
+        assert (drivers_and_keys := response_json["data"]["getVehicle"])
+        assert drivers_and_keys["id"] == "id"
+        assert len(drivers_and_keys["invitedUsers"]) == 4
         await rivian.close()

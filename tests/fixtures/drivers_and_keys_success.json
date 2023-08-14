@@ -1,0 +1,79 @@
+{
+  "data": {
+    "getVehicle": {
+      "__typename": "Vehicle",
+      "id": "id",
+      "vin": "vin",
+      "invitedUsers": [
+        {
+          "__typename": "ProvisionedUser",
+          "firstName": "User",
+          "lastName": "1",
+          "email": "email",
+          "roles": ["primary-owner"],
+          "userId": "userId",
+          "devices": [
+            {
+              "type": "phone/rivian",
+              "mappedIdentityId": "mappedIdentityId",
+              "id": "id",
+              "hrid": null,
+              "deviceName": "Phone",
+              "isPaired": false,
+              "isEnabled": true
+            },
+            {
+              "type": "fob/rivian",
+              "mappedIdentityId": "mappedIdentityId",
+              "id": "id",
+              "hrid": "NA",
+              "deviceName": "Rivian Fob",
+              "isPaired": true,
+              "isEnabled": true
+            },
+            {
+              "type": "nfc_card/rivian",
+              "mappedIdentityId": "mappedIdentityId",
+              "id": "id",
+              "hrid": "hrid",
+              "deviceName": "Rivian NFC Card",
+              "isPaired": true,
+              "isEnabled": true
+            }
+          ]
+        },
+        {
+          "__typename": "ProvisionedUser",
+          "firstName": "User",
+          "lastName": "2",
+          "email": "email",
+          "roles": ["driver"],
+          "userId": "userId",
+          "devices": [
+            {
+              "type": "phone/rivian",
+              "mappedIdentityId": "mappedIdentityId",
+              "id": "id",
+              "hrid": null,
+              "deviceName": "Phone",
+              "isPaired": false,
+              "isEnabled": true
+            }
+          ]
+        },
+        {
+          "__typename": "UnprovisionedUser",
+          "email": "email",
+          "inviteId": "inviteId",
+          "status": "COMPLETED"
+        },
+        {
+          "__typename": "UnprovisionedUser",
+          "email": "email",
+          "inviteId": "inviteId",
+          "status": "COMPLETED"
+        }
+      ]
+    }
+  }
+}

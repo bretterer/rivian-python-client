@@ -1,6 +1,8 @@
 """Response tests data."""
 from __future__ import annotations
 
+import json
+import os
 from typing import Any
 
 AUTHENTICATION_RESPONSE = {
@@ -675,3 +677,9 @@ def error_response(
     """Return an error response."""
     error = {"extensions": {"code": code, "reason": reason or code}} if code else {}
     return {"errors": [error]}
+
+
+def load_response(response_name: str) -> dict[str, Any]:
+    """Load a response."""
+    with open(f"{os.path.dirname(__file__)}/fixtures/{response_name}.json") as file:
+        return json.load(file)
