@@ -1,0 +1,391 @@
+type Query {
+  currentUser: User
+  getVehicle(id: String!): Vehicle
+  getVehicleCommand(id: String!): GetVehicleCommandState
+  getVehicleMobileImages(
+    resolution: String
+    extension: String
+    version: String
+  ): VehicleMobileImage
+  getVehicleOrderMobileImages(
+    resolution: String
+    extension: String
+    version: String
+  ): VehicleMobileImage
+  vehicleState(id: String!): VehicleState
+}
+
+type Mutation {
+  createCsrfToken: CreateCsrfTokenResponse
+  login(email: String!, password: String!): LoginResponse
+  loginWithOTP(
+    email: String!
+    otpToken: String!
+    otpCode: String!
+  ): MobileLoginResponse
+}
+
+type Subscription {
+  vehicleState(id: String!): VehicleState
+}
+
+interface TimeStamped {
+  timeStamp: String!
+}
+
+union ConnectedProduct = CampSpeaker
+
+union InvitedUser = ProvisionedUser | UnprovisionedUser
+
+union LoginResponse = MobileLoginResponse | MobileMFALoginResponse
+
+type CampSpeaker {
+  id: String!
+  serialNumber: String!
+}
+
+type CreateCsrfTokenResponse {
+  csrfToken: String!
+  appSessionToken: String!
+}
+
+type GetVehicleCommandState {
+  id: String!
+  command: String!
+  createdAt: String!
+  state: Int!
+  responseCode: Int
+  statusCode: Int
+}
+
+type MobileLoginResponse {
+  accessToken: String!
+  refreshToken: String!
+  userSessionToken: String!
+}
+
+type MobileMFALoginResponse {
+  otpToken: String!
+}
+
+type NameSetting {
+  value: String!
+}
+
+type OTAUpdateDetails {
+  url: String!
+  version: String!
+  locale: String!
+}
+
+type ProvisionedUser {
+  firstName: String!
+  lastName: String!
+  email: String!
+  userId: String!
+  roles: [String!]!
+  devices: [ProvisionedUserDevice!]!
+}
+
+type ProvisionedUserDevice {
+  type: String!
+  mappedIdentityId: String!
+  id: String!
+  hrid: String
+  deviceName: String!
+  isPaired: Boolean!
+  isEnabled: Boolean!
+}
+
+type RegistrationChannel {
+  type: String!
+}
+
+type SupportedFeature {
+  name: String!
+  status: String!
+}
+
+type TimeStampedFloat implements TimeStamped {
+  timeStamp: String!
+  value: Float!
+}
+
+type TimeStampedInt implements TimeStamped {
+  timeStamp: String!
+  value: Int!
+}
+
+type TimeStampedString implements TimeStamped {
+  timeStamp: String!
+  value: String!
+}
+
+type UnprovisionedUser {
+  email: String!
+  inviteId: String!
+  status: String!
+}
+
+type User {
+  id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  address: UserAddress!
+  enrolledPhones: [UserEnrolledPhone]!
+  pendingInvites: [UserInvitation!]!
+  phones: [UserPhone!]!
+  registrationChannels: [RegistrationChannel!]!
+  vehicles: [UserVehicle!]!
+}
+
+type UserAddress {
+  country: String!
+}
+
+type UserEnrolledPhone {
+  vas: UserEnrolledPhoneAccess!
+  enrolled: [UserEnrolledPhoneEntry!]!
+}
+
+type UserEnrolledPhoneAccess {
+  vasPhoneId: String!
+  publicKey: String!
+}
+
+type UserEnrolledPhoneEntry {
+  deviceType: String!
+  deviceName: String!
+  vehicleId: String!
+  identityId: String!
+  shortName: String!
+}
+
+type UserInvitation {
+  id: String!
+  invitedByFirstName: String
+  role: String
+  status: String
+  vehicleId: String
+  vehicleModel: String
+  email: String
+}
+
+type UserPhone {
+  countryCode: String!
+  formatted: String!
+  phone: String!
+  national: String!
+}
+
+type UserVehicle {
+  id: String!
+  vin: String!
+  name: String!
+  owner: String
+  state: String
+  createdAt: String!
+  updatedAt: String
+  vas: UserVehicleAccess!
+  vehicle: Vehicle!
+  roles: [String!]!
+  connectedProducts: [ConnectedProduct!]!
+}
+
+type UserVehicleAccess {
+  vasVehicleId: String!
+  vehiclePublicKey: String!
+}
+
+type UserVehicleSettingsMap {
+  name: NameSetting!
+}
+
+type Vehicle {
+  id: String!
+  vin: String!
+  make: String!
+  model: String!
+  modelYear: Int!
+  expectedBuildDate: String
+  plannedBuildDate: String
+  expectedGeneralAssemblyStartDate: String
+  actualGeneralAssemblyDate: String
+  otaEarlyAccessStatus: Boolean!
+  currentOTAUpdateDetails: OTAUpdateDetails!
+  availableOTAUpdateDetails: OTAUpdateDetails
+  mobileConfiguration: VehicleMobileConfiguration!
+  settings: UserVehicleSettingsMap!
+  vehicleState: VehicleState!
+  invitedUsers: [InvitedUser!]!
+  estimatedRange(startSoc: Float!): Float!
+}
+
+type VehicleCloudConnection {
+  lastSync: String!
+}
+
+type VehicleLocation implements TimeStamped {
+  timeStamp: String!
+  latitude: Float!
+  longitude: Float!
+}
+
+type VehicleMobileConfiguration {
+  trimOption: VehicleMobileConfigurationOption!
+  driveSystemOption: VehicleMobileConfigurationOption!
+  exteriorColorOption: VehicleMobileConfigurationOption!
+  interiorColorOption: VehicleMobileConfigurationOption!
+}
+
+type VehicleMobileConfigurationOption {
+  optionId: String!
+  optionName: String!
+}
+
+type VehicleMobileImage {
+  orderId: String
+  vehicleId: String
+  design: String!
+  extension: String!
+  placement: String!
+  resolution: String!
+  size: String!
+  url: String!
+}
+
+type VehicleState {
+  alarmSoundStatus: TimeStampedString
+
+  batteryCapacity: TimeStampedFloat
+  batteryHvThermalEvent: TimeStampedString
+  batteryHvThermalEventPropagation: TimeStampedString
+  batteryLevel: TimeStampedFloat
+  batteryLimit: TimeStampedInt
+
+  brakeFluidLow: TimeStampedString
+
+  cabinClimateDriverTemperature: TimeStampedFloat
+  cabinClimateInteriorTemperature: TimeStampedFloat
+  cabinPreconditioningStatus: TimeStampedString
+  cabinPreconditioningType: TimeStampedString
+
+  chargerDerateStatus: TimeStampedString
+  chargerState: TimeStampedString
+  chargerStatus: TimeStampedString
+
+  closureFrunkClosed: TimeStampedString
+  closureFrunkLocked: TimeStampedString
+  closureFrunkNextAction: TimeStampedString
+  closureLiftgateClosed: TimeStampedString
+  closureLiftgateLocked: TimeStampedString
+  closureLiftgateNextAction: TimeStampedString
+  closureSideBinLeftClosed: TimeStampedString
+  closureSideBinLeftLocked: TimeStampedString
+  closureSideBinLeftNextAction: TimeStampedString
+  closureSideBinRightClosed: TimeStampedString
+  closureSideBinRightLocked: TimeStampedString
+  closureSideBinRightNextAction: TimeStampedString
+  closureTailgateClosed: TimeStampedString
+  closureTailgateLocked: TimeStampedString
+  closureTailgateNextAction: TimeStampedString
+  closureTonneauClosed: TimeStampedString
+  closureTonneauLocked: TimeStampedString
+  closureTonneauNextAction: TimeStampedString
+
+  cloudConnection: VehicleCloudConnection
+
+  defrostDefogStatus: TimeStampedString
+
+  distanceToEmpty: TimeStampedInt
+
+  doorFrontLeftClosed: TimeStampedString
+  doorFrontLeftLocked: TimeStampedString
+  doorFrontRightClosed: TimeStampedString
+  doorFrontRightLocked: TimeStampedString
+  doorRearLeftClosed: TimeStampedString
+  doorRearLeftLocked: TimeStampedString
+  doorRearRightClosed: TimeStampedString
+  doorRearRightLocked: TimeStampedString
+
+  driveMode: TimeStampedString
+
+  gearGuardLocked: TimeStampedString
+  gearGuardVideoMode: TimeStampedString
+  gearGuardVideoStatus: TimeStampedString
+  gearGuardVideoTermsAccepted: TimeStampedString
+  gearStatus: TimeStampedString
+
+  gnssBearing: TimeStampedFloat
+  gnssLocation: VehicleLocation
+  gnssSpeed: TimeStampedFloat
+
+  otaAvailableVersion: TimeStampedString
+  otaAvailableVersionGitHash: TimeStampedString
+  otaAvailableVersionNumber: TimeStampedInt
+  otaAvailableVersionWeek: TimeStampedInt
+  otaAvailableVersionYear: TimeStampedInt
+  otaCurrentStatus: TimeStampedString
+  otaCurrentVersion: TimeStampedString
+  otaCurrentVersionGitHash: TimeStampedString
+  otaCurrentVersionNumber: TimeStampedInt
+  otaCurrentVersionWeek: TimeStampedInt
+  otaCurrentVersionYear: TimeStampedInt
+  otaDownloadProgress: TimeStampedInt
+  otaInstallDuration: TimeStampedInt
+  otaInstallProgress: TimeStampedInt
+  otaInstallReady: TimeStampedString
+  otaInstallTime: TimeStampedInt
+  otaInstallType: TimeStampedString
+  otaStatus: TimeStampedString
+
+  petModeStatus: TimeStampedString
+  petModeTemperatureStatus: TimeStampedString
+
+  powerState: TimeStampedString
+
+  rangeThreshold: TimeStampedString
+
+  remoteChargingAvailable: TimeStampedInt
+
+  seatFrontLeftHeat: TimeStampedString
+  seatFrontLeftVent: TimeStampedString
+  seatFrontRightHeat: TimeStampedString
+  seatFrontRightVent: TimeStampedString
+  seatRearLeftHeat: TimeStampedString
+  seatRearRightHeat: TimeStampedString
+  seatThirdRowLeftHeat: TimeStampedString
+  seatThirdRowRightHeat: TimeStampedString
+
+  serviceMode: TimeStampedString
+
+  steeringWheelHeat: TimeStampedString
+
+  timeToEndOfCharge: TimeStampedFloat
+
+  tirePressureStatusFrontLeft: TimeStampedString
+  tirePressureStatusFrontRight: TimeStampedString
+  tirePressureStatusRearLeft: TimeStampedString
+  tirePressureStatusRearRight: TimeStampedString
+  tirePressureStatusValidFrontLeft: TimeStampedString
+  tirePressureStatusValidFrontRight: TimeStampedString
+  tirePressureStatusValidRearLeft: TimeStampedString
+  tirePressureStatusValidRearRight: TimeStampedString
+
+  vehicleMileage: TimeStampedInt
+
+  windowFrontLeftCalibrated: TimeStampedString
+  windowFrontLeftClosed: TimeStampedString
+  windowFrontRightCalibrated: TimeStampedString
+  windowFrontRightClosed: TimeStampedString
+  windowRearLeftCalibrated: TimeStampedString
+  windowRearLeftClosed: TimeStampedString
+  windowRearRightCalibrated: TimeStampedString
+  windowRearRightClosed: TimeStampedString
+  windowsNextAction: TimeStampedString
+
+  wiperFluidState: TimeStampedString
+
+  supportedFeatures: [SupportedFeature!]!
+}
