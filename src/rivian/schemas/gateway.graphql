@@ -1,5 +1,6 @@
 type Query {
   currentUser: User
+  delivery(orderId: ID!): Delivery
   getVehicle(id: String!): Vehicle
   getVehicleCommand(id: String!): GetVehicleCommandState
   getVehicleMobileImages(
@@ -12,41 +13,146 @@ type Query {
     extension: String
     version: String
   ): VehicleMobileImage
+  planTrip(
+    origin: CoordinatesInput!
+    destination: CoordinatesInput!
+    bearing: Float!
+    vehicleId: String!
+    startingSoc: Float!
+    startingRangeMeters: Float!
+    targetArrivalSocPercent: Float
+    networkPreferences: [NetworkPreference!]
+  ): PlanTripResponse
   vehicleState(id: String!): VehicleState
 }
 
 type Mutation {
   createCsrfToken: CreateCsrfTokenResponse
+  disenrollPhone(attrs: DisenrollPhoneAttributes!): DisenrollPhoneResponse
+  enrollPhone(attrs: EnrollPhoneAttributes!): EnrollPhoneResponse
   login(email: String!, password: String!): LoginResponse
   loginWithOTP(
     email: String!
     otpToken: String!
     otpCode: String!
   ): MobileLoginResponse
+  sendVehicleCommand(attrs: VehicleCommandAttributes!): SendVehicleCommandState
+  setChargingSchedules(
+    vehicleId: String!
+    chargingSchedules: [InputChargingSchedule!]!
+  ): OK
+  setVehicleName(vehicleId: String!, name: String!): OK
 }
 
 type Subscription {
   vehicleState(id: String!): VehicleState
 }
 
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
+input DisenrollPhoneAttributes {
+  enrollmentId: String!
+}
+
+input EnrollPhoneAttributes {
+  userId: String!
+  vehicleId: String!
+  publicKey: String!
+  type: String!
+  name: String
+}
+
+input InputChargingSchedule {
+  weekDays: [String!]!
+  startTime: Int!
+  duration: Int!
+  location: CoordinatesInput!
+  amperage: Int!
+  enabled: Boolean!
+}
+
+input NetworkPreference {
+  networkId: String!
+  preference: Float
+}
+
+input VehicleCommandAttributes {
+  command: String!
+  hmac: String!
+  timestamp: String!
+  vasPhoneId: String!
+  deviceId: String!
+  vehicleId: String!
+  params: VehicleCommandParameters
+}
+
+input VehicleCommandParameters {
+  level: Int
+  HVAC_set_temp: Float
+  SOC_limit: Int
+}
+
 interface TimeStamped {
   timeStamp: String!
 }
-
-union ConnectedProduct = CampSpeaker
-
-union InvitedUser = ProvisionedUser | UnprovisionedUser
-
-union LoginResponse = MobileLoginResponse | MobileMFALoginResponse
 
 type CampSpeaker {
   id: String!
   serialNumber: String!
 }
 
+type ChargingSchedule {
+  startTime: Int!
+  duration: Int!
+  location: GeoCoordinates!
+  amperage: Int!
+  enabled: Boolean!
+  weekDays: [String!]!
+}
+
 type CreateCsrfTokenResponse {
   csrfToken: String!
   appSessionToken: String!
+}
+
+type Delivery {
+  status: String!
+  carrier: String!
+  deliveryAddress: DeliveryAddressDetails!
+  appointmentDetails: DeliveryAppointment!
+  vehicleVIN: String!
+}
+
+type DeliveryAddressDetails {
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String!
+  country: String!
+  zipcode: String!
+}
+
+type DeliveryAppointment {
+  appointmentId: String!
+  startDateTime: String!
+  endDateTime: String!
+  timeZone: String!
+}
+
+type DisenrollPhoneResponse {
+  success: Boolean!
+}
+
+type EnrollPhoneResponse {
+  success: Boolean!
+}
+
+type GeoCoordinates {
+  latitude: Float!
+  longitude: Float!
 }
 
 type GetVehicleCommandState {
@@ -72,10 +178,22 @@ type NameSetting {
   value: String!
 }
 
+type OK {
+  success: Boolean!
+  value: String
+}
+
 type OTAUpdateDetails {
   url: String!
   version: String!
   locale: String!
+}
+
+type PlanTripResponse {
+  routes: [Route!]!
+  tripPlanStatus: String!
+  chargeStationsAvailable: Boolean!
+  socBelowLimit: Boolean!
 }
 
 type ProvisionedUser {
@@ -99,6 +217,25 @@ type ProvisionedUserDevice {
 
 type RegistrationChannel {
   type: String!
+}
+
+type Route {
+  routeResponse: String!
+  destinationReached: Boolean!
+  totalChargingDuration: Int!
+  arrivalSOC: Int!
+  arrivalReachableDistance: Float!
+  waypoints: [WayPoint!]!
+  energyConsumptionOnLeg: Float
+  batteryEmptyToDestinationDistance: Float
+  batteryEmptyLocationLatitude: Float
+  batteryEmptyLocationLongitude: Float
+}
+
+type SendVehicleCommandState {
+  id: String!
+  command: String!
+  state: Int!
 }
 
 type SupportedFeature {
@@ -219,6 +356,7 @@ type Vehicle {
   settings: UserVehicleSettingsMap!
   vehicleState: VehicleState!
   invitedUsers: [InvitedUser!]!
+  chargingSchedules: [ChargingSchedule!]!
   estimatedRange(startSoc: Float!): Float!
 }
 
@@ -389,3 +527,21 @@ type VehicleState {
 
   supportedFeatures: [SupportedFeature!]!
 }
+
+type WayPoint {
+  waypointType: String!
+  entityId: String
+  name: String
+  latitude: Float!
+  longitude: Float!
+  maxPower: Int
+  chargeDuration: Int
+  arrivalSOC: Int!
+  arrivalReachableDistance: Float!
+  departureSOC: Int!
+  departureReachableDistance: Float!
+}
+
+union ConnectedProduct = CampSpeaker
+union InvitedUser = ProvisionedUser | UnprovisionedUser
+union LoginResponse = MobileLoginResponse | MobileMFALoginResponse
