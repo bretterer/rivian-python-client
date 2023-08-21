@@ -1,0 +1,254 @@
+type Query {
+  order(id: String!): Order
+  user: User
+}
+
+enum UserVehicleInviteStateEnum {
+  PENDING
+  COMPLETED
+}
+
+enum OrderSnapshotTypeEnum {
+  PRE_ORDER
+  RETAIL
+  VEHICLE
+}
+
+type Address {
+  id: String!
+  type: [String!]!
+  line1: String!
+  line2: String
+  city: String!
+  state: String!
+  country: String!
+  postalCode: String!
+}
+
+type BankDetails {
+  bankName: String!
+  country: String!
+  last4: String!
+}
+
+type CardDetails {
+  brand: String!
+  last4: String!
+  expiryDate: String!
+}
+
+type ConfiguratorRulesetGroup {
+  name: String
+  attrs: String
+  multiselect: Boolean!
+  required: Boolean!
+  options: [String!]!
+}
+
+type ConfiguratorRulesetOption {
+  name: String
+  attrs: String
+  price: Float!
+  visualExterior: Boolean
+  visualInterior: Boolean
+  hidden: Boolean
+  disabled: Boolean
+  required: Boolean
+}
+
+type Email {
+  email: String!
+}
+
+type Order {
+  id: String!
+  vehicleId: String
+  vin: String
+  state: String!
+  billingAddress: OrderAddress
+  shippingAddress: OrderAddress
+  orderCancelDate: String
+  orderEmail: String
+  currency: String!
+  locale: String!
+  storeId: String!
+  type: String!
+  subtotal: Float!
+  discountTotal: Float!
+  taxTotal: Float!
+  feesTotal: Float!
+  paidTotal: Float!
+  remainingTotal: Float!
+  outstandingBalance: Float!
+  costAfterCredits: Float!
+  total: Float!
+  payments: [OrderPayment!]!
+  tradeIns: [TradeIn!]
+  vehicle: Vehicle
+  items: [OrderItem!]!
+}
+
+type OrderAddress {
+  firstName: String!
+  lastName: String!
+  line1: String!
+  line2: String
+  city: String!
+  state: String!
+  country: String!
+  postalCode: String!
+}
+
+type OrderConfiguration {
+  version: String!
+  basePrice: Float!
+  options: [OrderConfigurationOption!]!
+}
+
+type OrderConfigurationOption {
+  optionId: String!
+  optionName: String!
+  optionDetails: ConfiguratorRulesetOption!
+  groupId: String!
+  groupName: String!
+  groupDetails: ConfiguratorRulesetGroup!
+  price: Float!
+}
+
+type OrderItem {
+  id: String!
+  productId: String!
+  type: String!
+  sku: String!
+  title: String!
+  configuration: OrderConfiguration
+  discounts: [OrderItemDiscount!]
+  subtotal: Float!
+  quantity: Int!
+  unitPrice: Float!
+  fees: [OrderItemFees!]
+  taxes: [OrderItemTaxes!]
+  shippingAddress: OrderItemFulfillmentAddress!
+}
+
+type OrderItemDiscount {
+  total: Float!
+  items: [OrderItemDiscountItem!]
+}
+
+type OrderItemDiscountItem {
+  amount: Float!
+  title: String!
+  code: String!
+}
+
+type OrderItemFeeItem {
+  description: String!
+  amount: Float!
+  code: String!
+  type: String!
+}
+
+type OrderItemFees {
+  items: [OrderItemFeeItem!]!
+  total: Float!
+}
+
+type OrderItemFulfillmentAddress {
+  firstName: String!
+  lastName: String!
+  line1: String!
+  line2: String
+  city: String!
+  state: String!
+  country: String!
+  postalCode: String!
+}
+
+type OrderItemTaxItem {
+  description: String!
+  amount: Float!
+  code: String!
+  rate: Float
+  type: String
+}
+
+type OrderItemTaxes {
+  items: [OrderItemTaxItem!]!
+  total: Float!
+}
+
+type OrderPayment {
+  id: String!
+  intent: String!
+  date: String!
+  method: String!
+  amount: Float!
+  referenceNumber: String
+  status: String!
+  card: CardDetails
+  bank: BankDetails
+  transactionNotes: String!
+}
+
+type OrderSnapshot {
+  id: String!
+  total: Float!
+  paidTotal: Float!
+  subtotal: Float!
+  state: String!
+  configurationStatus: String!
+  currency: String!
+  orderDate: String!
+  type: String!
+  fulfillmentSummaryStatus: String!
+  vehicleId: String
+  vin: String
+  items: [OrderItem!]!
+}
+
+type Phone {
+  formatted: String!
+}
+
+type RivianIdVehicle {
+  id: String!
+  vin: String!
+  highestPriorityRole: String!
+}
+
+type TradeIn {
+  tradeInReferenceId: String!
+  amount: Float!
+}
+
+type User {
+  email: Email!
+  phone: Phone!
+  firstName: String!
+  lastName: String!
+  addresses: [Address!]!
+  newsletterSubscription: Boolean!
+  smsSubscription: Boolean!
+  registrationChannels2FA: String!
+  userId: String!
+  vehicles: [RivianIdVehicle!]!
+  invites(filterStates: [UserVehicleInviteStateEnum!]): [UserVehicleInvite!]!
+  orderSnapshots(filterTypes: [OrderSnapshotTypeEnum!]): [OrderSnapshot!]!
+}
+
+type UserVehicleInvite {
+  id: String!
+  inviteState: String!
+  vehicleModel: String!
+  vehicleId: String!
+  creatorFirstName: String!
+}
+
+type Vehicle {
+  vehicleId: String!
+  vin: String!
+  modelYear: String!
+  model: String!
+  make: String!
+}

@@ -70,7 +70,7 @@ type GetLinkedEmailForRivianIdResponse {
 type LiveSessionData {
   chargerId: String
   current: FloatValueRecord
-  currentCurrency: Float
+  currentCurrency: String
   currentMiles: FloatValueRecord
   currentPrice: Float
   isFreeSession: Boolean
@@ -82,7 +82,7 @@ type LiveSessionData {
   soc: FloatValueRecord
   startTime: String
   timeElapsed: Float
-  timeRemaining: Float
+  timeRemaining: StringValueRecord
   totalChargedEnergy: FloatValueRecord
   vehicleChargerState: StringValueRecord
 }
