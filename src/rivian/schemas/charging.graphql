@@ -5,6 +5,11 @@ type Query {
   getLiveSessionHistory(vehicleId: ID!): LiveSessionHistory
   getNonRivianUserSession: NonRivianUserSessionData
   getRegisteredWallboxes: [WallboxRecord]
+  getSessionHistory(
+    userId: ID!
+    startDate: String!
+    endDate: String!
+  ): [SessionHistorySummary]
   getWallboxStatus(wallboxId: String!): WallboxRecord
   getWallChargerHistory(
     serialNumber: String!
@@ -89,6 +94,11 @@ type LiveSessionData {
 
 type LiveSessionHistory {
   chartData: [FloatValueRecord]
+  startTime: Float
+  vehicleId: String
+  chargerId: String
+  transactionId: String
+  current: FloatValueRecord
 }
 
 type NonRivianUserSessionData {
@@ -105,6 +115,28 @@ type PaymentMethod {
 
 type PaymentQuery {
   getPaymentMethods: [PaymentMethod!]!
+}
+
+type SessionHistorySummary {
+  transactionId: String!
+  locationId: String!
+  vehicleId: String
+  startDateTime: String!
+  endDateTime: String!
+  currency: String!
+  cost: Float!
+  paidTotal: Float!
+  energyOffered: Float!
+  energyUnits: String
+  rangeAdded: Float
+  rangeUnits: String
+  vendor: String!
+  chargerType: String!
+  chargerName: String!
+  address: String!
+  city: String!
+  country: String!
+  postalCode: string!
 }
 
 type SessionSummary {
