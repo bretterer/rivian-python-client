@@ -28,6 +28,7 @@ from .exceptions import (
 )
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
+from .rivian_ble import pair_phone
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -278,6 +279,10 @@ class Rivian:
             if data.get("data", {}).get("enrollPhone", {}).get("success"):
                 return True
         return False
+    
+    async def ble_pair_phone(self, vehicle_id, phone_id, vehicle_key, private_key):
+        """Pair a phone key via BLE."""
+        await pair_phone(vehicle_id, phone_id, vehicle_key, private_key)
 
     async def get_drivers_and_keys(self, vehicle_id: str) -> ClientResponse:
         """Get drivers and keys."""

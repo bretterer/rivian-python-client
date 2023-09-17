@@ -66,6 +66,12 @@ def generate_key_pair() -> tuple[str, str]:
     # Return the public-private key pair as strings
     return (public_key_str, private_key_str)
 
+def generate_ble_command_hmac( 
+        hmac_data: bytes, vehicle_key: str, private_key: str
+        ):
+    """Generate ble command hmac."""
+    secret_key = get_secret_key(private_key, vehicle_key)
+    return bytes.fromhex(get_message_signature(secret_key, hmac_data))
 
 def generate_vehicle_command_hmac(
     command: str, timestamp: str, vehicle_key: str, private_key: str
