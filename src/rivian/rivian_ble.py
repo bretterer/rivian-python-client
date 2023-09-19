@@ -5,10 +5,10 @@ from asyncio import TimeoutError
 from bleak import BleakScanner, BleakClient, BleakError
 from rivian import utils
 
-RIVIAN_PHONE_ID_VEHICLE_ID_UUID = "AA49565A-4D4F-424B-4559-5F5752495445"
-RIVIAN_PNONCE_VNONCE_UUID = "E020A15D-E730-4B2C-908B-51DAF9D41E19"
-RIVIAN_BLE_ACTIVE_ENTRY_UUID = "5249565F-4D4F-424B-4559-5F5752495445"
-RIVIAN_PHONE_KEY_LOCAL_NAME = "Rivian Phone Key"
+PHONE_ID_VEHICLE_ID_UUID = "AA49565A-4D4F-424B-4559-5F5752495445"
+PNONCE_VNONCE_UUID = "E020A15D-E730-4B2C-908B-51DAF9D41E19"
+BLE_ACTIVE_ENTRY_UUID = "5249565F-4D4F-424B-4559-5F5752495445"
+PHONE_KEY_LOCAL_NAME = "Rivian Phone Key"
 
 # Create an asyncio.Event object to signal the arrival of a new notification.
 notification_event = asyncio.Event()
@@ -46,16 +46,16 @@ async def connect_to_device(address):
 
 async def pair_phone(vehicle_id, phone_id, vehicle_key, private_key):
     while True:
-        address = await scan_for_device(RIVIAN_PHONE_KEY_LOCAL_NAME)
+        address = await scan_for_device(PHONE_KEY_LOCAL_NAME)
         success = await connect_to_device(address)
 
         if success:
-            await client.start_notify(RIVIAN_PHONE_ID_VEHICLE_ID_UUID, notification_handler)
-            await client.start_notify(RIVIAN_PNONCE_VNONCE_UUID, notification_handler)
-            # wait to enable notifications for RIVIAN_BLE_ACTIVE_ENTRY_UUID
+            await client.start_notify(PHONE_ID_VEHICLE_ID_UUID, notification_handler)
+            await client.start_notify(PNONCE_VNONCE_UUID, notification_handler)
+            # wait to enable notifications for BLE_ACTIVE_ENTRY_UUID
 
             # write the phone ID (16-bytes) response will be vehicle ID
-            await client.write_gatt_char(RIVIAN_PHONE_ID_VEHICLE_ID_UUID, bytes.fromhex(phone_id.replace("-", "")))
+            await client.write_gatt_char(PHONE_ID_VEHICLE_ID_UUID, bytes.fromhex(phone_id.replace("-", "")))
             await notification_event.wait()
             notification_event.clear()
 
@@ -66,14 +66,14 @@ async def pair_phone(vehicle_id, phone_id, vehicle_key, private_key):
             hmac = utils.generate_ble_command_hmac(pnonce, vehicle_key, private_key)
     
             # write pnonce (48-bytes) response will be vnonce
-            await client.write_gatt_char(RIVIAN_PNONCE_VNONCE_UUID,  pnonce + hmac )
+            await client.write_gatt_char(PNONCE_VNONCE_UUID,  pnonce + hmac )
             await notification_event.wait()
 
             # vehicle is authenticated, trigger bonding 
             if platform.system() == "Darwin":
                 # Mac BLE API doesn't have an explicit way to trigger bonding
-                # enable notification on RIVIAN_BLE_ACTIVE_ENTRY_UUID to trigger bonding
-                await client.start_notify(RIVIAN_BLE_ACTIVE_ENTRY_UUID, notification_handler)
+                # enable notification on BLE_ACTIVE_ENTRY_UUID to trigger bonding
+                await client.start_notify(BLE_ACTIVE_ENTRY_UUID, notification_handler)
             else:
                 await client.pair()
 
