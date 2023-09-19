@@ -1,55 +1,35 @@
 import platform
 import asyncio
 import secrets
-from asyncio import TimeoutError
-from bleak import BleakScanner, BleakClient, BleakError
+import logging
+
+from bleak import BleakClient, BLEDevice
 from rivian import utils
+
+_LOGGER = logging.getLogger(__name__)
 
 PHONE_ID_VEHICLE_ID_UUID = "AA49565A-4D4F-424B-4559-5F5752495445"
 PNONCE_VNONCE_UUID = "E020A15D-E730-4B2C-908B-51DAF9D41E19"
 BLE_ACTIVE_ENTRY_UUID = "5249565F-4D4F-424B-4559-5F5752495445"
-PHONE_KEY_LOCAL_NAME = "Rivian Phone Key"
 
-# Create an asyncio.Event object to signal the arrival of a new notification.
-notification_event = asyncio.Event()
-notification_data = None
+async def pair_phone(
+    device: BLEDevice, vehicle_id, phone_id, vehicle_key, private_key
+) -> bool:
+    success = True
 
-def notification_handler(sender, data):
-    global notification_data
-    notification_data = data
-    notification_event.set()
-    
-async def scan_for_device(target_device_name): 
-    while True:
-        # Sleep before the next scan
-        await asyncio.sleep(1)  
+    # Create an asyncio.Event object to signal the arrival of a new notification.
+    notification_event = asyncio.Event()
+    notification_data = None
 
-        devices = await BleakScanner.discover()
-        for device in devices:
-            if device.name is not None and target_device_name in device.name:
-                print(f"Found Device: {device.name}, Address: {device.address}")
-                return device.address
-
-async def connect_to_device(address):
-    global client
-    print(f"Connecting to {address}")
+    # Callback for notifications from vehicle characteristics 
+    def notification_handler(_, data: bytearray):
+        nonlocal notification_data
+        notification_data = data
+        notification_event.set()
 
     try:
-        client = BleakClient(address, timeout=10.0)
-        await client.connect()
-        print(f"Connected: {client.is_connected}")
-
-        return client.is_connected 
-    except (BleakError, TimeoutError, OSError):
-        print(f"Failed to connect to {address}. Retrying...")
-        return False 
-
-async def pair_phone(vehicle_id, phone_id, vehicle_key, private_key):
-    while True:
-        address = await scan_for_device(PHONE_KEY_LOCAL_NAME)
-        success = await connect_to_device(address)
-
-        if success:
+        async with BleakClient(device, timeout=10) as client:
+            _LOGGER.debug(f"Connecting to {BLEDevice.name} [{BLEDevice.address}]")
             await client.start_notify(PHONE_ID_VEHICLE_ID_UUID, notification_handler)
             await client.start_notify(PNONCE_VNONCE_UUID, notification_handler)
             # wait to enable notifications for BLE_ACTIVE_ENTRY_UUID
@@ -59,7 +39,13 @@ async def pair_phone(vehicle_id, phone_id, vehicle_key, private_key):
             await notification_event.wait()
             notification_event.clear()
 
-            # todo check vehicle id
+            vas_vehicle_id = notification_data.hex()
+            if vas_vehicle_id != vehicle_id:
+                _LOGGER.debug(
+                    "Incorrect vas vehicle id: received %s, expected %s",
+                    vas_vehicle_id,
+                    vehicle_id)
+                return False
 
             # generate pnonce (16-bytes random)
             pnonce = secrets.token_bytes(16)  
@@ -76,10 +62,7 @@ async def pair_phone(vehicle_id, phone_id, vehicle_key, private_key):
                 await client.start_notify(BLE_ACTIVE_ENTRY_UUID, notification_handler)
             else:
                 await client.pair()
+    except:
+        success = False
 
-        if success:
-            # todo check other steps above
-            print("Successfully connected and paired")
-            break
-        else:
-            print("Retrying...")
+    return success
