@@ -286,7 +286,7 @@ class Rivian:
             self, device: BLEDevice,  vehicle_id: str, phone_id: str, vehicle_key: str, private_key: str
     ) -> bool:
         """Connect to and pair a phone key via BLE."""
-        await pair_phone(device, vehicle_id, phone_id, vehicle_key, private_key)
+        return await pair_phone(device, vehicle_id, phone_id, vehicle_key, private_key)
 
     async def get_drivers_and_keys(self, vehicle_id: str) -> ClientResponse:
         """Get drivers and keys."""
