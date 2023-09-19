@@ -28,7 +28,7 @@ from .exceptions import (
 )
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
-from .rivian_ble import pair_phone
+from .ble import pair_phone
 
 _LOGGER = logging.getLogger(__name__)
 
