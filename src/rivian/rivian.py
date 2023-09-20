@@ -14,8 +14,6 @@ import aiohttp
 import async_timeout
 from aiohttp import ClientResponse, ClientWebSocketResponse
 
-from bleak import BLEDevice
-
 from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES, VehicleCommand
 from .exceptions import (
     RivianApiException,
@@ -30,7 +28,6 @@ from .exceptions import (
 )
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
-from .ble import pair_phone
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -281,12 +278,6 @@ class Rivian:
             if data.get("data", {}).get("enrollPhone", {}).get("success"):
                 return True
         return False
-    
-    async def ble_pair_phone(
-            self, device: BLEDevice,  vehicle_id: str, phone_id: str, vehicle_key: str, private_key: str
-    ) -> bool:
-        """Connect to and pair a phone key via BLE."""
-        return await pair_phone(device, vehicle_id, phone_id, vehicle_key, private_key)
 
     async def get_drivers_and_keys(self, vehicle_id: str) -> ClientResponse:
         """Get drivers and keys."""
