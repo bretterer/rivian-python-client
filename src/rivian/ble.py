@@ -55,7 +55,7 @@ async def pair_phone(
             await asyncio.wait_for(vid_event.wait(), NOTIFICATION_TIMEOUT)
 
             vas_vehicle_id = notification_data.hex()
-            if vas_vehicle_id != vehicle_id:
+            if vas_vehicle_id != vehicle_id.replace("-", ""):
                 _LOGGER.debug(
                     "Incorrect vas vehicle id: received %s, expected %s",
                     vas_vehicle_id,
