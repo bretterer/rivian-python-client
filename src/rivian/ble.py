@@ -43,9 +43,9 @@ async def pair_phone(
         pass
 
     try:
-        _LOGGER.debug(f"Connecting to {BLEDevice.name} [{BLEDevice.address}]")
+        _LOGGER.debug("Connecting to %s [%s]", BLEDevice.name, BLEDevice.address)
         async with BleakClient(device, timeout=CONNECT_TIMEOUT) as client:
-            _LOGGER.debug(f"Connected to {BLEDevice.name} [{BLEDevice.address}]")
+            _LOGGER.debug("Connected to %s [%s]", BLEDevice.name, BLEDevice.address)
             await client.start_notify(PHONE_ID_VEHICLE_ID_UUID, id_notification_handler)
             await client.start_notify(PNONCE_VNONCE_UUID, nonce_notification_handler)
             # wait to enable notifications for BLE_ACTIVE_ENTRY_UUID
@@ -81,6 +81,6 @@ async def pair_phone(
             success = True
 
     except Exception as e:
-        _LOGGER.debug(f"An exception occurred while pairing: {str(e)}")
+        _LOGGER.debug("An exception occurred while pairing: %s", str(e))
 
     return success
