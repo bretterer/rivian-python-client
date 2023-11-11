@@ -1,86 +1,168 @@
 """Rivian BLE handler."""
 from __future__ import annotations
-import platform
-import asyncio
-import secrets
-import logging
 
-from bleak import BleakClient, BLEDevice
-from rivian import utils
+import asyncio
+import logging
+import platform
+import secrets
+
+from .utils import generate_ble_command_hmac
 
 _LOGGER = logging.getLogger(__name__)
 
-PHONE_ID_VEHICLE_ID_UUID = "AA49565A-4D4F-424B-4559-5F5752495445"
-PNONCE_VNONCE_UUID = "E020A15D-E730-4B2C-908B-51DAF9D41E19"
-BLE_ACTIVE_ENTRY_UUID = "5249565F-4D4F-424B-4559-5F5752495445"
+try:
+    from bleak import BleakClient, BleakScanner, BLEDevice
+except ImportError:
+    _LOGGER.error("Please install 'rivian-python-client[ble]' to use BLE features.")
+    raise
 
-NOTIFICATION_TIMEOUT = 3.0
+
+DEVICE_LOCAL_NAME = "Rivian Phone Key"
+
+ACTIVE_ENTRY_CHARACTERISTIC_UUID = "5249565F-4D4F-424B-4559-5F5752495445"
+PHONE_ID_VEHICLE_ID_UUID = "AA49565A-4D4F-424B-4559-5F5752495445"
+PHONE_NONCE_VEHICLE_NONCE_UUID = "E020A15D-E730-4B2C-908B-51DAF9D41E19"
+
 CONNECT_TIMEOUT = 10.0
+NOTIFICATION_TIMEOUT = 3.0
+
+
+class BleNotificationResponse:
+    """BLE notification response helper."""
+
+    def __init__(self) -> None:
+        """Initialize the BLE notification response helper."""
+        self.data: bytes | None = None
+        self.event = asyncio.Event()
+
+    def notification_handler(self, _, notification_data: bytearray) -> None:
+        """Notification handler."""
+        self.data = notification_data
+        self.event.set()
+
+    async def wait(self, timeout: float | None = NOTIFICATION_TIMEOUT) -> bool:
+        """Wait for the notification response."""
+        return await asyncio.wait_for(self.event.wait(), timeout)
+
+
+async def create_notification_handler(
+    client: BleakClient, char_specifier: str
+) -> BleNotificationResponse:
+    """Create a notification handler."""
+    response = BleNotificationResponse()
+    await client.start_notify(char_specifier, response.notification_handler)
+    return response
+
 
 async def pair_phone(
-    device: BLEDevice, vehicle_id: str, phone_id: str, vehicle_key: str, private_key: str
+    device: BLEDevice,
+    vas_vehicle_id: str,
+    phone_id: str,
+    vehicle_public_key: str,
+    private_key: str,
 ) -> bool:
-    success = False
+    """Pair a phone locally via BLE.
 
-    # Create an asyncio.Event object to signal the arrival of a new notification.
-    vid_event = asyncio.Event()
-    nonce_event = asyncio.Event()
-    notification_data: bytearray | None = None
-
-    # Callback for notifications from vehicle characteristics 
-    def id_notification_handler(_, data: bytearray) -> None:
-        nonlocal notification_data
-        notification_data = data
-        vid_event.set()
-
-    def nonce_notification_handler(_, data: bytearray) -> None:
-        nonlocal notification_data
-        notification_data = data
-        nonce_event.set()
-
-    # this is a dummy callback (unused)
-    def active_entry_notification_handler(_, data: bytearray) -> None:
-        pass
-
+    The phone must first be enrolled via `rivian.enroll_phone`.
+    This finishes the process to enable cloud and local vehicle control.
+    """
+    _LOGGER.debug("Connecting to %s", device)
     try:
-        _LOGGER.debug("Connecting to %s [%s]", BLEDevice.name, BLEDevice.address)
         async with BleakClient(device, timeout=CONNECT_TIMEOUT) as client:
-            _LOGGER.debug("Connected to %s [%s]", BLEDevice.name, BLEDevice.address)
-            await client.start_notify(PHONE_ID_VEHICLE_ID_UUID, id_notification_handler)
-            await client.start_notify(PNONCE_VNONCE_UUID, nonce_notification_handler)
-            # wait to enable notifications for BLE_ACTIVE_ENTRY_UUID
+            _LOGGER.debug("Connected to %s", device)
+            vehicle_id_handler = await create_notification_handler(
+                client, PHONE_ID_VEHICLE_ID_UUID
+            )
+            nonce_handler = await create_notification_handler(
+                client, PHONE_NONCE_VEHICLE_NONCE_UUID
+            )
 
-            # write the phone ID (16-bytes) response will be vehicle ID
-            await client.write_gatt_char(PHONE_ID_VEHICLE_ID_UUID, bytes.fromhex(phone_id.replace("-", "")))
-            await asyncio.wait_for(vid_event.wait(), NOTIFICATION_TIMEOUT)
+            _LOGGER.debug("Validating id")
+            await client.write_gatt_char(
+                PHONE_ID_VEHICLE_ID_UUID, bytes.fromhex(phone_id.replace("-", ""))
+            )
+            await vehicle_id_handler.wait()
 
-            vas_vehicle_id = notification_data.hex()
-            if vas_vehicle_id != vehicle_id.replace("-", ""):
+            assert vehicle_id_handler.data
+            vehicle_id_response = vehicle_id_handler.data.hex()
+            if vehicle_id_response != vas_vehicle_id.replace("-", ""):
                 _LOGGER.debug(
-                    "Incorrect vas vehicle id: received %s, expected %s",
+                    "Incorrect vehicle id: received %s, expected %s",
+                    vehicle_id_response,
                     vas_vehicle_id,
-                    vehicle_id)
+                )
                 return False
 
-            # generate pnonce (16-bytes random)
-            pnonce = secrets.token_bytes(16)  
-            hmac = utils.generate_ble_command_hmac(pnonce, vehicle_key, private_key)
-    
-            # write pnonce (48-bytes) response will be vnonce
-            await client.write_gatt_char(PNONCE_VNONCE_UUID,  pnonce + hmac )
-            await asyncio.wait_for(nonce_event.wait(), NOTIFICATION_TIMEOUT)
+            _LOGGER.debug("Exchanging nonce")
+            phone_nonce = secrets.token_bytes(16)
+            hmac = generate_ble_command_hmac(
+                phone_nonce, vehicle_public_key, private_key
+            )
+            await client.write_gatt_char(
+                PHONE_NONCE_VEHICLE_NONCE_UUID, phone_nonce + hmac
+            )
+            await nonce_handler.wait()
 
-            # vehicle is authenticated, trigger bonding 
+            # Vehicle is authenticated, trigger bonding
+            _LOGGER.debug("Attempting to pair")
             if platform.system() == "Darwin":
                 # Mac BLE API doesn't have an explicit way to trigger bonding
-                # enable notification on BLE_ACTIVE_ENTRY_UUID to trigger bonding
-                await client.start_notify(BLE_ACTIVE_ENTRY_UUID, active_entry_notification_handler)
+                # Instead, enable notification on protected characteristic to trigger bonding manually
+                await client.start_notify(
+                    ACTIVE_ENTRY_CHARACTERISTIC_UUID, lambda _, __: None
+                )
             else:
                 await client.pair()
-            
-            success = True
 
-    except Exception as e:
-        _LOGGER.debug("An exception occurred while pairing: %s", str(e))
+            _LOGGER.debug("Successfully paired with %s", device)
+            return True
+    except Exception as ex:  # pylint: disable=broad-except
+        _LOGGER.debug(
+            "Couldn't connect to %s. "
+            'Make sure you are in the correct vehicle and have selected "Set Up" for the appropriate key and try again'
+            "%s",
+            device,
+            ("" if isinstance(ex, asyncio.TimeoutError) else f": {ex}"),
+        )
+    return False
 
-    return success
+
+async def find_phone_key() -> BLEDevice | None:
+    """Find phone key."""
+    async with BleakScanner() as scanner:
+        return await scanner.find_device_by_name(DEVICE_LOCAL_NAME)
+
+
+async def set_bluez_pairable(device: BLEDevice) -> bool:
+    """Set bluez to pairable on Linux systems."""
+    if (_os := platform.system()) != "Linux":
+        raise OSError(f"BlueZ is not available on {_os}-based systems")
+
+    # pylint: disable=import-error, import-outside-toplevel
+    from dbus_fast import BusType  # type: ignore
+    from dbus_fast.aio import MessageBus  # type: ignore
+
+    try:
+        path = device.details["props"]["Adapter"]
+    except Exception:  # pylint: disable=broad-except
+        path = "/org/bluez/hci0"
+        _LOGGER.warning(
+            "Couldn't determine BT controller path, defaulting to %s: %s",
+            path,
+            device.details,
+            exc_info=True,
+        )
+
+    try:
+        bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
+        introspection = await bus.introspect("org.bluez", path)
+        pobject = bus.get_proxy_object("org.bluez", path, introspection)
+        iface = pobject.get_interface("org.bluez.Adapter1")
+        if not await iface.get_pairable():
+            await iface.set_pairable(True)
+        bus.disconnect()
+    except Exception as ex:  # pylint: disable=broad-except
+        _LOGGER.error(ex)
+        return False
+
+    return True
