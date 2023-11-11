@@ -58,7 +58,7 @@ async def pair_phone(
     device: BLEDevice,
     vas_vehicle_id: str,
     phone_id: str,
-    vehicle_public_key: str,
+    vehicle_key: str,
     private_key: str,
 ) -> bool:
     """Pair a phone locally via BLE.
@@ -95,9 +95,7 @@ async def pair_phone(
 
             _LOGGER.debug("Exchanging nonce")
             phone_nonce = secrets.token_bytes(16)
-            hmac = generate_ble_command_hmac(
-                phone_nonce, vehicle_public_key, private_key
-            )
+            hmac = generate_ble_command_hmac(phone_nonce, vehicle_key, private_key)
             await client.write_gatt_char(
                 PHONE_NONCE_VEHICLE_NONCE_UUID, phone_nonce + hmac
             )
