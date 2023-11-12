@@ -56,8 +56,8 @@ async def create_notification_handler(
 
 async def pair_phone(
     device: BLEDevice,
-    vas_vehicle_id: str,
     phone_id: str,
+    vas_vehicle_id: str,
     vehicle_key: str,
     private_key: str,
 ) -> bool:
