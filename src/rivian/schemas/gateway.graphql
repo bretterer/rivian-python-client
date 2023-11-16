@@ -248,6 +248,11 @@ type TimeStampedFloat implements TimeStamped {
   value: Float!
 }
 
+type TimeStampedNullableFloat implements TimeStamped {
+  timeStamp: String!
+  value: Float
+}
+
 type TimeStampedInt implements TimeStamped {
   timeStamp: String!
   value: Int!
@@ -457,6 +462,7 @@ type VehicleState {
   gearGuardVideoTermsAccepted: TimeStampedString
   gearStatus: TimeStampedString
 
+  gnssAltitude: TimeStampedNullableFloat
   gnssBearing: TimeStampedFloat
   gnssLocation: VehicleLocation
   gnssSpeed: TimeStampedFloat
