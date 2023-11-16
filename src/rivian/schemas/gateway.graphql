@@ -409,6 +409,8 @@ type VehicleState {
   cabinPreconditioningStatus: TimeStampedString
   cabinPreconditioningType: TimeStampedString
 
+  carWashMode: TimeStampedString
+
   chargerDerateStatus: TimeStampedString
   chargerState: TimeStampedString
   chargerStatus: TimeStampedString
@@ -510,6 +512,10 @@ type VehicleState {
   tirePressureStatusValidFrontRight: TimeStampedString
   tirePressureStatusValidRearLeft: TimeStampedString
   tirePressureStatusValidRearRight: TimeStampedString
+
+  trailerStatus: TimeStampedString
+
+  twelveVoltBatteryHealth: TimeStampedString
 
   vehicleMileage: TimeStampedInt
 
