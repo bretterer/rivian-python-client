@@ -22,6 +22,7 @@ pytest = "^7.1.2"
 pytest-asyncio = "^0.18.3"
 python-dotenv = "^0.20.0"
 aresponses = "^2.1.5"
+mypy = "^1.7.0"
 
 [tool.poetry.extras]
 ble = ["bleak", "dbus-fast"]
