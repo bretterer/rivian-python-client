@@ -84,6 +84,7 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "gearGuardVideoStatus",
     "gearGuardVideoTermsAccepted",
     "gearStatus",
+    "gnssAltitude",
     "gnssBearing",
     "gnssSpeed",
     "otaAvailableVersion",

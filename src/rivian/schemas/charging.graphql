@@ -1,0 +1,179 @@
+type Query {
+  chargepoint: ChargepointQuery
+  getCompletedSessionSummaries($vehicleId: String): [ChargingSessionSummary]
+  getLiveSessionData(vehicleId: ID!): LiveSessionData
+  getLiveSessionHistory(vehicleId: ID!): LiveSessionHistory
+  getNonRivianUserSession: NonRivianUserSessionData
+  getRegisteredWallboxes: [WallboxRecord]
+  getSessionHistory(
+    userId: ID!
+    startDate: String!
+    endDate: String!
+  ): [SessionHistorySummary]
+  getWallboxStatus(wallboxId: String!): WallboxRecord
+  getWallChargerHistory(
+    serialNumber: String!
+    startDate: String
+    endDate: String
+  ): [SessionSummary]
+  payment: PaymentQuery
+}
+
+type Mutation {
+  updateWallbox(
+    wallboxId: String!
+    wifiId: String
+    name: String
+    latitude: String
+    longitude: String
+  ): WallboxRecord
+}
+
+type Card {
+  brand: String!
+  lastFour: String!
+}
+
+type ChargepointQuery {
+  checkByRivianId: Boolean!
+  getLinkedEmailForRivianId: GetLinkedEmailForRivianIdResponse!
+}
+
+type ChargingSessionSummary {
+  chargerType: String
+  currencyCode: String
+  paidTotal: Float
+  startInstant: String!
+  endInstant: String!
+  totalEnergyKwh: Float!
+  rangeAddedKm: Float
+  city: String
+  transactionId: String!
+  vehicleId: String
+  vehicleName: String
+  vendor: String
+  isRoamingNetwork: Boolean
+  isPublic: Boolean
+  isHomeCharger: Boolean
+  meta: ChargingSessionSummaryMeta!
+}
+
+type ChargingSessionSummaryMeta {
+  transactionIdGroupingKey: String!
+  dataSources: [String!]!
+}
+
+type FloatValueRecord {
+  value: Float!
+  updatedAt: String!
+}
+
+type GetLinkedEmailForRivianIdResponse {
+  email: String!
+}
+
+type LiveSessionData {
+  chargerId: String
+  current: FloatValueRecord
+  currentCurrency: String
+  currentMiles: FloatValueRecord
+  currentPrice: Float
+  isFreeSession: Boolean
+  isRivianCharger: Boolean
+  kilometersChargedPerHour: FloatValueRecord
+  locationId: String
+  power: FloatValueRecord
+  rangeAddedThisSession: FloatValueRecord
+  soc: FloatValueRecord
+  startTime: String
+  timeElapsed: Float
+  timeRemaining: StringValueRecord
+  totalChargedEnergy: FloatValueRecord
+  vehicleChargerState: StringValueRecord
+}
+
+type LiveSessionHistory {
+  chartData: [FloatValueRecord]
+  startTime: Float
+  vehicleId: String
+  chargerId: String
+  transactionId: String
+  current: FloatValueRecord
+}
+
+type NonRivianUserSessionData {
+  chargerId: String
+  transactionId: String
+  isRivianCharger: Boolean!
+  vehicleChargerState: StringValueRecord
+}
+
+type PaymentMethod {
+  default: Boolean!
+  card: Card
+}
+
+type PaymentQuery {
+  getPaymentMethods: [PaymentMethod!]!
+}
+
+type SessionHistorySummary {
+  transactionId: String!
+  locationId: String!
+  vehicleId: String
+  startDateTime: String!
+  endDateTime: String!
+  currency: String!
+  cost: Float!
+  paidTotal: Float!
+  energyOffered: Float!
+  energyUnits: String
+  rangeAdded: Float
+  rangeUnits: String
+  vendor: String!
+  chargerType: String!
+  chargerName: String!
+  address: String!
+  city: String!
+  country: String!
+  postalCode: string!
+}
+
+type SessionSummary {
+  transactionId: String
+  vehicleInfo: VehicleInfo
+  startDateTime: String!
+  endDateTime: String!
+  totalEnergyKwh: Float!
+  rangeAddedKm: Float
+}
+
+type StringValueRecord {
+  value: String!
+  updatedAt: String!
+}
+
+type VehicleInfo {
+  name: String
+  vin: String
+}
+
+type WallboxRecord {
+  wallboxId: String!
+  userId: String!
+  wifiId: String!
+  name: String!
+  linked: Boolean!
+  latitude: String!
+  longitude: String!
+  chargingStatus: String!
+  power: String
+  currentVoltage: String
+  currentAmps: String
+  softwareVersion: String!
+  model: String!
+  serialNumber: String!
+  maxPower: String!
+  maxVoltage: String!
+  maxAmps: String
+}
