@@ -11,7 +11,7 @@ from .utils import generate_ble_command_hmac
 _LOGGER = logging.getLogger(__name__)
 
 try:
-    from bleak import BleakClient, BleakScanner, BLEDevice
+    from bleak import BleakClient, BleakScanner, BLEDevice  # type: ignore
 except ImportError:
     _LOGGER.error("Please install 'rivian-python-client[ble]' to use BLE features.")
     raise
