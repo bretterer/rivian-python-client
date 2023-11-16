@@ -248,10 +248,12 @@ class Rivian:
         device_name: str,
         public_key: str,
     ) -> bool:
-        """Enable control of a vehicle by enrolling a phone.
+        """Enroll a phone.
 
         To generate a public/private key for enrollment, use the `utils.generate_key_pair` function.
         The private key will need to be retained to sign commands sent via the `send_vehicle_command` method.
+        To enable vehicle control, the phone will then also need to be paired locally via BLE,
+        which can be done via `ble.pair_phone`.
         """
         url = GRAPHQL_GATEWAY
         headers = BASE_HEADERS | {
