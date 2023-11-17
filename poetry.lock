@@ -168,12 +168,13 @@ tests-no-zope = ["cloudpickle", "hypothesis", "mypy (>=1.1.1)", "pympler", "pyte
 
 [[package]]
 name = "backports-strenum"
-version = "1.2.4"
+version = "1.2.8"
 description = "Base class for creating enumerated constants that are also subclasses of str"
 optional = false
-python-versions = ">=3.8, <4"
+python-versions = ">=3.8.6,<4.0.0"
 files = [
-    {file = "backports.strenum-1.2.4.tar.gz", hash = "sha256:87b67fd1413af3ce959b565d84ddef99776cdd97a62e2fd2d0550cdacc210dee"},
+    {file = "backports_strenum-1.2.8-py3-none-any.whl", hash = "sha256:fc297cb26971f7d5e15a478a06a78575197f81daea47975771b1aae996dcccf4"},
+    {file = "backports_strenum-1.2.8.tar.gz", hash = "sha256:4dd47365fd427ac8028aeb1ad3628ea38e67c4d0336ceebd5c0f113e0c487ce9"},
 ]
 
 [[package]]
