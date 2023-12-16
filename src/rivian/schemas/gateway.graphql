@@ -409,6 +409,12 @@ type VehicleState {
 
   brakeFluidLow: TimeStampedString
 
+  btmFfHardwareFailureStatus: TimeStampedString
+  btmIcHardwareFailureStatus: TimeStampedString
+  btmLfdHardwareFailureStatus: TimeStampedString
+  btmRfdHardwareFailureStatus: TimeStampedString
+  btmRfHardwareFailureStatus: TimeStampedString
+
   cabinClimateDriverTemperature: TimeStampedFloat
   cabinClimateInteriorTemperature: TimeStampedFloat
   cabinPreconditioningStatus: TimeStampedString
@@ -466,6 +472,9 @@ type VehicleState {
   gnssBearing: TimeStampedFloat
   gnssLocation: VehicleLocation
   gnssSpeed: TimeStampedFloat
+
+  limitedAccelCold: TimeStampedInt
+  limitedRegenCold: TimeStampedInt
 
   otaAvailableVersion: TimeStampedString
   otaAvailableVersionGitHash: TimeStampedString
