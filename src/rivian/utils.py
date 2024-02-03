@@ -90,7 +90,7 @@ def get_message_signature(secret_key: bytes, message: bytes) -> str:
 
 
 def get_secret_key(private_key_str: str, public_key_str: str) -> bytes:
-    """Get HKDF derived secrety key from private/public key pair."""
+    """Get HKDF derived secret key from private/public key pair."""
     private_key = decode_private_key(private_key_str)
     public_key = decode_public_key(public_key_str)
     secret = private_key.exchange(ec.ECDH(), public_key)
