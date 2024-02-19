@@ -375,6 +375,14 @@ type VehicleLocation implements TimeStamped {
   longitude: Float!
 }
 
+type VehicleLocationError implements TimeStamped {
+  timeStamp: String!
+  bearing: Float!
+  positionHorizontal: Float!
+  positionVertical: Float!
+  speed: Float!
+}
+
 type VehicleMobileConfiguration {
   trimOption: VehicleMobileConfigurationOption!
   driveSystemOption: VehicleMobileConfigurationOption!
@@ -422,9 +430,11 @@ type VehicleState {
 
   carWashMode: TimeStampedString
 
+  chargePortState: TimeStampedString
   chargerDerateStatus: TimeStampedString
   chargerState: TimeStampedString
   chargerStatus: TimeStampedString
+  chargingTimeEstimationValidity: TimeStampedString
 
   closureFrunkClosed: TimeStampedString
   closureFrunkLocked: TimeStampedString
@@ -470,6 +480,7 @@ type VehicleState {
 
   gnssAltitude: TimeStampedNullableFloat
   gnssBearing: TimeStampedFloat
+  gnssError: VehicleLocationError
   gnssLocation: VehicleLocation
   gnssSpeed: TimeStampedFloat
 
@@ -502,6 +513,8 @@ type VehicleState {
 
   rangeThreshold: TimeStampedString
 
+  rearHitchStatus: TimeStampedString
+
   remoteChargingAvailable: TimeStampedInt
 
   seatFrontLeftHeat: TimeStampedString
@@ -519,6 +532,10 @@ type VehicleState {
 
   timeToEndOfCharge: TimeStampedFloat
 
+  tirePressureFrontLeft: TimeStampedNullableFloat # only available via subscription
+  tirePressureFrontRight: TimeStampedNullableFloat # only available via subscription
+  tirePressureRearLeft: TimeStampedNullableFloat # only available via subscription
+  tirePressureRearRight: TimeStampedNullableFloat # only available via subscription
   tirePressureStatusFrontLeft: TimeStampedString
   tirePressureStatusFrontRight: TimeStampedString
   tirePressureStatusRearLeft: TimeStampedString
