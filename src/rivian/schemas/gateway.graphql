@@ -28,6 +28,12 @@ type Query {
 
 type Mutation {
   createCsrfToken: CreateCsrfTokenResponse
+  createDepartureSchedule(
+    vehicleId: String!
+    schedule: InputDepartureSchedule!
+  ): Success
+  deleteDepartureSchedule(vehicleId: String!, scheduleId: String!): Success
+  departNow(vehicleId: String!, scheduleId: String!, skipDate: String!): Success
   disenrollPhone(attrs: DisenrollPhoneAttributes!): DisenrollPhoneResponse
   enrollPhone(attrs: EnrollPhoneAttributes!): EnrollPhoneResponse
   login(email: String!, password: String!): LoginResponse
@@ -36,16 +42,61 @@ type Mutation {
     otpToken: String!
     otpCode: String!
   ): MobileLoginResponse
+  logout: LogoutResponse
+  resendOTPCode(otpToken: String!): ResendOTPCodeResponse
   sendVehicleCommand(attrs: VehicleCommandAttributes!): SendVehicleCommandState
   setChargingSchedules(
     vehicleId: String!
     chargingSchedules: [InputChargingSchedule!]!
   ): OK
   setVehicleName(vehicleId: String!, name: String!): OK
+  skipNextScheduledDeparture(
+    vehicleId: String!
+    scheduleId: String!
+    skipDate: String!
+  ): Success
+  updateDepartureSchedule(
+    vehicleId: String!
+    scheduleId: String!
+    schedule: InputDepartureSchedule!
+  ): Success
 }
 
 type Subscription {
-  vehicleState(id: String!): VehicleState
+  chargingSession(vehicleId: String!): ChargingSession!
+  otaInstallSchedules(vehicleId: String!): ParallaxMessageResponse!
+  otaInstallState(vehicleId: String!): ParallaxMessageResponse!
+  vehicleCloudConnection(id: String!): VehicleCloudConnection!
+  vehicleCommandState(id: String!): GetVehicleCommandState!
+  vehicleDepartureSchedules(vehicleId: String!): [DepartureSchedule!]!
+  vehicleGeofences(vehicleId: String!): ParallaxMessageResponse
+  vehicleState(id: String!): VehicleState!
+}
+
+enum DefogDefrostLevel {
+  Off
+  Defog
+  Defrost
+}
+
+enum SurfaceHeatVentLevel {
+  Off
+  Heat1
+  Heat2
+  Heat3
+  Vent1
+  Vent2
+  Vent3
+}
+
+enum WeekDay {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
 }
 
 input CoordinatesInput {
@@ -72,6 +123,38 @@ input InputChargingSchedule {
   location: CoordinatesInput!
   amperage: Int!
   enabled: Boolean!
+}
+
+input InputComfortSettings {
+  surfaceHeatVentLevels: InputSurfaceHeatVentLevels!
+  cabinTempCelsius: Float!
+  frontDefogDefrost: DefogDefrostLevel!
+}
+
+input InputDepartureSchedule {
+  name: String!
+  isEnabled: Boolean!
+  repeatsWeekly: InputRepeatsWeekly!
+  departureSettings: InputDepartureSettings!
+}
+
+input InputDepartureSettings {
+  shouldOverrideChargeSchedule: Boolean!
+  comfortSettings: InputComfortSettings!
+}
+
+input InputRepeatsWeekly {
+  days: [WeekDay!]!
+  startsAtMin: Int!
+  skippedOn: [String!]!
+}
+
+input InputSurfaceHeatVentLevels {
+  frontLeftSeat: SurfaceHeatVentLevel!
+  frontRightSeat: SurfaceHeatVentLevel!
+  rearLeftSeat: SurfaceHeatVentLevel!
+  rearRightSeat: SurfaceHeatVentLevel!
+  steeringWheel: SurfaceHeatVentLevel!
 }
 
 input NetworkPreference {
@@ -104,6 +187,27 @@ type CampSpeaker {
   serialNumber: String!
 }
 
+type ChargingChartData {
+  soc: Float!
+  powerKW: Float!
+  startTime: Float!
+  endTime: Float!
+  timeEstimationValidityStatus: String!
+  vehicleChargerState: String!
+}
+
+type ChargingLiveData {
+  powerKW: Float!
+  kilometersChargedPerHour: Float!
+  rangeAddedThisSession: Float!
+  totalChargedEnergy: Float!
+  timeElapsed: Float
+  timeRemaining: Float
+  price: Float
+  currency: String
+  isFreeSession: Boolean
+}
+
 type ChargingSchedule {
   startTime: Int!
   duration: Int!
@@ -111,6 +215,17 @@ type ChargingSchedule {
   amperage: Int!
   enabled: Boolean!
   weekDays: [String!]!
+}
+
+type ChargingSession {
+  chartData: [ChargingChartData!]!
+  liveData: ChargingLiveData!
+}
+
+type ComfortSettings {
+  surfaceHeatVentLevels: SurfaceHeatVentLevels!
+  cabinTempCelsius: Float!
+  frontDefogDefrost: DefogDefrostLevel!
 }
 
 type CreateCsrfTokenResponse {
@@ -142,6 +257,19 @@ type DeliveryAppointment {
   timeZone: String!
 }
 
+type DepartureSchedule {
+  id: String!
+  name: String!
+  isEnabled: Boolean!
+  occurrence: RepeatsWeekly!
+  departureSettings: DepartureSettings!
+}
+
+type DepartureSettings {
+  shouldOverrideChargeSchedule: Boolean!
+  comfortSettings: ComfortSettings!
+}
+
 type DisenrollPhoneResponse {
   success: Boolean!
 }
@@ -162,6 +290,10 @@ type GetVehicleCommandState {
   state: Int!
   responseCode: Int
   statusCode: Int
+}
+
+type LogoutResponse {
+  success: Boolean!
 }
 
 type MobileLoginResponse {
@@ -187,6 +319,11 @@ type OTAUpdateDetails {
   url: String!
   version: String!
   locale: String!
+}
+
+type ParallaxMessageResponse {
+  payload: String! # base64 encoded??
+  sequenceNumber: Int!
 }
 
 type PlanTripResponse {
@@ -219,6 +356,16 @@ type RegistrationChannel {
   type: String!
 }
 
+type RepeatsWeekly {
+  days: [WeekDay!]!
+  startsAtMin: Int!
+  skippedOn: [String!]!
+}
+
+type ResendOTPCodeResponse {
+  success: Boolean!
+}
+
 type Route {
   routeResponse: String!
   destinationReached: Boolean!
@@ -238,9 +385,21 @@ type SendVehicleCommandState {
   state: Int!
 }
 
+type Success {
+  success: Boolean!
+}
+
 type SupportedFeature {
   name: String!
   status: String!
+}
+
+type SurfaceHeatVentLevels {
+  frontLeftSeat: SurfaceHeatVentLevel!
+  frontRightSeat: SurfaceHeatVentLevel!
+  rearLeftSeat: SurfaceHeatVentLevel!
+  rearRightSeat: SurfaceHeatVentLevel!
+  steeringWheel: SurfaceHeatVentLevel!
 }
 
 type TimeStampedFloat implements TimeStamped {
@@ -366,13 +525,15 @@ type Vehicle {
 }
 
 type VehicleCloudConnection {
-  lastSync: String!
+  isOnline: Boolean!
+  lastSync: String
 }
 
 type VehicleLocation implements TimeStamped {
   timeStamp: String!
   latitude: Float!
   longitude: Float!
+  isAuthorized: Boolean
 }
 
 type VehicleLocationError implements TimeStamped {
@@ -434,6 +595,8 @@ type VehicleState {
   chargerDerateStatus: TimeStampedString
   chargerState: TimeStampedString
   chargerStatus: TimeStampedString
+  chargingDisabledAC: TimeStampedInt
+  chargingDisabledAll: TimeStampedInt
   chargingTimeEstimationValidity: TimeStampedString
 
   closureFrunkClosed: TimeStampedString
