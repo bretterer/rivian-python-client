@@ -1,11 +1,11 @@
 """Tests for `rivian.rivian`."""
+
 # pylint: disable=protected-access
 from __future__ import annotations
 
 import aiohttp
 import pytest
 from aresponses import ResponsesMockServer
-
 from rivian import Rivian
 from rivian.exceptions import (
     RivianApiException,

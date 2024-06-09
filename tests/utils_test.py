@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import time
-
 from rivian import VehicleCommand, utils
 
 PHONE_NONCE = bytes.fromhex("e4e9b1f0abba398bdfe5b2d90cba16ad")
