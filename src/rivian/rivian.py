@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import socket
+import sys
 import time
 import uuid
 from collections.abc import Callable
@@ -11,7 +12,6 @@ from typing import Any, Type
 from warnings import warn
 
 import aiohttp
-import async_timeout
 from aiohttp import ClientResponse, ClientWebSocketResponse
 
 from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES, VehicleCommand
@@ -29,6 +29,11 @@ from .exceptions import (
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
+if sys.version_info >= (3, 11):
+    import asyncio as async_timeout
+else:
+    import async_timeout
+    
 _LOGGER = logging.getLogger(__name__)
 
 GRAPHQL_BASEPATH = "https://rivian.com/api/gql"
