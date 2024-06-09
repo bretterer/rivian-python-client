@@ -1,4 +1,5 @@
 """Asynchronous Python client for the Rivian API."""
+
 from __future__ import annotations
 
 import asyncio
@@ -33,7 +34,7 @@ if sys.version_info >= (3, 11):
     import asyncio as async_timeout
 else:
     import async_timeout
-    
+
 _LOGGER = logging.getLogger(__name__)
 
 GRAPHQL_BASEPATH = "https://rivian.com/api/gql"

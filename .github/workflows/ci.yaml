@@ -25,6 +25,10 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+      - name: Run linting
+        run: |
+          poetry run ruff check .
+          poetry run ruff format . --check
       - name: Run mypy
         run: poetry run mypy src/rivian
       - name: Run tests with poetry and pytest

@@ -23,6 +23,7 @@ pytest-asyncio = ">=0.18.3,<0.24.0"
 python-dotenv = ">=0.20,<1.1"
 aresponses = ">=2.1.5,<4.0.0"
 mypy = ">=1.7.0,<2.0.0"
+ruff = "^0.4"
 
 [tool.poetry.extras]
 ble = ["bleak", "dbus-fast"]
@@ -32,6 +33,10 @@ enable = true
 vcs = "git"
 style = "semver"
 pattern = "default-unprefixed"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = false
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
