@@ -565,6 +565,13 @@ type VehicleMobileImage {
   resolution: String!
   size: String!
   url: String!
+  overlays: [VehicleMobileImageOverlay!]!
+}
+
+type VehicleMobileImageOverlay {
+  url: String!
+  overlay: String!
+  zIndex: Int!
 }
 
 type VehicleState {
