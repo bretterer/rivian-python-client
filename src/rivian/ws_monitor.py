@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from json import loads
@@ -10,8 +11,12 @@ from random import uniform
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-import async_timeout
 from aiohttp import ClientWebSocketResponse, WSMessage, WSMsgType
+
+if sys.version_info >= (3, 11):
+    import asyncio as async_timeout
+else:
+    import async_timeout
 
 if TYPE_CHECKING:
     from .rivian import Rivian
