@@ -23,7 +23,7 @@ pytest-asyncio = ">=0.18.3,<0.25.0"
 python-dotenv = ">=0.20,<1.1"
 aresponses = ">=2.1.5,<4.0.0"
 mypy = ">=1.7.0,<2.0.0"
-ruff = ">=0.4,<0.8"
+ruff = ">=0.4,<0.9"
 
 [tool.poetry.extras]
 ble = ["bleak", "dbus-fast"]
