@@ -153,7 +153,6 @@ class Rivian:
             "Csrf-Token": self._csrf_token,
             "A-Sess": self._app_session_token,
             "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
-            "Dc-Cid": f"m-ios-{uuid.uuid4()}",
         }
 
         graphql_json = {
@@ -637,6 +636,9 @@ class Rivian:
         if self._session is None:
             self._session = aiohttp.ClientSession()
             self._close_session = True
+
+        if "dc-cid" not in headers:
+            headers["dc-cid"] = f"m-ios-{uuid.uuid4()}"
 
         try:
             async with async_timeout.timeout(self.request_timeout):

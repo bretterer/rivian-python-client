@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import sys
 from collections.abc import Awaitable, Callable
@@ -151,7 +152,11 @@ class WebSocketMonitor:
                         self._connection_ack.set()
                     elif data_type == "next":
                         if (_id := data.get("id")) in self._subscriptions:
-                            self._subscriptions[_id][0](data)
+                            _fn = self._subscriptions[_id][0]
+                            if inspect.iscoroutinefunction(_fn):
+                                await _fn(data)
+                            else:
+                                _fn(data)
                     else:
                         self._log_message(msg)
                 elif msg.type == WSMsgType.ERROR:
