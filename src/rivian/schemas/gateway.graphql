@@ -581,16 +581,19 @@ type VehicleState {
   alarmSoundStatus: TimeStampedString
 
   batteryCapacity: TimeStampedFloat
+  batteryCellType: TimeStampedString
   batteryHvThermalEvent: TimeStampedString
   batteryHvThermalEventPropagation: TimeStampedString
   batteryLevel: TimeStampedFloat
   batteryLimit: TimeStampedInt
+  batteryNeedsLfpCalibration: TimeStampedInt
 
   brakeFluidLow: TimeStampedString
 
   btmFfHardwareFailureStatus: TimeStampedString
   btmIcHardwareFailureStatus: TimeStampedString
   btmLfdHardwareFailureStatus: TimeStampedString
+  btmOcHardwareFailureStatus: TimeStampedString
   btmRfdHardwareFailureStatus: TimeStampedString
   btmRfHardwareFailureStatus: TimeStampedString
 
@@ -606,6 +609,7 @@ type VehicleState {
   chargerState: TimeStampedString
   chargerStatus: TimeStampedString
   chargingDisabledAC: TimeStampedInt
+  chargingDisabledACFaultState: TimeStampedInt
   chargingDisabledAll: TimeStampedInt
   chargingTimeEstimationValidity: TimeStampedString
 
