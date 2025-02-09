@@ -534,6 +534,7 @@ type VehicleLocation implements TimeStamped {
   latitude: Float!
   longitude: Float!
   isAuthorized: Boolean
+  consentStatus: String
 }
 
 type VehicleLocationError implements TimeStamped {
@@ -575,6 +576,8 @@ type VehicleMobileImageOverlay {
 }
 
 type VehicleState {
+  activeDriverName: TimeStampedString
+
   alarmSoundStatus: TimeStampedString
 
   batteryCapacity: TimeStampedFloat
@@ -606,6 +609,7 @@ type VehicleState {
   chargingDisabledAll: TimeStampedInt
   chargingTimeEstimationValidity: TimeStampedString
 
+  closureChargePortDoorNextAction: TimeStampedString
   closureFrunkClosed: TimeStampedString
   closureFrunkLocked: TimeStampedString
   closureFrunkNextAction: TimeStampedString
