@@ -729,5 +729,7 @@ class Rivian:
 
     def _build_vehicle_state_fragment(self, properties: set[str]) -> str:
         """Build GraphQL vehicle state fragment from properties."""
-        frag = " ".join(f"{p} {TEMPLATE_MAP.get(p,VALUE_TEMPLATE)}" for p in properties)
+        frag = " ".join(
+            f"{p} {TEMPLATE_MAP.get(p, VALUE_TEMPLATE)}" for p in properties
+        )
         return f"{{ {frag} }}"
