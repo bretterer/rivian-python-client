@@ -1,3 +1,5 @@
+directive @subscriptionOnly on FIELD_DEFINITION
+
 type Query {
   currentUser: User
   delivery(orderId: ID!): Delivery
@@ -576,7 +578,7 @@ type VehicleMobileImageOverlay {
 }
 
 type VehicleState {
-  activeDriverName: TimeStampedString
+  activeDriverName: TimeStampedString @subscriptionOnly
 
   alarmSoundStatus: TimeStampedString
 
@@ -609,11 +611,11 @@ type VehicleState {
   chargerState: TimeStampedString
   chargerStatus: TimeStampedString
   chargingDisabledAC: TimeStampedInt
-  chargingDisabledACFaultState: TimeStampedInt
+  chargingDisabledACFaultState: TimeStampedInt @subscriptionOnly
   chargingDisabledAll: TimeStampedInt
   chargingTimeEstimationValidity: TimeStampedString
 
-  closureChargePortDoorNextAction: TimeStampedString
+  closureChargePortDoorNextAction: TimeStampedString @subscriptionOnly
   closureFrunkClosed: TimeStampedString
   closureFrunkLocked: TimeStampedString
   closureFrunkNextAction: TimeStampedString
@@ -635,7 +637,7 @@ type VehicleState {
 
   cloudConnection: VehicleCloudConnection
 
-  coldRangeNotification: TimeStampedString
+  coldRangeNotification: TimeStampedString @subscriptionOnly
 
   defrostDefogStatus: TimeStampedString
 
@@ -712,10 +714,10 @@ type VehicleState {
 
   timeToEndOfCharge: TimeStampedFloat
 
-  tirePressureFrontLeft: TimeStampedNullableFloat # only available via subscription
-  tirePressureFrontRight: TimeStampedNullableFloat # only available via subscription
-  tirePressureRearLeft: TimeStampedNullableFloat # only available via subscription
-  tirePressureRearRight: TimeStampedNullableFloat # only available via subscription
+  tirePressureFrontLeft: TimeStampedNullableFloat @subscriptionOnly
+  tirePressureFrontRight: TimeStampedNullableFloat @subscriptionOnly
+  tirePressureRearLeft: TimeStampedNullableFloat @subscriptionOnly
+  tirePressureRearRight: TimeStampedNullableFloat @subscriptionOnly
   tirePressureStatusFrontLeft: TimeStampedString
   tirePressureStatusFrontRight: TimeStampedString
   tirePressureStatusRearLeft: TimeStampedString

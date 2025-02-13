@@ -35,14 +35,22 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "cloudConnection",
     # VehicleLocation
     "gnssLocation",
-    # TimeStamped(String|Float|Int)
+    # TimeStamped(String|[Nullable]Float|Int)
     "alarmSoundStatus",
     "batteryCapacity",
+    "batteryCellType",
     "batteryHvThermalEvent",
     "batteryHvThermalEventPropagation",
     "batteryLevel",
     "batteryLimit",
+    "batteryNeedsLfpCalibration",
     "brakeFluidLow",
+    "btmFfHardwareFailureStatus",
+    "btmIcHardwareFailureStatus",
+    "btmLfdHardwareFailureStatus",
+    "btmOcHardwareFailureStatus",
+    "btmRfdHardwareFailureStatus",
+    "btmRfHardwareFailureStatus",
     "cabinClimateDriverTemperature",
     "cabinClimateInteriorTemperature",
     "cabinPreconditioningStatus",
@@ -144,6 +152,22 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "windowsNextAction",
     "wiperFluidState",
 }
+
+VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES: Final[set[str]] = {
+    # TimeStamped(String|[Nullable]Float|Int)
+    "activeDriverName",
+    "chargingDisabledACFaultState",
+    "closureChargePortDoorNextAction",
+    "coldRangeNotification",
+    "tirePressureFrontLeft",
+    "tirePressureFrontRight",
+    "tirePressureRearLeft",
+    "tirePressureRearRight",
+}
+
+VEHICLE_STATES_SUBSCRIPTION_PROPERTIES = (
+    VEHICLE_STATE_PROPERTIES | VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES
+)
 
 
 class VehicleCommand(StrEnum):
