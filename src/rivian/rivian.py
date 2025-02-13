@@ -15,7 +15,13 @@ from warnings import warn
 import aiohttp
 from aiohttp import ClientResponse, ClientWebSocketResponse
 
-from .const import LIVE_SESSION_PROPERTIES, VEHICLE_STATE_PROPERTIES, VehicleCommand
+from .const import (
+    LIVE_SESSION_PROPERTIES,
+    VEHICLE_STATE_PROPERTIES,
+    VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES,
+    VEHICLE_STATES_SUBSCRIPTION_PROPERTIES,
+    VehicleCommand,
+)
 from .exceptions import (
     RivianApiException,
     RivianApiRateLimitError,
@@ -405,6 +411,15 @@ class Rivian:
         """Get vehicle state."""
         if not properties:
             properties = VEHICLE_STATE_PROPERTIES
+        elif (
+            subscription_properties
+            := VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES.intersection(properties)
+        ):
+            _LOGGER.warning(
+                "Subscription only properties have been identified and removed: %s",
+                ", ".join(subscription_properties),
+            )
+            properties.difference_update(subscription_properties)
 
         url = GRAPHQL_GATEWAY
 
@@ -582,7 +597,7 @@ class Rivian:
     ) -> Callable | None:
         """Open a web socket connection to receive updates."""
         if not properties:
-            properties = VEHICLE_STATE_PROPERTIES
+            properties = VEHICLE_STATES_SUBSCRIPTION_PROPERTIES
 
         try:
             await self._ws_connect()
