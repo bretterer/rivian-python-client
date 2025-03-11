@@ -59,7 +59,9 @@ BASE_HEADERS = {
 
 CLOUD_CONNECTION_TEMPLATE = "{ lastSync isOnline }"
 LOCATION_TEMPLATE = "{ latitude longitude timeStamp isAuthorized }"
-LOCATION_ERROR_TEMPLATE = "{ timeStamp positionVertical positionHorizontal speed bearing }"
+LOCATION_ERROR_TEMPLATE = (
+    "{ timeStamp positionVertical positionHorizontal speed bearing }"
+)
 VALUE_TEMPLATE = "{ timeStamp value }"
 TEMPLATE_MAP = {
     "cloudConnection": CLOUD_CONNECTION_TEMPLATE,
