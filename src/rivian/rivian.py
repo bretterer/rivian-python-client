@@ -57,12 +57,14 @@ BASE_HEADERS = {
     "Apollographql-Client-Name": APOLLO_CLIENT_NAME,
 }
 
-CLOUD_CONNECTION_TEMPLATE = "{ lastSync }"
-LOCATION_TEMPLATE = "{ latitude longitude timeStamp }"
+CLOUD_CONNECTION_TEMPLATE = "{ lastSync isOnline }"
+LOCATION_TEMPLATE = "{ latitude longitude timeStamp isAuthorized }"
+LOCATION_ERROR_TEMPLATE = "{ timeStamp positionVertical positionHorizontal speed bearing }"
 VALUE_TEMPLATE = "{ timeStamp value }"
 TEMPLATE_MAP = {
     "cloudConnection": CLOUD_CONNECTION_TEMPLATE,
     "gnssLocation": LOCATION_TEMPLATE,
+    "gnssError": LOCATION_ERROR_TEMPLATE,
 }
 
 LIVE_SESSION_VALUE_RECORD_KEYS = {

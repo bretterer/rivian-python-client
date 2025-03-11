@@ -46,6 +46,7 @@ type Mutation {
   ): MobileLoginResponse
   logout: LogoutResponse
   resendOTPCode(otpToken: String!): ResendOTPCodeResponse
+  sendTripToVehicle(attrs: SendTripToVehicleInput!) { sendTripToVehicle(attrs: $attrs) }
   sendVehicleCommand(attrs: VehicleCommandAttributes!): SendVehicleCommandState
   setChargingSchedules(
     vehicleId: String!
@@ -208,6 +209,8 @@ type ChargingLiveData {
   price: Float
   currency: String
   isFreeSession: Boolean
+  vehicleChargerState: String!
+  startTime: Float!
 }
 
 type ChargingSchedule {
@@ -615,6 +618,9 @@ type VehicleState {
   chargingDisabledAll: TimeStampedInt
   chargingTimeEstimationValidity: TimeStampedString
 
+  chargingTripTargetSoc: TimeStampedInt
+  chargingTripTargetMinsRemaining: TimeStampedInt
+
   closureChargePortDoorNextAction: TimeStampedString @subscriptionOnly
   closureFrunkClosed: TimeStampedString
   closureFrunkLocked: TimeStampedString
@@ -659,6 +665,8 @@ type VehicleState {
   gearGuardVideoStatus: TimeStampedString
   gearGuardVideoTermsAccepted: TimeStampedString
   gearStatus: TimeStampedString
+
+  geoLocation: TimeStampedString
 
   gnssAltitude: TimeStampedNullableFloat
   gnssBearing: TimeStampedFloat
