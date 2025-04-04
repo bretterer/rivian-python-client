@@ -34,8 +34,11 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     # VehicleCloudConnection
     "cloudConnection",
     # VehicleLocation
+    "geoLocation",
     "gnssLocation",
+    "gnssError",
     # TimeStamped(String|[Nullable]Float|Int)
+    "activeDriverName",
     "alarmSoundStatus",
     "batteryCapacity",
     "batteryCellType",
@@ -59,6 +62,8 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "chargerDerateStatus",
     "chargerState",
     "chargerStatus",
+    "chargePortState",
+    "chargingDisabledAll",
     "closureFrunkClosed",
     "closureFrunkLocked",
     "closureFrunkNextAction",
@@ -96,6 +101,8 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "gnssAltitude",
     "gnssBearing",
     "gnssSpeed",
+    "limitedRegenCold",
+    "limitedAccelCold",
     "otaAvailableVersion",
     "otaAvailableVersionGitHash",
     "otaAvailableVersionNumber",
@@ -118,6 +125,7 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "petModeTemperatureStatus",
     "powerState",
     "rangeThreshold",
+    "rearHitchStatus",
     "remoteChargingAvailable",
     "seatFrontLeftHeat",
     "seatFrontLeftVent",
@@ -157,6 +165,9 @@ VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES: Final[set[str]] = {
     # TimeStamped(String|[Nullable]Float|Int)
     "activeDriverName",
     "chargingDisabledACFaultState",
+    "chargingTimeEstimationValidity",
+    "chargingTripTargetSoc",
+    "chargingTripTargetMinsRemaining",
     "closureChargePortDoorNextAction",
     "coldRangeNotification",
     "tirePressureFrontLeft",
@@ -174,10 +185,13 @@ class VehicleCommand(StrEnum):
     """Supported vehicle commands."""
 
     WAKE_VEHICLE = "WAKE_VEHICLE"
-    HONK_AND_FLASH_LIGHTS = "HONK_AND_FLASH_LIGHTS"
     UNLOCK_USER_PREFERENCES_AND_DISABLE_ALARM = (
         "UNLOCK_USER_PREFERENCES_AND_DISABLE_ALARM"
     )
+
+    HONK_AND_FLASH_LIGHTS = "HONK_AND_FLASH_LIGHTS"
+    ACTIVATE_EXTERNAL_SOUND = "ACTIVATE_EXTERNAL_SOUND"
+    FLASH_EXTERNAL_LIGHTS = "FLASH_EXTERNAL_LIGHTS"
 
     # Charging
     CHARGING_LIMITS = "CHARGING_LIMITS"
@@ -196,6 +210,9 @@ class VehicleCommand(StrEnum):
     CABIN_PRECONDITIONING_SET_TEMP = "CABIN_PRECONDITIONING_SET_TEMP"
     VEHICLE_CABIN_PRECONDITION_DISABLE = "VEHICLE_CABIN_PRECONDITION_DISABLE"
     VEHICLE_CABIN_PRECONDITION_ENABLE = "VEHICLE_CABIN_PRECONDITION_ENABLE"
+    # Gen2 HVAC Controls
+    CABIN_HVAC_THIRD_ROW_LEFT_SEAT_HEAT = "CABIN_HVAC_THIRD_ROW_LEFT_SEAT_HEAT"
+    CABIN_HVAC_THIRD_ROW_RIGHT_SEAT_HEAT = "CABIN_HVAC_THIRD_ROW_RIGHT_SEAT_HEAT"
 
     # Closures
     LOCK_ALL_CLOSURES_FEEDBACK = "LOCK_ALL_CLOSURES_FEEDBACK"
@@ -218,6 +235,10 @@ class VehicleCommand(StrEnum):
 
     # Liftgate/tailgate
     OPEN_LIFTGATE_UNLATCH_TAILGATE = "OPEN_LIFTGATE_UNLATCH_TAILGATE"
+
+    # Chargeport door
+    OPEN_CHARGE_PORT_DOOR = "OPEN_CHARGE_PORT_DOOR"
+    CLOSE_CHARGE_PORT_DOOR = "CLOSE_CHARGE_PORT_DOOR"
 
     # OTA
     OTA_INSTALL_NOW_ACKNOWLEDGE = "OTA_INSTALL_NOW_ACKNOWLEDGE"
