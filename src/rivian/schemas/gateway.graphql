@@ -46,7 +46,7 @@ type Mutation {
   ): MobileLoginResponse
   logout: LogoutResponse
   resendOTPCode(otpToken: String!): ResendOTPCodeResponse
-  sendTripToVehicle(attrs: SendTripToVehicleInput!) { sendTripToVehicle(attrs: $attrs) }
+  sendTripToVehicle(attrs: SendTripToVehicleInput!): OK
   sendVehicleCommand(attrs: VehicleCommandAttributes!): SendVehicleCommandState
   setChargingSchedules(
     vehicleId: String!
