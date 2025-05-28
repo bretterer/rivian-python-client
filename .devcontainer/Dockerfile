@@ -1,5 +1,5 @@
-# [Choice] Python version (use -bullseye variants on local arm64/Apple Silicon)
-ARG VARIANT=3-bullseye
+# [Choice] Python version (use -bookworm variants on local arm64/Apple Silicon)
+ARG VARIANT=3-bookworm
 FROM mcr.microsoft.com/vscode/devcontainers/python:${VARIANT}
 
 # Poetry
