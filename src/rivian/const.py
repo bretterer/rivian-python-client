@@ -56,6 +56,8 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "btmRfHardwareFailureStatus",
     "cabinClimateDriverTemperature",
     "cabinClimateInteriorTemperature",
+    "cabinHoldNotification",
+    "cabinHoldStatus",
     "cabinPreconditioningStatus",
     "cabinPreconditioningType",
     "carWashMode",
@@ -208,6 +210,8 @@ class VehicleCommand(StrEnum):
     CABIN_HVAC_RIGHT_SEAT_VENT = "CABIN_HVAC_RIGHT_SEAT_VENT"
     CABIN_HVAC_STEERING_HEAT = "CABIN_HVAC_STEERING_HEAT"
     CABIN_PRECONDITIONING_SET_TEMP = "CABIN_PRECONDITIONING_SET_TEMP"
+    CLIMATE_HOLD_OFF = "CLIMATE_HOLD_OFF"
+    CLIMATE_HOLD_ON = "CLIMATE_HOLD_ON"
     VEHICLE_CABIN_PRECONDITION_DISABLE = "VEHICLE_CABIN_PRECONDITION_DISABLE"
     VEHICLE_CABIN_PRECONDITION_ENABLE = "VEHICLE_CABIN_PRECONDITION_ENABLE"
     # Gen2 HVAC Controls
