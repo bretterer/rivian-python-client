@@ -1,21 +1,33 @@
-[tool.poetry]
+[project]
 name = "rivian-python-client"
-version = "0.0.0"
 description = "Rivian API Client (Unofficial)"
-readme = "README.md"
-authors = ["Brian Retterer <bretterer@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+requires-python = ">=3.9,<3.14"
+authors = [
+    { name = "Brian Retterer", email = "bretterer@gmail.com" },
+    { name = "J.R. Gutierrez", email = "jrgutier@gmail.com" },
+    { name = "Nathan Spencer", email = "natekspencer@gmail.com" },
+    { name = "Trevor Mack", email = "drummer8001@gmail.com" },
+]
+dependencies = [
+    "aiohttp (>=3.0.0)",
+    "cryptography (>=41.0.1,<46.0)",
+    "backports-strenum (>=1.2.4,<2.0.0) ; python_version < '3.11'",
+]
+dynamic = [ "version" ]
+
+[project.optional-dependencies]
+ble = [
+    "bleak (>=0.21,<2.0.0)",
+    "dbus-fast (>=2.11.0,<3.0.0) ; sys_platform == 'linux'",
+]
+
+[tool.poetry]
+version = "0.0.0"
 packages = [
     { include = "rivian", from = "src" },
 ]
-
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-aiohttp = ">=3.0.0"
-cryptography = ">=41.0.1,<46.0"
-backports-strenum = { version = "^1.2.4", python = "<3.11" }
-bleak = { version = ">=0.21,<2.0.0", optional = true }
-dbus-fast = {version = "^2.11.0", optional = true, platform = "linux"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.1.2,<9.0.0"
@@ -25,9 +37,6 @@ aresponses = ">=2.1.5,<4.0.0"
 mypy = ">=1.7.0,<2.0.0"
 ruff = ">=0.4,<0.15"
 pre-commit = "^4.1.0"
-
-[tool.poetry.extras]
-ble = ["bleak", "dbus-fast"]
 
 [tool.poetry-dynamic-versioning]
 enable = true

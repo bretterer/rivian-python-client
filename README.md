@@ -15,7 +15,7 @@ curl -sSL https://install.python-poetry.org | python3 -
 Install project dependencies into the poetry virtual environment and run pre-commit
 
 ```
-poetry install
+poetry install --all-extras
 pre-commit install
 ```
 
