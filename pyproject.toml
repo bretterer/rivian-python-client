@@ -3,7 +3,7 @@ name = "rivian-python-client"
 description = "Rivian API Client (Unofficial)"
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Brian Retterer", email = "bretterer@gmail.com" },
     { name = "J.R. Gutierrez", email = "jrgutier@gmail.com" },
