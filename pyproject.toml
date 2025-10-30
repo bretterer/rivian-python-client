@@ -3,7 +3,7 @@ name = "rivian-python-client"
 description = "Rivian API Client (Unofficial)"
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.9,<3.14"
+requires-python = ">=3.9"
 authors = [
     { name = "Brian Retterer", email = "bretterer@gmail.com" },
     { name = "J.R. Gutierrez", email = "jrgutier@gmail.com" },
@@ -12,15 +12,15 @@ authors = [
 ]
 dependencies = [
     "aiohttp (>=3.0.0)",
-    "cryptography (>=41.0.1,<46.0)",
-    "backports-strenum (>=1.2.4,<2.0.0) ; python_version < '3.11'",
+    "cryptography (>=41.0.1)",
+    "backports-strenum (>=1.2.4) ; python_version < '3.11'",
 ]
 dynamic = [ "version" ]
 
 [project.optional-dependencies]
 ble = [
-    "bleak (>=0.21,<2.0.0)",
-    "dbus-fast (>=2.11.0,<3.0.0) ; sys_platform == 'linux'",
+    "bleak (>=0.21)",
+    "dbus-fast (>=2.11.0) ; sys_platform == 'linux'",
 ]
 
 [tool.poetry]
