@@ -1,7 +1,9 @@
 repos:
   - repo: https://github.com/python-poetry/poetry
-    rev: '2.1.3'
+    rev: '2.2.1'
     hooks:
+      # Validate poetry configuration.
+      - id: poetry-check
       # Update the lock file.
       - id: poetry-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
