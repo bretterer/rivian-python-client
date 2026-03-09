@@ -157,8 +157,8 @@ async def set_bluez_pairable(device: BLEDevice) -> bool:
         introspection = await bus.introspect("org.bluez", path)
         pobject = bus.get_proxy_object("org.bluez", path, introspection)
         iface = pobject.get_interface("org.bluez.Adapter1")
-        if not await iface.get_pairable():
-            await iface.set_pairable(True)
+        if not await iface.get_pairable():  # type: ignore[attr-defined]
+            await iface.set_pairable(True)  # type: ignore[attr-defined]
         bus.disconnect()
     except Exception as ex:  # pylint: disable=broad-except
         _LOGGER.error(ex)

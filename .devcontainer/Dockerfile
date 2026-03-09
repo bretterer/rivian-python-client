@@ -2,9 +2,9 @@
 ARG VARIANT=3-bookworm
 FROM mcr.microsoft.com/vscode/devcontainers/python:${VARIANT}
 
-# Poetry
-ARG POETRY_VERSION="none"
-RUN if [ "${POETRY_VERSION}" != "none" ]; then su vscode -c "umask 0002 && pip3 install poetry==${POETRY_VERSION}"; fi
+# uv
+RUN su vscode -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
+ENV PATH="/home/vscode/.local/bin:${PATH}"
 
 # [Optional] If your pip requirements rarely change, uncomment this section to add them to the image.
 # COPY requirements.txt /tmp/pip-tmp/

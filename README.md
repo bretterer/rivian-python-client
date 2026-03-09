@@ -4,23 +4,23 @@ Currently a Work In Progress
 
 ## Dependencies
 
-[Poetry](https://python-poetry.org/docs/)
+[uv](https://docs.astral.sh/uv/)
 
 ```
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ## Setup
 
-Install project dependencies into the poetry virtual environment and run pre-commit
+Install project dependencies into the uv virtual environment and run pre-commit
 
 ```
-poetry install --all-extras
+uv sync --all-extras
 pre-commit install
 ```
 
 ## Run Tests
 
 ```
-poetry run pytest
+uv run pytest
 ```

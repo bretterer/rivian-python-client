@@ -1,11 +1,3 @@
-# An action to build and publish python package to https://pypi.org/ using poetry https://github.com/sdispater/poetry
-# For more information see: https://github.com/marketplace/actions/publish-python-poetry-package
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Upload Python Package
 
 on:
@@ -20,9 +12,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v1.16
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          pypi_token: ${{ secrets.PYPI_API_TOKEN }}
-          plugins: "poetry-dynamic-versioning[plugin]"
+          version: "0.10.9"
+
+      - name: Build
+        run: uv build
+
+      - name: Smoke test (wheel)
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import rivian; assert rivian.__version__ != '0.0.0'"
+
+      - name: Smoke test (source distribution)
+        run: uv run --isolated --no-project --with dist/*.tar.gz python -c "import rivian; assert rivian.__version__ != '0.0.0'"
+
+      - name: Publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: uv publish
