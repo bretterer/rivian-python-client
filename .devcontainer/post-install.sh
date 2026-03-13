@@ -1,5 +1,4 @@
 #!/bin/sh
 
-poetry config virtualenvs.in-project true
-poetry install --all-extras
-pre-commit install
+uv sync --all-extras
+uv run pre-commit install
