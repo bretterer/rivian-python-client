@@ -477,15 +477,15 @@ class Rivian:
             for p in properties
         )
         graphql_query = f"""
-            query getLiveSessionData($vehicleId: ID!) {{
-                getLiveSessionData(vehicleId: $vehicleId) {{
+            query getLiveSessionHistory($vehicleId: ID!) {{
+                getLiveSessionHistory(vehicleId: $vehicleId) {{
                     __typename
                     {fragment}
                 }}
             }}"""
 
         graphql_json = {
-            "operationName": "getLiveSessionData",
+            "operationName": "getLiveSessionHistory",
             "query": graphql_query,
             "variables": {"vehicleId": vin},
         }

@@ -1,7 +1,6 @@
 type Query {
   chargepoint: ChargepointQuery
   getCompletedSessionSummaries($vehicleId: String): [ChargingSessionSummary]
-  getLiveSessionData(vehicleId: ID!): LiveSessionData
   getLiveSessionHistory(vehicleId: ID!): LiveSessionHistory
   getNonRivianUserSession: NonRivianUserSessionData
   getRegisteredWallboxes: [WallboxRecord]

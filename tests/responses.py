@@ -37,7 +37,7 @@ CSRF_TOKEN_RESPONSE = {
 }
 LIVE_CHARGING_SESSION_RESPONSE = {
     "data": {
-        "getLiveSessionData": {
+        "getLiveSessionHistory": {
             "isRivianCharger": None,
             "isFreeSession": None,
             "vehicleChargerState": {

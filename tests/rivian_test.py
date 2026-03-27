@@ -175,7 +175,7 @@ async def test_get_vehicle_state(aresponses: ResponsesMockServer) -> None:
 
 
 async def test_get_live_charging_session(aresponses: ResponsesMockServer) -> None:
-    """Test GraphQL Response for a getLiveSessionData request"""
+    """Test GraphQL Response for a getLiveSessionHistory request"""
     aresponses.add(
         "rivian.com",
         "/api/gql/chrg/user/graphql",
@@ -188,7 +188,7 @@ async def test_get_live_charging_session(aresponses: ResponsesMockServer) -> Non
         response_json = await response.json()
         assert response.status == 200
         assert (
-            response_json["data"]["getLiveSessionData"]["vehicleChargerState"]["value"]
+            response_json["data"]["getLiveSessionHistory"]["vehicleChargerState"]["value"]
             == "charging_active"
         )
         await rivian.close()
