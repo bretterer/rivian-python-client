@@ -199,7 +199,7 @@ wheels = [
 
 [[package]]
 name = "bleak"
-version = "2.1.1"
+version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-timeout", marker = "python_full_version < '3.11'" },
@@ -218,9 +218,9 @@ dependencies = [
     { name = "winrt-windows-foundation-collections", marker = "sys_platform == 'win32'" },
     { name = "winrt-windows-storage-streams", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/8a/5acbd4da6a5a301fab56ff6d6e9e6b6945e6e4a2d1d213898c21b1d3a19b/bleak-2.1.1.tar.gz", hash = "sha256:4600cc5852f2392ce886547e127623f188e689489c5946d422172adf80635cf9", size = 120634, upload-time = "2025-12-31T20:43:28.697Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/9f/dd19d92309e4a37823210827f0f42460e69603254309b99499622b511294/bleak-3.0.1.tar.gz", hash = "sha256:c8ff077519f8c30a972fd0d22f47a54b981184b2f2a0886d02e55acadbc1045d", size = 124162, upload-time = "2026-03-25T15:43:01.769Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/fe/22aec895f040c1e457d6e6fcc79286fbb17d54602600ab2a58837bec7be1/bleak-2.1.1-py3-none-any.whl", hash = "sha256:61ac1925073b580c896a92a8c404088c5e5ec9dc3c5bd6fc17554a15779d83de", size = 141258, upload-time = "2025-12-31T20:43:27.302Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/9c/839e4ff0393070396c656fa6616d0d2512f60b571c1263183e709db1c365/bleak-3.0.1-py3-none-any.whl", hash = "sha256:49f93f24ce96610529842da2d9856e7f46597e25966c0f1cfc737f0191566de6", size = 144735, upload-time = "2026-03-25T15:43:00.285Z" },
 ]
 
 [[package]]
