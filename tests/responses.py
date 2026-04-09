@@ -672,6 +672,15 @@ DISENROLL_PHONE_BAD_REQUEST_RESPONSE = {
 }
 
 
+SET_CHARGING_SCHEDULES_RESPONSE = {
+    "data": {
+        "setChargingSchedules": {
+            "success": True
+        }
+    }
+}
+
+
 VEHICLE_CHARGING_SCHEDULES_RESPONSE = {
     "data": {
         "getVehicle": {

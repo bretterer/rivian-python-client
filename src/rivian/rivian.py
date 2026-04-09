@@ -460,6 +460,26 @@ class Rivian:
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def set_charging_schedules(
+        self, vehicle_id: str, schedules: list[dict[str, Any]]
+    ) -> ClientResponse:
+        """Set charging schedules for a vehicle."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "setChargingSchedules",
+            "query": "mutation setChargingSchedules($vehicleId: String!, $chargingSchedules: [InputChargingSchedule!]!) {\n  setChargingSchedules(vehicleId: $vehicleId, chargingSchedules: $chargingSchedules) {\n    success\n  }\n}",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "chargingSchedules": schedules,
+            },
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
         url = GRAPHQL_GATEWAY

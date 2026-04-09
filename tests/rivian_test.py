@@ -23,6 +23,7 @@ from .responses import (
     CSRF_TOKEN_RESPONSE,
     LIVE_CHARGING_SESSION_RESPONSE,
     OTP_TOKEN_RESPONSE,
+    SET_CHARGING_SCHEDULES_RESPONSE,
     USER_INFORMATION_RESPONSE,
     VEHICLE_CHARGING_SCHEDULES_RESPONSE,
     VEHICLE_STATE_RESPONSE,
@@ -216,6 +217,45 @@ async def test_get_charging_schedules(aresponses: ResponsesMockServer) -> None:
         assert schedules[0]["amperage"] == 32
         assert schedules[0]["enabled"] is True
         assert len(schedules[0]["weekDays"]) == 7
+        await rivian.close()
+
+
+async def test_set_charging_schedules(aresponses: ResponsesMockServer) -> None:
+    """Test setting vehicle charging schedules."""
+    aresponses.add(
+        "rivian.com",
+        "/api/gql/gateway/graphql",
+        "POST",
+        response=SET_CHARGING_SCHEDULES_RESPONSE,
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+        schedules = [
+            {
+                "weekDays": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                ],
+                "startTime": 0,
+                "duration": 1440,
+                "location": {"latitude": 37.7749, "longitude": -122.4194},
+                "amperage": 16,
+                "enabled": True,
+            }
+        ]
+        response = await rivian.set_charging_schedules("vehicle_id", schedules)
+        response_json = await response.json()
+        assert response.status == 200
+        assert response_json["data"]["setChargingSchedules"]["success"] is True
         await rivian.close()
 
 
