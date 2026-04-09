@@ -446,6 +446,20 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def get_charging_schedules(self, vehicle_id: str) -> ClientResponse:
+        """Get charging schedules for a vehicle."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "getVehicleChargingSchedules",
+            "query": "query getVehicleChargingSchedules($vehicleId: String!) {\n  getVehicle(id: $vehicleId) {\n    chargingSchedules {\n      weekDays\n      startTime\n      duration\n      location {\n        latitude\n        longitude\n      }\n      amperage\n      enabled\n    }\n  }\n}",
+            "variables": {"vehicleId": vehicle_id},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
         url = GRAPHQL_GATEWAY
