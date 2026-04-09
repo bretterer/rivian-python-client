@@ -472,7 +472,7 @@ class Rivian:
         }
         graphql_json = {
             "operationName": "setChargingSchedules",
-            "query": "mutation setChargingSchedules($vehicleId: String!, $chargingSchedules: [InputChargingSchedule!]!) {\n  setChargingSchedules(vehicleId: $vehicleId, chargingSchedules: $chargingSchedules) {\n    success\n  }\n}",
+            "query": "mutation setChargingSchedules($vehicleId: String!, $chargingSchedules: [InputChargingSchedule!]!) {\n  setChargingSchedules(vehicleId: $vehicleId, chargingSchedules: $chargingSchedules) {\n    __typename\n    success\n  }\n}",
             "variables": {
                 "vehicleId": vehicle_id,
                 "chargingSchedules": schedules,
