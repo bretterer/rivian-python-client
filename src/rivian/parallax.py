@@ -13,6 +13,7 @@ from __future__ import annotations
 import base64
 import logging
 import struct
+from collections.abc import Callable
 from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ def _decode_protobuf_fields(data: bytes) -> list[tuple[int, int, Any]]:
         tag, i = _decode_varint(data, i)
         field_num = tag >> 3
         wire_type = tag & 0x07
+        value: Any
 
         if wire_type == 0:  # Varint
             value, i = _decode_varint(data, i)
@@ -123,14 +125,11 @@ def decode_charge_session_breakdown(payload_b64: str) -> dict[str, Any]:
         result: dict[str, Any] = {}
 
         total_kwh = 0.0
-        pack_kwh = 0.0
 
         for field_num, wire_type, value in fields:
             if field_num == 1 and wire_type == 5:  # totalKwh (float)
                 total_kwh = round(value, 4)
                 result["totalChargedEnergy"] = total_kwh
-            elif field_num == 2 and wire_type == 5:  # packKwh (float)
-                pack_kwh = round(value, 4)
             elif field_num == 9 and wire_type == 5:  # currentPower (float, kW)
                 result["power"] = round(value, 2)
             elif field_num == 7 and wire_type == 0:  # timeRemainingMins or elapsed secs
@@ -183,9 +182,7 @@ def decode_charging_session_status(payload_b64: str) -> dict[str, Any]:
 
         return result
     except Exception:
-        _LOGGER.debug(
-            "Failed to decode charging.session.status payload", exc_info=True
-        )
+        _LOGGER.debug("Failed to decode charging.session.status payload", exc_info=True)
         return {}
 
 
@@ -585,14 +582,12 @@ def decode_charging_graph_global(payload_b64: str) -> dict[str, Any]:
 
         return result
     except Exception:
-        _LOGGER.debug(
-            "Failed to decode charging_graph_global payload", exc_info=True
-        )
+        _LOGGER.debug("Failed to decode charging_graph_global payload", exc_info=True)
         return {}
 
 
 # Map of RVM topic -> decoder function
-RVM_DECODERS: dict[str, callable] = {
+RVM_DECODERS: dict[str, Callable[[str], dict[str, Any]]] = {
     "energy.high_voltage.battery_state": decode_battery_state,
     "energy_edge_compute.graphs.charge_session_breakdown": decode_charge_session_breakdown,
     "energy_edge_compute.graphs.charging_graph_global": decode_charging_graph_global,

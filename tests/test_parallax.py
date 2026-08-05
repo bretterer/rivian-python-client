@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../s
 from rivian.parallax import (
     CHARGING_RVMS,
     PARALLAX_RVMS,
-    RVM_DECODERS,
     _decode_protobuf_fields,
     _decode_varint,
     decode_battery_state,
@@ -113,10 +112,7 @@ class TestParallaxDecoders(unittest.TestCase):
     def test_decode_battery_state(self) -> None:
         """Test energy.high_voltage.battery_state decoder."""
         # Nested message: inner field 1 (soc=79.1 double), inner field 2 (capacity=111.52 double)
-        inner = (
-            b"\x09" + struct.pack("<d", 79.1) +
-            b"\x11" + struct.pack("<d", 111.52)
-        )
+        inner = b"\x09" + struct.pack("<d", 79.1) + b"\x11" + struct.pack("<d", 111.52)
         # Outer message: field 1 (tag 10), length of inner
         outer = bytes([10, len(inner)]) + inner
         payload_b64 = base64.b64encode(outer).decode()
@@ -134,25 +130,29 @@ class TestParallaxDecoders(unittest.TestCase):
         """Test energy_edge_compute.graphs.charge_session_breakdown decoder."""
         # field 1 = totalKwh (float: 0.6), field 9 = power (float: 5.7)
         raw = (
-            bytes([13]) + struct.pack("<f", 0.6) +
-            bytes([77]) + struct.pack("<f", 5.7)
+            bytes([13]) + struct.pack("<f", 0.6) + bytes([77]) + struct.pack("<f", 5.7)
         )
         payload_b64 = base64.b64encode(raw).decode()
 
         result = decode_charge_session_breakdown(payload_b64)
         self.assertEqual(result.get("totalChargedEnergy"), 0.6)
         self.assertEqual(result.get("power"), 5.7)
-        self.assertAlmostEqual(result.get("rangeAddedThisSession"), round(0.6 * 3.5, 1), places=1)
-        self.assertAlmostEqual(result.get("kilometersChargedPerHour"), round(5.7 * 3.5, 1), places=1)
+        self.assertAlmostEqual(
+            result.get("rangeAddedThisSession"), round(0.6 * 3.5, 1), places=1
+        )
+        self.assertAlmostEqual(
+            result.get("kilometersChargedPerHour"), round(5.7 * 3.5, 1), places=1
+        )
 
     def test_decode_charging_graph_global(self) -> None:
         """Test energy_edge_compute.graphs.charging_graph_global decoder."""
         # Segment 1: start_ms=1785695977217, power=5.8, end_ms=1785696037217
         seg1 = (
-            b"\x08\x48" +  # field 1: soc = 72
-            bytes([21]) + struct.pack("<f", 5.8) +  # field 2: power = 5.8
-            b"\x18\x81\xfe\x98\x9e\xfc3" +  # field 3: start_ms = 1785695977217
-            b"\x20\xe1\xd2\x9c\x9e\xfc3"    # field 4: end_ms = 1785696037217
+            b"\x08\x48"  # field 1: soc = 72
+            + bytes([21])
+            + struct.pack("<f", 5.8)  # field 2: power = 5.8
+            + b"\x18\x81\xfe\x98\x9e\xfc3"  # field 3: start_ms = 1785695977217
+            + b"\x20\xe1\xd2\x9c\x9e\xfc3"  # field 4: end_ms = 1785696037217
         )
         outer = bytes([10, len(seg1)]) + seg1
         payload_b64 = base64.b64encode(outer).decode()
@@ -166,18 +166,19 @@ class TestParallaxDecoders(unittest.TestCase):
         """Test energy_edge_compute.graphs.charging_graph_global decoder when charging stops."""
         # Active Segment 1: 1785695977217 -> 1785696037217 (60s, 5.8 kW, state=3)
         seg1 = (
-            b"\x08\x48" +  # field 1: soc = 72
-            bytes([21]) + struct.pack("<f", 5.8) +  # field 2: power = 5.8
-            b"\x18\x81\xfe\x98\x9e\xfc3" +  # field 3: start_ms = 1785695977217
-            b"\x20\xe1\xd2\x9c\x9e\xfc3" +  # field 4: end_ms = 1785696037217
-            b"\x30\x03"                     # field 6: state = 3 (charging)
+            b"\x08\x48"  # field 1: soc = 72
+            + bytes([21])
+            + struct.pack("<f", 5.8)  # field 2: power = 5.8
+            + b"\x18\x81\xfe\x98\x9e\xfc3"  # field 3: start_ms = 1785695977217
+            + b"\x20\xe1\xd2\x9c\x9e\xfc3"  # field 4: end_ms = 1785696037217
+            + b"\x30\x03"  # field 6: state = 3 (charging)
         )
         # Idle Segment 2: 1785696037217 -> 1785696637217 (600s later, state=8, no power)
         seg2 = (
-            b"\x08\x48" +  # field 1: soc = 72
-            b"\x18\xe1\xd2\x9c\x9e\xfc3" +  # field 3: start_ms = 1785696037217
-            b"\x20\xa1\xa9\xb8\x9e\xfc3" +  # field 4: end_ms = 1785696637217
-            b"\x30\x08"                     # field 6: state = 8 (suspended/stopped)
+            b"\x08\x48"  # field 1: soc = 72
+            + b"\x18\xe1\xd2\x9c\x9e\xfc3"  # field 3: start_ms = 1785696037217
+            + b"\x20\xa1\xa9\xb8\x9e\xfc3"  # field 4: end_ms = 1785696637217
+            + b"\x30\x08"  # field 6: state = 8 (suspended/stopped)
         )
         outer = bytes([10, len(seg1)]) + seg1 + bytes([10, len(seg2)]) + seg2
         payload_b64 = base64.b64encode(outer).decode()
@@ -223,9 +224,10 @@ class TestParallaxDecoders(unittest.TestCase):
         """Test dynamics.tires.state decoder."""
         # Nested tire: pos=1 (FL), status=1 (Ok), pressure=3.48 (double)
         inner = (
-            b"\x08\x01" +  # field 1 = 1 (FL)
-            b"\x10\x01" +  # field 2 = 1 (status Ok)
-            b"\x19" + struct.pack("<d", 3.48)  # field 3 = 3.48 (double)
+            b"\x08\x01"  # field 1 = 1 (FL)
+            + b"\x10\x01"  # field 2 = 1 (status Ok)
+            + b"\x19"
+            + struct.pack("<d", 3.48)  # field 3 = 3.48 (double)
         )
         outer = bytes([18, len(inner)]) + inner
         payload_b64 = base64.b64encode(outer).decode()
@@ -285,8 +287,7 @@ class TestParallaxDecoders(unittest.TestCase):
         """Test dynamics.vehicle.gnss decoder."""
         # field 1 = lat (33.0834), field 2 = lon (-80.1465)
         raw = (
-            b"\x09" + struct.pack("<d", 33.0834) +
-            b"\x11" + struct.pack("<d", -80.1465)
+            b"\x09" + struct.pack("<d", 33.0834) + b"\x11" + struct.pack("<d", -80.1465)
         )
         payload_b64 = base64.b64encode(raw).decode()
         result = decode_gnss(payload_b64)
@@ -339,7 +340,9 @@ class TestParallaxDecoders(unittest.TestCase):
         self.assertIn("vehicleMileage", res_odo)
 
         # GNSS topic
-        raw_gnss = b"\x09" + struct.pack("<d", 33.0834) + b"\x11" + struct.pack("<d", -80.1465)
+        raw_gnss = (
+            b"\x09" + struct.pack("<d", 33.0834) + b"\x11" + struct.pack("<d", -80.1465)
+        )
         b64_gnss = base64.b64encode(raw_gnss).decode()
         res_gnss = decode_parallax_message("dynamics.vehicle.gnss", b64_gnss)
         self.assertIsNotNone(res_gnss)
@@ -352,7 +355,9 @@ class TestParallaxDecoders(unittest.TestCase):
     def test_registered_charging_rvms(self) -> None:
         """Verify standard charging RVM topics are defined."""
         self.assertIn("energy.high_voltage.battery_state", CHARGING_RVMS)
-        self.assertIn("energy_edge_compute.graphs.charge_session_breakdown", CHARGING_RVMS)
+        self.assertIn(
+            "energy_edge_compute.graphs.charge_session_breakdown", CHARGING_RVMS
+        )
         self.assertIn("charging.session.status", CHARGING_RVMS)
         self.assertIn("charging.session.time_estimation", CHARGING_RVMS)
         self.assertIn("charging.session.soc_slider", CHARGING_RVMS)
