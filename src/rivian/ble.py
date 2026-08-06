@@ -115,7 +115,7 @@ async def pair_phone(
 
             _LOGGER.debug("Successfully paired with %s", device)
             return True
-    except Exception as ex:  # pylint: disable=broad-except
+    except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
         _LOGGER.debug(
             "Couldn't connect to %s. "
             'Make sure you are in the correct vehicle and have selected "Set Up" for the appropriate key and try again'
@@ -160,7 +160,7 @@ async def set_bluez_pairable(device: BLEDevice) -> bool:
         if not await iface.get_pairable():  # type: ignore[attr-defined]
             await iface.set_pairable(True)  # type: ignore[attr-defined]
         bus.disconnect()
-    except Exception as ex:  # pylint: disable=broad-except
+    except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
         _LOGGER.error(ex)
         return False
 
