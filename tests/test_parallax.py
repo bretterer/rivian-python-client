@@ -67,10 +67,10 @@ class TestProtobufPrimitives(unittest.TestCase):
         self.assertEqual(fields[0], (1, 0, 150))
 
     def test_decode_protobuf_fields_fixed64(self) -> None:
-        """Test field decoding for wire type 1 (64-bit double)."""
-        # field 2 (tag = 2<<3 | 1 = 17), value = 111.52 (double)
-        packed_double = struct.pack("<d", 111.52)
-        raw = b"\x11" + packed_double
+        """Test field decoding for wire type 1 (64-bit float)."""
+        # field 2 (tag = 2<<3 | 1 = 17), value = 111.52 (float)
+        packed_float = struct.pack("<d", 111.52)
+        raw = b"\x11" + packed_float
         fields = _decode_protobuf_fields(raw)
         self.assertEqual(len(fields), 1)
         field_num, wire_type, val = fields[0]
@@ -111,7 +111,7 @@ class TestParallaxDecoders(unittest.TestCase):
 
     def test_decode_battery_state(self) -> None:
         """Test energy.high_voltage.battery_state decoder."""
-        # Nested message: inner field 1 (soc=79.1 double), inner field 2 (capacity=111.52 double)
+        # Nested message: inner field 1 (soc=79.1 float), inner field 2 (capacity=111.52 float)
         inner = b"\x09" + struct.pack("<d", 79.1) + b"\x11" + struct.pack("<d", 111.52)
         # Outer message: field 1 (tag 10), length of inner
         outer = bytes([10, len(inner)]) + inner
@@ -222,12 +222,12 @@ class TestParallaxDecoders(unittest.TestCase):
 
     def test_decode_tires(self) -> None:
         """Test dynamics.tires.state decoder."""
-        # Nested tire: pos=1 (FL), status=1 (Ok), pressure=3.48 (double)
+        # Nested tire: pos=1 (FL), status=1 (Ok), pressure=3.48 (float)
         inner = (
             b"\x08\x01"  # field 1 = 1 (FL)
             + b"\x10\x01"  # field 2 = 1 (status Ok)
             + b"\x19"
-            + struct.pack("<d", 3.48)  # field 3 = 3.48 (double)
+            + struct.pack("<d", 3.48)  # field 3 = 3.48 (float)
         )
         outer = bytes([18, len(inner)]) + inner
         payload_b64 = base64.b64encode(outer).decode()
@@ -331,6 +331,17 @@ class TestParallaxDecoders(unittest.TestCase):
         res = decode_parallax_message("charging.session.time_estimation", payload_b64)
         self.assertIsNotNone(res)
         self.assertEqual(res.get("timeToEndOfCharge"), 3600)
+
+        # Dict unpacking as received from GraphQL subscription (rvm, payload, timestamp)
+        message = {
+            "rvm": "charging.session.time_estimation",
+            "payload": payload_b64,
+            "timestamp": "2026-08-05T20:00:00.000Z",
+            "extra_field": 123,
+        }
+        res_unpacked = decode_parallax_message(**message)
+        self.assertIsNotNone(res_unpacked)
+        self.assertEqual(res_unpacked.get("timeToEndOfCharge"), 3600)
 
         # Odometer topic
         raw_odo = b"\x08\xda\x85\x01"

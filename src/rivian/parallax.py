@@ -14,6 +14,7 @@ import base64
 import logging
 import struct
 from collections.abc import Callable
+from datetime import datetime, timezone
 from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def _decode_protobuf_fields(data: bytes) -> list[tuple[int, int, Any]]:
         if wire_type == 0:  # Varint
             value, i = _decode_varint(data, i)
             fields.append((field_num, wire_type, value))
-        elif wire_type == 1:  # 64-bit (double)
+        elif wire_type == 1:  # 64-bit float
             if i + 8 <= len(data):
                 value = struct.unpack("<d", data[i : i + 8])[0]
                 i += 8
@@ -95,9 +96,9 @@ def decode_battery_state(payload_b64: str) -> dict[str, Any]:
                 # Nested charge_state message (l70/k)
                 inner_fields = _decode_protobuf_fields(value)
                 for inner_num, inner_wt, inner_val in inner_fields:
-                    if inner_num == 1 and inner_wt == 1:  # soc (double)
+                    if inner_num == 1 and inner_wt == 1:  # soc (float)
                         result["soc"] = round(inner_val, 2)
-                    elif inner_num == 2 and inner_wt == 1:  # pack_energy_kwh (double)
+                    elif inner_num == 2 and inner_wt == 1:  # pack_energy_kwh (float)
                         result["pack_energy_kwh"] = round(inner_val, 2)
                     elif inner_num == 3 and inner_wt == 5:  # range_km (float)
                         result["range_km"] = round(inner_val, 1)
@@ -266,7 +267,7 @@ def decode_tires(payload_b64: str) -> dict[str, Any]:
                         pos = in_val
                     elif in_num == 2 and in_type == 0:
                         status = "Ok" if in_val == 1 else "Warning"
-                    elif in_num == 3 and in_type == 1:  # Double (bar)
+                    elif in_num == 3 and in_type == 1:  # 64-bit float (bar)
                         pressure = round(in_val, 2)
 
                 if pos and pos in TIRE_POSITION_MAP:
@@ -441,17 +442,15 @@ def decode_gnss(payload_b64: str) -> dict[str, Any]:
         lon = None
         alt = None
         for field_num, wire_type, value in fields:
-            if field_num == 1 and wire_type == 1:  # latitude (double)
+            if field_num == 1 and wire_type == 1:  # latitude (float)
                 lat = round(value, 6)
-            elif field_num == 2 and wire_type == 1:  # longitude (double)
+            elif field_num == 2 and wire_type == 1:  # longitude (float)
                 lon = round(value, 6)
-            elif field_num == 3 and wire_type == 1:  # altitude (double)
+            elif field_num == 3 and wire_type == 1:  # altitude (float)
                 alt = round(value, 1)
 
         result: dict[str, Any] = {}
         if lat is not None and lon is not None:
-            from datetime import datetime, timezone
-
             now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f%z")
             result["gnssLocation"] = {
                 "latitude": lat,
@@ -618,11 +617,16 @@ CHARGING_RVMS: list[str] = [
 ]
 
 
-def decode_parallax_message(rvm: str, payload_b64: str) -> dict[str, Any] | None:
+def decode_parallax_message(
+    rvm: str, payload: str, **kwargs: Any
+) -> dict[str, Any] | None:
     """Decode a Parallax message payload given its RVM topic.
 
+    Accepts the GraphQL message fields directly (rvm, payload, and optional kwargs/timestamp).
     Returns a dict of decoded fields, or None if no decoder exists for this RVM.
     """
-    if decoder := RVM_DECODERS.get(rvm):
-        return decoder(payload_b64)
-    return None
+    decoder = RVM_DECODERS.get(rvm)
+    if decoder is None:
+        _LOGGER.warning("Unknown Parallax RVM topic %s", rvm)
+        return None
+    return decoder(payload)
