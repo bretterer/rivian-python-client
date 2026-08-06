@@ -116,7 +116,7 @@ def test_decode_battery_state() -> None:
 
     result = decode_battery_state(payload_b64)
     assert result.get("soc") == 79.1
-    assert result.get("pack_energy_kwh") == 111.52
+    assert result.get("packEnergyKwh") == 111.52
 
 
 def test_decode_battery_state_empty_and_corrupt() -> None:
