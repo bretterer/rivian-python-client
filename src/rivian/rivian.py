@@ -8,7 +8,7 @@ import socket
 import sys
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 from warnings import warn
 
@@ -34,6 +34,7 @@ from .exceptions import (
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
+from .parallax import PARALLAX_RVMS
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
@@ -614,6 +615,36 @@ class Rivian:
             }
             unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
             _LOGGER.debug("%s subscribed to updates", vehicle_id)
+            return unsubscribe
+        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
+            _LOGGER.error(ex)
+            return None
+
+    async def subscribe_for_parallax_messages(
+        self,
+        vehicle_id: str,
+        callback: Callable[[dict[str, Any]], None],
+        rvms: list[str] | None = None,
+    ) -> Callable[[], Awaitable[None]] | None:
+        """Open a web socket connection to receive Parallax message updates."""
+        if not rvms:
+            rvms = PARALLAX_RVMS
+
+        try:
+            await self._ws_connect()
+            assert self._ws_monitor
+            async with async_timeout.timeout(self.request_timeout):
+                await self._ws_monitor.connection_ack.wait()
+            payload = {
+                "operationName": "ParallaxMessages",
+                "query": "subscription ParallaxMessages($vehicleId: String!, $rvms: [String!]) { parallaxMessages(vehicleId: $vehicleId, rvms: $rvms) { payload timestamp rvm } }",
+                "variables": {
+                    "vehicleId": vehicle_id,
+                    "rvms": rvms,
+                },
+            }
+            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
+            _LOGGER.debug("%s subscribed to %d Parallax RVMs", vehicle_id, len(rvms))
             return unsubscribe
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             _LOGGER.error(ex)
