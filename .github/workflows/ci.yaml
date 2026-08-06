@@ -28,7 +28,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-          version: "0.10.9"
+          version: "0.12.2"
 
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
