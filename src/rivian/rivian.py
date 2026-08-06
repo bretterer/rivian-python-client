@@ -619,10 +619,10 @@ class Rivian:
             _LOGGER.error(ex)
             return None
 
-    async def _ws_connect(self) -> ClientWebSocketResponse:
+    async def _ws_connect(self) -> ClientWebSocketResponse[bool]:
         """Initiate a websocket connection."""
 
-        async def connection_init(websocket: ClientWebSocketResponse) -> None:
+        async def connection_init(websocket: ClientWebSocketResponse[bool]) -> None:
             await websocket.send_json(
                 {
                     "payload": {

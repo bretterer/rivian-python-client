@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from aiohttp import ClientWebSocketResponse, WSMessage, WSMsgType
+from aiohttp.http_websocket import WSMessageTextBytes
 
 if sys.version_info >= (3, 11):
     import asyncio as async_timeout
@@ -44,7 +45,7 @@ class WebSocketMonitor:
         self,
         account: Rivian,
         url: str,
-        connection_init: Callable[[ClientWebSocketResponse], Awaitable[None]],
+        connection_init: Callable[[ClientWebSocketResponse[bool]], Awaitable[None]],
     ) -> None:
         """Initialize a web socket monitor."""
         self._account = account
@@ -53,7 +54,7 @@ class WebSocketMonitor:
 
         self._connection_ack: asyncio.Event = asyncio.Event()
         self._disconnect = False
-        self._ws: ClientWebSocketResponse | None = None
+        self._ws: ClientWebSocketResponse[bool] | None = None
         self._monitor_task: asyncio.Task | None = None
         self._receiver_task: asyncio.Task | None = None
         self._last_received: datetime | None = None
@@ -74,7 +75,7 @@ class WebSocketMonitor:
         return self._connection_ack
 
     @property
-    def websocket(self) -> ClientWebSocketResponse | None:
+    def websocket(self) -> ClientWebSocketResponse[bool] | None:
         """Return the web socket."""
         return self._ws
 
@@ -206,7 +207,9 @@ class WebSocketMonitor:
         await cancel_task(self._monitor_task, self._receiver_task)
 
     def _log_message(
-        self, message: str | Exception | WSMessage, is_error: bool = False
+        self,
+        message: str | Exception | WSMessage | WSMessageTextBytes,
+        is_error: bool = False,
     ) -> None:
         """Log a message."""
         log_method = _LOGGER.error if is_error else _LOGGER.debug
