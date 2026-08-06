@@ -33,7 +33,7 @@ class BleNotificationResponse:
 
     def __init__(self) -> None:
         """Initialize the BLE notification response helper."""
-        self.data: bytes | None = None
+        self.data: bytearray | None = None
         self.event = asyncio.Event()
 
     def notification_handler(self, _, notification_data: bytearray) -> None:
