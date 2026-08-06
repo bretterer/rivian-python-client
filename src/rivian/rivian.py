@@ -8,7 +8,7 @@ import socket
 import sys
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 from warnings import warn
 
@@ -625,7 +625,7 @@ class Rivian:
         vehicle_id: str,
         callback: Callable[[dict[str, Any]], None],
         rvms: list[str] | None = None,
-    ) -> Callable[[], None] | None:
+    ) -> Callable[[], Awaitable[None]] | None:
         """Open a web socket connection to receive Parallax message updates."""
         if not rvms:
             rvms = PARALLAX_RVMS
