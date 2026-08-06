@@ -6,6 +6,7 @@ from __future__ import annotations
 import aiohttp
 import pytest
 from aresponses import ResponsesMockServer
+
 from rivian import Rivian
 from rivian.exceptions import (
     RivianApiException,
@@ -51,12 +52,14 @@ async def test_authentication(aresponses: ResponsesMockServer) -> None:
         "POST",
         response=AUTHENTICATION_RESPONSE,
     )
-    async with aiohttp.ClientSession():
-        async with Rivian(csrf_token="token", app_session_token="token") as rivian:
-            await rivian.authenticate("username", "password")
-            assert rivian._access_token == "valid_access_token"
-            assert rivian._refresh_token == "valid_refresh_token"
-            assert rivian._user_session_token == "valid_user_session_token"
+    async with (
+        aiohttp.ClientSession(),
+        Rivian(csrf_token="token", app_session_token="token") as rivian,
+    ):
+        await rivian.authenticate("username", "password")
+        assert rivian._access_token == "valid_access_token"
+        assert rivian._refresh_token == "valid_refresh_token"
+        assert rivian._user_session_token == "valid_user_session_token"
 
 
 async def test_invalid_authentication(aresponses: ResponsesMockServer) -> None:

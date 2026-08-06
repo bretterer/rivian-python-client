@@ -179,7 +179,7 @@ class WebSocketMonitor:
             if not self._disconnect:
                 try:
                     await self.new_connection()
-                except Exception as ex:  # pylint: disable=broad-except
+                except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
                     self._log_message(ex, True)
                 if not self._ws or self._ws.closed:
                     await asyncio.sleep(min(1 * 2**attempt + uniform(0, 1), 300))

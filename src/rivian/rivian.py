@@ -9,11 +9,12 @@ import sys
 import time
 import uuid
 from collections.abc import Callable
-from typing import Any, Type
+from typing import Any
 from warnings import warn
 
 import aiohttp
 from aiohttp import ClientResponse, ClientWebSocketResponse
+from typing_extensions import Self
 
 from .const import (
     LIVE_SESSION_PROPERTIES,
@@ -82,7 +83,7 @@ LIVE_SESSION_VALUE_RECORD_KEYS = {
 }
 VALUE_RECORD_TEMPLATE = "{ __typename value updatedAt }"
 
-ERROR_CODE_CLASS_MAP: dict[str, Type[RivianApiException]] = {
+ERROR_CODE_CLASS_MAP: dict[str, type[RivianApiException]] = {
     "BAD_CURRENT_PASSWORD": RivianInvalidCredentials,
     "BAD_REQUEST_ERROR": RivianBadRequestError,
     "DATA_ERROR": RivianDataError,
@@ -496,15 +497,14 @@ class Rivian:
         self, command: VehicleCommand | str, params: dict[str, Any] | None = None
     ) -> None:
         """Validate certian vehicle command/param combos."""
-        if command == VehicleCommand.CHARGING_LIMITS:
-            if not (
-                params
-                and isinstance((limit := params.get("SOC_limit")), int)
-                and 50 <= limit <= 100
-            ):
-                raise RivianBadRequestError(
-                    "Charging limit must include parameter `SOC_limit` with a valid value between 50 and 100"
-                )
+        if command == VehicleCommand.CHARGING_LIMITS and not (
+            params
+            and isinstance((limit := params.get("SOC_limit")), int)
+            and 50 <= limit <= 100
+        ):
+            raise RivianBadRequestError(
+                "Charging limit must include parameter `SOC_limit` with a valid value between 50 and 100"
+            )
         if command in (
             VehicleCommand.CABIN_HVAC_DEFROST_DEFOG,
             VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT,
@@ -514,15 +514,14 @@ class Rivian:
             VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT,
             VehicleCommand.CABIN_HVAC_RIGHT_SEAT_VENT,
             VehicleCommand.CABIN_HVAC_STEERING_HEAT,
+        ) and not (
+            params
+            and isinstance((level := params.get("level")), int)
+            and 0 <= level <= 4
         ):
-            if not (
-                params
-                and isinstance((level := params.get("level")), int)
-                and 0 <= level <= 4
-            ):
-                raise RivianBadRequestError(
-                    "HVAC setting must include parameter `level` with a valid value between 0 and 4"
-                )
+            raise RivianBadRequestError(
+                "HVAC setting must include parameter `level` with a valid value between 0 and 4"
+            )
         if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP:
             if not (
                 params
@@ -616,7 +615,7 @@ class Rivian:
             unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
             _LOGGER.debug("%s subscribed to updates", vehicle_id)
             return unsubscribe
-        except Exception as ex:  # pylint: disable=broad-except
+        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             _LOGGER.error(ex)
             return None
 
@@ -676,37 +675,34 @@ class Rivian:
                 "Error occurred while communicating with Rivian."
             ) from exception
 
-        try:
-            response_json = await response.json()
-            if errors := response_json.get("errors"):
-                for error in errors:
-                    if extensions := error.get("extensions"):
-                        code = extensions["code"]
-                        if (code, extensions.get("reason")) in (
-                            ("BAD_USER_INPUT", "INVALID_OTP"),
-                            ("UNAUTHENTICATED", "OTP_TOKEN_EXPIRED"),
-                        ):
-                            raise RivianInvalidOTP(
-                                response.status, response_json, headers, body
-                            )
-                        if (code, extensions.get("reason")) == (
-                            "CONFLICT",
-                            "ENROLL_PHONE_LIMIT_REACHED",
-                        ):
-                            raise RivianPhoneLimitReachedError(
-                                response.status, response_json, headers, body
-                            )
-                        if err_cls := ERROR_CODE_CLASS_MAP.get(code):
-                            raise err_cls(response.status, response_json, headers, body)
-                raise RivianApiException(
-                    "Error occurred while reading the graphql response from Rivian.",
-                    response.status,
-                    response_json,
-                    headers,
-                    body,
-                )
-        except Exception as exception:
-            raise exception
+        response_json = await response.json()
+        if errors := response_json.get("errors"):
+            for error in errors:
+                if extensions := error.get("extensions"):
+                    code = extensions["code"]
+                    if (code, extensions.get("reason")) in (
+                        ("BAD_USER_INPUT", "INVALID_OTP"),
+                        ("UNAUTHENTICATED", "OTP_TOKEN_EXPIRED"),
+                    ):
+                        raise RivianInvalidOTP(
+                            response.status, response_json, headers, body
+                        )
+                    if (code, extensions.get("reason")) == (
+                        "CONFLICT",
+                        "ENROLL_PHONE_LIMIT_REACHED",
+                    ):
+                        raise RivianPhoneLimitReachedError(
+                            response.status, response_json, headers, body
+                        )
+                    if err_cls := ERROR_CODE_CLASS_MAP.get(code):
+                        raise err_cls(response.status, response_json, headers, body)
+            raise RivianApiException(
+                "Error occurred while reading the graphql response from Rivian.",
+                response.status,
+                response_json,
+                headers,
+                body,
+            )
 
         return response
 
@@ -717,7 +713,7 @@ class Rivian:
         if self._session and self._close_session:
             await self._session.close()
 
-    async def __aenter__(self) -> Rivian:
+    async def __aenter__(self) -> Self:
         """Async enter.
         Returns:
             The Rivian object.
