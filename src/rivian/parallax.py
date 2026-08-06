@@ -555,8 +555,6 @@ def decode_charging_graph_global(payload_b64: str) -> dict[str, Any]:
         result: dict[str, Any] = {}
 
         if "start_ms" in first_seg:
-            from datetime import datetime, timezone
-
             st = datetime.fromtimestamp(first_seg["start_ms"] / 1000, timezone.utc)
             result["startTime"] = st.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
 
