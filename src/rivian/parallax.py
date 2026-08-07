@@ -251,18 +251,19 @@ def decode_charging_graph_global(payload: str) -> dict[str, Any]:
         ]
 
         first_seg = active_segments[0] if active_segments else segments[0]
-        last_seg = active_segments[-1] if active_segments else segments[-1]
         result: dict[str, Any] = {}
 
         if "start_ms" in first_seg:
             st = datetime.fromtimestamp(first_seg["start_ms"] / 1000, timezone.utc)
             result["startTime"] = st.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
 
-        if active_segments and "start_ms" in first_seg and "end_ms" in last_seg:
-            result["timeElapsed"] = max(
-                0, int((last_seg["end_ms"] - first_seg["start_ms"]) / 1000)
+        if active_segments:
+            result["timeElapsed"] = sum(
+                max(0, int((s["end_ms"] - s["start_ms"]) / 1000))
+                for s in active_segments
+                if "end_ms" in s and "start_ms" in s
             )
-        elif not active_segments:
+        else:
             result["timeElapsed"] = 0
 
         latest_segment = segments[-1]
@@ -431,8 +432,8 @@ def decode_locks(payload: str) -> dict[str, Any]:
                         state_val = in_val
 
                 if lid and lid in LOCK_MAP and state_val is not None:
-                    # 1 = unlocked, 2 = locked
-                    result[LOCK_MAP[lid]] = "locked" if state_val == 2 else "unlocked"
+                    # 1 = locked, 2 = unlocked
+                    result[LOCK_MAP[lid]] = "locked" if state_val == 1 else "unlocked"
 
         return result
     except Exception:
@@ -541,7 +542,7 @@ def decode_tires(payload: str) -> dict[str, Any]:
 
     Returns dict with keys:
         - tirePressureFrontLeft, tirePressureFrontRight, etc. (bar)
-        - tirePressureStatusFrontLeft, etc. ("Ok")
+        - tirePressureStatusFrontLeft, etc. ("OK")
     """
     if not payload:
         return {}
@@ -560,7 +561,7 @@ def decode_tires(payload: str) -> dict[str, Any]:
                     if in_num == 1 and in_type == 0:
                         pos = in_val
                     elif in_num == 2 and in_type == 0:
-                        status = "Ok" if in_val == 1 else "Warning"
+                        status = "OK" if in_val == 1 else "Warning"
                     elif in_num == 3 and in_type == 1:  # 64-bit float (bar)
                         pressure = round(in_val, 2)
 
