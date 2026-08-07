@@ -221,10 +221,10 @@ def test_decode_odometer() -> None:
 
 def test_decode_tires() -> None:
     """Test dynamics.tires.state decoder."""
-    # Nested tire: pos=1 (FL), status=1 (Ok), pressure=3.48 (float)
+    # Nested tire: pos=1 (FL), status=1 (OK), pressure=3.48 (float)
     inner = (
         b"\x08\x01"  # field 1 = 1 (FL)
-        + b"\x10\x01"  # field 2 = 1 (status Ok)
+        + b"\x10\x01"  # field 2 = 1 (status OK)
         + b"\x19"
         + struct.pack("<d", 3.48)  # field 3 = 3.48 (float)
     )
@@ -233,7 +233,7 @@ def test_decode_tires() -> None:
 
     result = decode_tires(payload_b64)
     assert result.get("tirePressureFrontLeft") == 3.48
-    assert result.get("tirePressureStatusFrontLeft") == "Ok"
+    assert result.get("tirePressureStatusFrontLeft") == "OK"
 
 
 def test_decode_closures() -> None:

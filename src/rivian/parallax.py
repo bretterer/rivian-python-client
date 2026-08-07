@@ -541,7 +541,7 @@ def decode_tires(payload: str) -> dict[str, Any]:
 
     Returns dict with keys:
         - tirePressureFrontLeft, tirePressureFrontRight, etc. (bar)
-        - tirePressureStatusFrontLeft, etc. ("Ok")
+        - tirePressureStatusFrontLeft, etc. ("OK")
     """
     if not payload:
         return {}
@@ -560,7 +560,7 @@ def decode_tires(payload: str) -> dict[str, Any]:
                     if in_num == 1 and in_type == 0:
                         pos = in_val
                     elif in_num == 2 and in_type == 0:
-                        status = "Ok" if in_val == 1 else "Warning"
+                        status = "OK" if in_val == 1 else "Warning"
                     elif in_num == 3 and in_type == 1:  # 64-bit float (bar)
                         pressure = round(in_val, 2)
 
