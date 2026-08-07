@@ -672,6 +672,35 @@ DISENROLL_PHONE_BAD_REQUEST_RESPONSE = {
 }
 
 
+SET_CHARGING_SCHEDULES_RESPONSE = {"data": {"setChargingSchedules": {"success": True}}}
+
+
+VEHICLE_CHARGING_SCHEDULES_RESPONSE = {
+    "data": {
+        "getVehicle": {
+            "chargingSchedules": [
+                {
+                    "weekDays": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday",
+                    ],
+                    "startTime": 0,
+                    "duration": 1440,
+                    "location": {"latitude": 37.7749, "longitude": -122.4194},
+                    "amperage": 32,
+                    "enabled": True,
+                }
+            ]
+        }
+    }
+}
+
+
 def error_response(
     code: str | None = None, reason: str | None = None
 ) -> dict[str, Any]:
