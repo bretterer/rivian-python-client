@@ -14,7 +14,6 @@ from warnings import warn
 
 import aiohttp
 from aiohttp import ClientResponse, ClientWebSocketResponse
-from typing_extensions import Self
 
 from .const import (
     LIVE_SESSION_PROPERTIES,
@@ -40,8 +39,11 @@ from .ws_monitor import WebSocketMonitor
 
 if sys.version_info >= (3, 11):
     import asyncio as async_timeout
+    from typing import Self
 else:
     import async_timeout
+    from typing_extensions import Self
+
 
 _LOGGER = logging.getLogger(__name__)
 
