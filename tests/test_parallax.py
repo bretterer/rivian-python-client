@@ -185,6 +185,50 @@ def test_decode_charging_graph_global_stopped_state() -> None:
     assert result.get("kilometersChargedPerHour") == 0.0
 
 
+def test_decode_charging_graph_global_resumed_session() -> None:
+    """Test charging graph when charging resumes after an idle pause."""
+    # Active Segment 1: 1785695977217 -> 1785696037217 (60s, 5.8 kW, state=3)
+    seg1 = (
+        b"\x08\x48"
+        + bytes([21])
+        + struct.pack("<f", 5.8)
+        + b"\x18\x81\xfe\x98\x9e\xfc3"
+        + b"\x20\xe1\xd2\x9c\x9e\xfc3"
+        + b"\x30\x03"
+    )
+    # Idle Segment 2: 1785696037217 -> 1785696637217 (600s pause, state=8)
+    seg2 = (
+        b"\x08\x48"
+        + b"\x18\xe1\xd2\x9c\x9e\xfc3"
+        + b"\x20\xa1\xa9\xb8\x9e\xfc3"
+        + b"\x30\x08"
+    )
+    # Active Segment 3: 1785696637217 -> 1785696757217 (120s resumed, 5.8 kW, state=3)
+    seg3 = (
+        b"\x08\x48"
+        + bytes([21])
+        + struct.pack("<f", 5.8)
+        + b"\x18\xa1\xa2\xc1\x9e\xfc3"
+        + b"\x20\xe1\xcb\xc8\x9e\xfc3"
+        + b"\x30\x03"
+    )
+    outer = (
+        bytes([10, len(seg1)])
+        + seg1
+        + bytes([10, len(seg2)])
+        + seg2
+        + bytes([10, len(seg3)])
+        + seg3
+    )
+    payload_b64 = base64.b64encode(outer).decode()
+
+    result = decode_charging_graph_global(payload_b64)
+    # timeElapsed must equal sum of active segments (60s + 120s = 180s), ignoring the 600s gap
+    assert result.get("timeElapsed") == 180
+    assert result.get("power") == 5.8
+    assert "startTime" in result
+
+
 def test_decode_charging_session_status() -> None:
     """Test charging.session.status decoder."""
     # field 1 = plugConnectionStatus (1), field 2 = displayStatus (3), field 3 = evseType (2)

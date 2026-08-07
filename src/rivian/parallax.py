@@ -251,18 +251,19 @@ def decode_charging_graph_global(payload: str) -> dict[str, Any]:
         ]
 
         first_seg = active_segments[0] if active_segments else segments[0]
-        last_seg = active_segments[-1] if active_segments else segments[-1]
         result: dict[str, Any] = {}
 
         if "start_ms" in first_seg:
             st = datetime.fromtimestamp(first_seg["start_ms"] / 1000, timezone.utc)
             result["startTime"] = st.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
 
-        if active_segments and "start_ms" in first_seg and "end_ms" in last_seg:
-            result["timeElapsed"] = max(
-                0, int((last_seg["end_ms"] - first_seg["start_ms"]) / 1000)
+        if active_segments:
+            result["timeElapsed"] = sum(
+                max(0, int((s["end_ms"] - s["start_ms"]) / 1000))
+                for s in active_segments
+                if "end_ms" in s and "start_ms" in s
             )
-        elif not active_segments:
+        else:
             result["timeElapsed"] = 0
 
         latest_segment = segments[-1]
