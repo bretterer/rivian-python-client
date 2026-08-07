@@ -1224,6 +1224,7 @@ dependencies = [
     { name = "aiohttp" },
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
     { name = "cryptography" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 
 [package.optional-dependencies]
@@ -1250,6 +1251,7 @@ requires-dist = [
     { name = "bleak", marker = "extra == 'ble'", specifier = ">=0.21" },
     { name = "cryptography", specifier = ">=41.0.1" },
     { name = "dbus-fast", marker = "sys_platform == 'linux' and extra == 'ble'", specifier = ">=2.11.0" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.14.1" },
 ]
 provides-extras = ["ble"]
 
