@@ -431,7 +431,7 @@ def decode_locks(payload: str) -> dict[str, Any]:
                         state_val = in_val
 
                 if lid and lid in LOCK_MAP and state_val is not None:
-                    # 1 = unlocked, 2 = locked
+                    # 1 = locked, 2 = unlocked
                     result[LOCK_MAP[lid]] = "locked" if state_val == 1 else "unlocked"
 
         return result
