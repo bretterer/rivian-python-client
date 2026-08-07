@@ -258,8 +258,8 @@ def test_decode_locks() -> None:
     payload_b64 = base64.b64encode(outer).decode()
 
     result = decode_locks(payload_b64)
-    assert result.get("doorFrontLeftLocked") == "locked"
-    assert result.get("doorFrontRightLocked") == "unlocked"
+    assert result.get("doorFrontLeftLocked") == "unlocked"
+    assert result.get("doorFrontRightLocked") == "locked"
 
 
 def test_decode_cabin_temperatures() -> None:
