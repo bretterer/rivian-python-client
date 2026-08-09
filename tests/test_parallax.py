@@ -312,7 +312,14 @@ def test_decode_cabin_temperatures() -> None:
     payload_b64 = base64.b64encode(raw).decode()
 
     result = decode_cabin_temperatures(payload_b64)
-    assert result.get("cabinClimateInteriorTemperature") == 23.5
+    assert result.get("cabinClimateDriverTemperature") == 23.5
+
+    raw = b"\x1d\x00\x00\xf8A%\x00\x00\xacA"
+    payload_b64 = base64.b64encode(raw).decode()
+
+    result = decode_cabin_temperatures(payload_b64)
+    assert result.get("cabinClimateInteriorTemperature") == 31
+    assert result.get("cabinClimateDriverTemperature") == 21.5
 
 
 def test_decode_power_state() -> None:

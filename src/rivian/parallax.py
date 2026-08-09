@@ -145,6 +145,7 @@ def decode_cabin_temperatures(payload: str) -> dict[str, Any]:
 
     Returns dict with keys:
         - cabinClimateInteriorTemperature: float (Celsius)
+        - cabinClimateDriverTemperature: float (Celsius)
     """
     if not payload:
         return {}
@@ -154,8 +155,10 @@ def decode_cabin_temperatures(payload: str) -> dict[str, Any]:
         result: dict[str, Any] = {}
 
         for field_num, wire_type, value in fields:
-            if field_num == 4 and wire_type == 5:  # interior temp (float, Celsius)
+            if field_num == 3 and wire_type == 5:  # interior temp (float, Celsius)
                 result["cabinClimateInteriorTemperature"] = round(value, 1)
+            if field_num == 4 and wire_type == 5:  # interior temp (float, Celsius)
+                result["cabinClimateDriverTemperature"] = round(value, 1)
 
         return result
     except Exception:
