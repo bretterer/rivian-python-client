@@ -357,6 +357,65 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def get_charging_schedules(self, vehicle_id: str) -> ClientResponse:
+        """Get charging schedules for a vehicle."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        query = """
+        query getVehicle($id: String!) {
+            getVehicle(id: $id) {
+                chargingSchedules {
+                    startTime
+                    duration
+                    location { latitude longitude }
+                    amperage
+                    enabled
+                    weekDays
+                }
+            }
+        }
+        """
+        graphql_json = {
+            "operationName": "getVehicle",
+            "query": query,
+            "variables": {"id": vehicle_id},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+    
+    async def set_charging_schedules(
+        self,
+        vehicle_id: str,
+        charging_schedules: list[dict[str, Any]] | None = None,
+        schedules: list[dict[str, Any]] | None = None,
+    ) -> ClientResponse:
+        """Set charging schedules for a vehicle."""
+        sch = charging_schedules if charging_schedules is not None else schedules
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        query = """
+        mutation setChargingSchedules($vehicleId: String!, $chargingSchedules: [InputChargingSchedule!]!) {
+            setChargingSchedules(vehicleId: $vehicleId, chargingSchedules: $chargingSchedules) {
+                success
+            }
+        }
+        """
+        graphql_json = {
+            "operationName": "setChargingSchedules",
+            "query": query,
+            "variables": {
+                "vehicleId": vehicle_id,
+                "chargingSchedules": sch,
+            },
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+    
     async def get_vehicle_command_state(self, command_id: str) -> ClientResponse:
         """Get vehicle command state."""
         url = GRAPHQL_GATEWAY
