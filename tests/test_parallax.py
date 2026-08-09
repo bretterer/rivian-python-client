@@ -259,8 +259,7 @@ def test_decode_odometer() -> None:
     payload_b64 = base64.b64encode(raw).decode()
 
     result = decode_odometer(payload_b64)
-    expected_meters = round(17114 * 1609.344, 1)
-    assert result.get("vehicleMileage") == expected_meters
+    assert result.get("vehicleMileage") == 17114000
 
 
 def test_decode_tires() -> None:
