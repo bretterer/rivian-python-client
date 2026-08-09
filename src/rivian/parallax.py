@@ -456,8 +456,8 @@ def decode_odometer(payload: str) -> dict[str, Any]:
 
         for field_num, wire_type, value in fields:
             if field_num == 1 and wire_type == 0:
-                # Value is distance in miles; HA expects meters (1 mile = 1609.344 meters)
-                result["vehicleMileage"] = round(value * 1609.344, 1)
+                # Value is distance in km; HA expects meters
+                result["vehicleMileage"] = value * 1000
 
         return result
     except Exception:
