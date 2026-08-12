@@ -23,9 +23,18 @@ CLOSURE_MAP = {
     3: "doorRearLeftClosed",
     4: "doorRearRightClosed",
     5: "closureFrunkClosed",
-    6: "closureSideBinLeftClosed",
+    6: "closureTailgateClosed",
     7: "closureLiftgateClosed",
+    8: "closureSideBinLeftClosed",
+    9: "closureSideBinRightClosed",
+    10: "chargePortState",
+    12: "windowFrontLeftClosed",
+    13: "windowFrontRightClosed",
+    14: "windowRearLeftClosed",
+    15: "windowRearRightClosed",
 }
+
+CLOSURE_STATE_MAP = {1: "open", 2: "closed", 4: "opening", 5: "closing"}
 
 LOCK_MAP = {
     1: "doorFrontLeftLocked",
