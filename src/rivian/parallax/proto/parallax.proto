@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package rivian.parallax.parallax;
+
+// Reverse-engineered `parallax.*` RVM payloads; see ../parallax.py.
+
+// parallax.wakeup.heartbeat
+message Heartbeat {
+  optional int32 field_1 = 1;
+  Timestamp time = 2;    // send time (inferred)
+  Timestamp field_3 = 3; // unknown; an earlier time
+
+  message Timestamp {
+    int64 seconds = 1; // epoch seconds
+    int32 nanos = 2;
+  }
+}

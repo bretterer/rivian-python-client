@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package rivian.parallax.comfort;
+
+// Reverse-engineered `comfort.*` RVM payloads; see ../comfort.py.
+
+// comfort.cabin.hvac_settings_status
+// Requested set point; 63.5 ("HI") while defrost runs.
+message HvacSettingsStatus {
+  optional float target_temperature = 1; // °C
+}
+
+// comfort.user_modes.state -- unmapped.
+message UserModesState {
+  optional int32 field4 = 4; // unknown
+  optional int32 field7 = 7; // unknown
+}
+
+// comfort.cabin.cabin_preconditioning_status
+message CabinPreconditioningStatus {
+  PreconditioningStatus status = 1;
+  // Unmapped; 1 when started from the app, absent for pet comfort. Possibly
+  // cabinPreconditioningType (1 = user selected).
+  int32 field_2 = 2;
+}
+
+enum PreconditioningStatus {
+  PRECONDITIONING_OFF = 0;
+  PRECONDITIONING_INITIATE_1 = 1;
+  PRECONDITIONING_INITIATE_2 = 2;
+  PRECONDITIONING_ACTIVE = 4;
+  PRECONDITIONING_PET_COMFORT = 8;
+}
+
+// comfort.cabin.cabin_temperatures
+message CabinTemperatures {
+  optional float interior_temperature = 3; // °C
+  optional float driver_set_point = 4; // °C; same as HvacSettingsStatus's target
+}
+
+// comfort.cabin.cabin_ventilation_setting
+message CabinVentilationSetting {
+  optional bool enabled = 1;
+  optional string mode = 2; // "AUTO" | "MANUAL" | "OFF"
+  optional int32 windows_position = 3; // percent open
+  optional int32 sunroof_position = 4; // percent open
+  optional int32 duration = 5; // minutes
+}
+
+// comfort.cabin.climate_hold_setting
+message ClimateHoldSetting {
+  int32 duration = 1; // seconds; empty payload when no hold is set
+}
+
+// comfort.cabin.climate_hold_status
+message ClimateHoldStatus {
+  optional ClimateHoldStatusValue status = 1;
+  optional ClimateHoldAvailability availability = 2;
+  optional ClimateHoldUnavailabilityReason unavailability_reason = 3;
+  EndTime end_time = 4; // empty when no hold is running
+
+  message EndTime {
+    int64 seconds = 1; // epoch seconds
+  }
+}
+
+enum ClimateHoldStatusValue {
+  CLIMATE_HOLD_STATUS_UNSPECIFIED = 0;
+  CLIMATE_HOLD_STATUS_UNAVAILABLE = 1;
+  CLIMATE_HOLD_STATUS_OFF = 2;
+  CLIMATE_HOLD_STATUS_ON = 3;
+  CLIMATE_HOLD_STATUS_FAULT = 4;
+}
+
+enum ClimateHoldAvailability {
+  CLIMATE_HOLD_AVAILABILITY_UNSPECIFIED = 0;
+  CLIMATE_HOLD_AVAILABLE = 1;
+  CLIMATE_HOLD_CONTROLLABLE = 2;
+  CLIMATE_HOLD_UNAVAILABLE = 3;
+}
+
+enum ClimateHoldUnavailabilityReason {
+  CLIMATE_HOLD_UNAVAILABILITY_UNSPECIFIED = 0;
+  CLIMATE_HOLD_UNAVAILABILITY_UNKNOWN = 1;
+  CLIMATE_HOLD_UNAVAILABILITY_LOW_SOC = 2;
+}
+
+// comfort.cabin.defrost_defog_status
+message DefrostDefogStatus {
+  DefrostStatus status = 1;
+}
+
+enum DefrostStatus {
+  DEFROST_STATUS_UNSPECIFIED = 0;
+  DEFROST_ACTIVE = 2;
+  DEFROST_OFF = 4;
+}
+
+// comfort.cabin.pet_mode_status
+message PetModeStatus {
+  PetModeState status = 1;
+  PetModeTemperatureStatus temperature_status = 2;
+}
+
+enum PetModeState {
+  PET_MODE_OFF = 0;
+  PET_MODE_ON = 1;
+  PET_MODE_DISABLED = 2;
+  PET_MODE_FAULTY = 3;
+}
+
+enum PetModeTemperatureStatus {
+  PET_MODE_TEMPERATURE_DEFAULT = 0;
+  PET_MODE_TEMPERATURE_COLD = 1;
+  PET_MODE_TEMPERATURE_HOT = 2;
+  PET_MODE_TEMPERATURE_FAULTY = 3;
+}
+
+// comfort.cabin.seat_conditioning_status
+message SeatConditioningStatus {
+  message Seat {
+    SeatId id = 1;
+    SeatConditioningType type = 2;
+    optional SeatConditioningLevel state = 3; // absent when off
+  }
+  repeated Seat seat = 1;
+}
+
+enum SeatId {
+  SEAT_ID_UNSPECIFIED = 0;
+  STEERING_WHEEL = 1;
+  SEAT_FRONT_LEFT = 5;
+  SEAT_FRONT_RIGHT = 7; // inferred
+  SEAT_REAR_LEFT = 8;
+  SEAT_REAR_RIGHT = 10;
+  SEAT_THIRD_ROW_LEFT = 11;  // R1S
+  SEAT_THIRD_ROW_RIGHT = 13; // R1S
+}
+
+enum SeatConditioningType {
+  SEAT_CONDITIONING_TYPE_UNSPECIFIED = 0;
+  SEAT_CONDITIONING_HEAT = 1;
+  SEAT_CONDITIONING_VENT = 2;
+}
+
+enum SeatConditioningLevel {
+  SEAT_LEVEL_UNSPECIFIED = 0;
+  SEAT_LEVEL_1 = 1;
+  SEAT_LEVEL_2 = 2;
+  SEAT_LEVEL_3 = 3;
+}

@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package rivian.parallax.energy_edge_compute;
+
+import "rivian/parallax/proto/charging.proto";
+
+// Reverse-engineered `energy_edge_compute.*` RVM payloads; see ../energy_edge_compute.py.
+
+// energy_edge_compute.graphs.cold_weather_soc
+message ColdWeatherSoc {
+  optional int32 soc = 1; // percent
+}
+
+// energy_edge_compute.graphs.parked_energy_distributions
+// One EnergyDistribution per window; *_range values are km.
+message ParkedEnergyDistributions {
+  EnergyDistribution last_24_hours = 1;
+  EnergyDistribution last_8_hours = 2;
+  EnergyDistribution last_park_session = 3;
+
+  message EnergyDistribution {
+    optional float total_energy = 1; // kWh
+    optional float thermal_energy = 2; // kWh
+    optional float outlets_energy = 3; // kWh
+    optional float system_energy = 4; // kWh
+    optional float gear_guard_energy = 5; // kWh
+    optional float total_range = 6;
+    optional float thermal_range = 7;
+    optional float outlets_range = 8;
+    optional float system_range = 9;
+    optional float gear_guard_range = 10;
+    optional int32 duration = 11; // minutes; counts up for last_park_session
+  }
+}
+
+// energy_edge_compute.graphs.charge_session_breakdown
+// Full snapshots (absent = zero). A session survives stop / charge-now /
+// schedule holds, and its totals persist after plug-in until the next one
+// starts. The last message before charging stops keeps its power/rate, so
+// gate on SessionStatus.
+message ChargeSessionBreakdown {
+  float total_energy = 1; // kWh; sum of fields 2-5
+  float pack_energy = 2; // kWh
+  float thermal_energy = 3; // kWh
+  float outlets_energy = 4; // kWh
+  float system_energy = 5; // kWh
+  int32 active_charging_time = 6; // minutes; pauses while stopped
+  int32 time_remaining = 7; // minutes; same as TimeEstimation
+  int32 range_added = 8; // km
+  float power = 9; // kW
+  int32 range_rate = 10; // km/h of range; can be stale on a session's first message
+  Money session_cost = 11; // empty when free
+  bool is_free_session = 12;
+  optional rivian.parallax.charging.ChargingState charging_state = 13;
+  int64 timestamp = 14; // unit unknown
+
+  message Money {
+    string currency_code = 1;
+    int64 units = 2;  // whole currency units
+    int32 nanos = 3;  // billionths of a unit
+  }
+}
+
+// energy_edge_compute.graphs.charging_graph_global
+// Empty when a session starts. Segments are fixed-length windows that
+// lengthen as the session goes on; the last is the current one.
+message ChargingGraphGlobal {
+  message Segment {
+    int32 soc = 1;
+    float power = 2; // kW
+    int64 start_time = 3; // epoch milliseconds
+    int64 end_time = 4; // epoch milliseconds
+    rivian.parallax.charging.ChargingState state = 6;
+    int32 field_7 = 7; // unknown
+  }
+  repeated Segment segment = 1;
+}

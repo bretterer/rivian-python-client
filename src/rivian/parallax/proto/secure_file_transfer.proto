@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package rivian.parallax.secure_file_transfer;
+
+// Reverse-engineered `secure_file_transfer.*` RVM payloads; see ../secure_file_transfer.py.
+
+// secure_file_transfer.pet_snapshot.secure_file -- unmapped; presumably a
+// handle to a pet-mode camera snapshot.
+message PetSnapshotSecureFile {}
