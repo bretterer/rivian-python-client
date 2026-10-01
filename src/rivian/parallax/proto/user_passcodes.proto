@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package rivian.parallax.user_passcodes;
+
+// Reverse-engineered `user_passcodes.*` RVM payloads; see ../user_passcodes.py.
+
+// user_passcodes.passcode_types.drive_auth -- whether multi-factor drive
+// (passcode to drive) is on.
+message DriveAuthPasscode {
+  optional DriveAuthState state = 1;
+}
+
+enum DriveAuthState {
+  DRIVE_AUTH_STATE_UNSPECIFIED = 0;
+  DRIVE_AUTH_DISABLED = 1;
+  DRIVE_AUTH_ENABLED = 2;
+}

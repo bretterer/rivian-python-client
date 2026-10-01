@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package rivian.parallax.device_table;
+
+// Reverse-engineered `device_table.*` RVM payloads; see ../device_table.py.
+
+// device_table.vas_keyper.devices
+// Sends partial updates (e.g. only credentials.info.status).
+message VasKeyperDevices {
+  Unmapped1 field_1 = 1;
+  Device device = 2;
+  Credentials credentials = 3;
+
+  message Unmapped1 {
+    optional int32 field_3 = 3;
+  }
+
+  message Device {
+    optional string mapped_identity_id = 1; // "NNN-<uuid>-<suffix>"
+    optional string hrid = 2;               // short human-readable id
+    optional string pairing_id = 3;         // "NNN-<uuid>-<suffix>"
+    optional int32 field_5 = 5;
+  }
+
+  message Credentials {
+    Info info = 1;
+    Ble ble = 5;
+    optional int32 key_type = 9;  // raw enum
+    optional bool active = 10;
+
+    message Info {
+      // a, b and c are unknown.
+      optional int32 a = 1;
+      optional int32 c = 4;
+      optional int32 status = 5;  // small enum-like value
+      optional int32 b = 6;
+    }
+
+    message Ble {
+      optional bytes device_id = 1;  // 7 bytes; GraphQL devices[].id
+      optional bytes credential = 2; // 24 bytes; likely key material
+    }
+  }
+}

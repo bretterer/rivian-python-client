@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package rivian.parallax.holiday_celebration;
+
+// Reverse-engineered `holiday_celebration.*` RVM payloads; see ../holiday_celebration.py.
+
+// holiday_celebration.car_costume.holiday_celebration_enabled
+// Unmapped; empty so far.
+message HolidayCelebrationEnabled {}
+
+// holiday_celebration.car_costume.settings
+// All fields unknown.
+message CarCostumeSettings {
+  optional int32 field_1 = 1;
+  optional int32 field_2 = 2;
+  optional int32 field_3 = 3;
+  optional int32 field_6 = 6;
+  optional int32 field_7 = 7;
+  optional int32 field_9 = 9;
+  optional int32 field_11 = 11;
+  optional int32 field_12 = 12;
+}
+
+// holiday_celebration.car_costume.state
+// Fields 2, 3 and 6 are unknown.
+message CarCostumeState {
+  optional int32 costume_id = 1; // 0 = none; other ids unmapped
+  optional int32 field_2 = 2;
+  optional int32 field_3 = 3;
+  optional int32 field_6 = 6;
+}
+
+// holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings
+// All fields unknown; 1, 3 and 8-10 only sent empty.
+message HalloweenCelebrationSettings {
+  Value field_1 = 1;
+  Value field_2 = 2;
+  Value field_3 = 3;
+  Value field_4 = 4;
+  Value field_7 = 7;
+  Value field_8 = 8;
+  Value field_9 = 9;
+  Value field_10 = 10;
+
+  message Value {
+    optional int32 value = 1;
+  }
+}

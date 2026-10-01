@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package rivian.parallax.navigation;
+
+// Reverse-engineered `navigation.*` RVM payloads; see ../navigation.py.
+
+message GeoCoordinate {
+  optional double latitude = 1;
+  optional double longitude = 2;
+}
+
+// nanos is usually absent, so most times decode to whole seconds.
+message Timestamp {
+  optional int64 seconds = 1;
+  optional int32 nanos = 2;
+}
+
+// navigation.navigation_service.trip_info
+message TripInfo {
+  // An integer as text; changes on every route computation.
+  optional string trip_id = 1;
+
+  Origin origin = 2;
+  Trip trip = 3;
+  RoutePreferences route_preferences = 4;
+  optional double origin_soc = 5; // percent
+
+  // waypoints[0]'s departure if it's a charging stop, else its arrival.
+  NextWaypointDeparture next_waypoint_departure = 6;
+
+  message Origin {
+    GeoCoordinate location = 1;
+    optional float heading = 3; // degrees
+    optional int64 time = 5; // epoch milliseconds
+  }
+
+  message NextWaypointDeparture {
+    optional int64 seconds = 1; // epoch seconds
+  }
+
+  message Trip {
+    optional double distance = 1; // meters; driving only
+    optional double duration = 2; // seconds; driving only
+
+    repeated WaypointWrapper waypoint = 3;
+    repeated Leg leg = 4;
+
+    optional double final_soc = 6; // percent; same as the last waypoint's
+    optional double final_range = 7; // meters; same as the last waypoint's
+    optional string overview_polyline = 10; // Google-encoded, whole trip
+
+    TripMeta trip_meta = 13; // rare
+  }
+
+  message WaypointWrapper {
+    Place place = 1;
+    ChargingStop charging_stop = 2;
+  }
+
+  // A destination, including a charging station the user chose.
+  message Place {
+    GeoCoordinate location = 1;
+    GeoCoordinate snapped_location = 2; // snapped to the nearest road
+
+    optional int32 place_type = 3; // 2 for waypoint[0], 3 for later ones
+    optional string name = 4;
+    optional string place_id = 5; // Google Place ID, or a Rivian charger ID
+
+    optional double soc = 7; // percent; projected on arrival
+    optional double range = 8; // meters; projected on arrival
+    Timestamp arrival = 9;
+  }
+
+  // A charging stop the route planner inserted.
+  message ChargingStop {
+    optional string station_id = 1; // short numeric code
+    optional string label = 2;      // address, with the network bracketed at the end
+    GeoCoordinate location = 3;
+
+    // Modeled charging time; the stop itself runs a few minutes longer.
+    optional double charge_duration = 4; // seconds
+
+    optional double arrival_soc = 6; // percent
+    optional double arrival_range = 7; // meters
+    optional double departure_soc = 8; // percent
+    optional double departure_range = 9; // meters
+    DepartureTimeWrapper departure_time = 10;
+    ArrivalTimeWrapper arrival_time = 11;
+
+    // Unknown small integers.
+    optional int32 field_12 = 12;
+    optional int32 field_13 = 13;
+    optional int32 field_14 = 14;
+    optional int32 field_17 = 17;
+
+    message DepartureTimeWrapper {
+      optional int64 seconds = 1;
+    }
+    message ArrivalTimeWrapper {
+      optional int64 seconds = 1;
+    }
+  }
+
+  message Leg {
+    optional double distance = 1; // meters
+    optional double duration = 2; // seconds
+    optional string road_label = 3; // highway or street name
+    optional string polyline = 4;   // Google-encoded
+
+    // Packed-varint (start, end) pairs duplicating index_range_segment,
+    // split by its flag.
+    optional bytes flagged_ranges_packed = 5;
+    optional bytes unflagged_ranges_packed = 6;
+
+    Energy energy = 8;
+
+    // Index ranges into the decoded polyline points; meaning unknown.
+    repeated CategorizedRangeSegment categorized_range_segment = 9;
+    repeated IndexRangeSegment index_range_segment = 10; // not on every leg
+
+    message Energy {
+      optional double kwh = 1; // unverified
+    }
+
+    message CategorizedRangeSegment {
+      optional int32 start = 1;
+      optional int32 end = 2;
+      optional int32 category = 3;
+    }
+
+    message IndexRangeSegment {
+      optional int32 start = 1;
+      optional int32 end = 3;
+      optional bool flag = 5; // present means flagged
+    }
+  }
+
+  message RoutePreferences {
+    optional float weight_a = 1; // unknown
+    optional float weight_b = 2; // unknown
+    // "switchName:true" / "switchName:false" strings.
+    repeated string road_avoidance = 3;           // e.g. "switchExcludeMotorway:false"
+    repeated string charging_network_filters = 4; // e.g. "switchRivianFilter:true"
+  }
+
+  message TripMeta {
+    optional int32 field_1 = 1;
+    optional int32 field_2 = 2;
+    optional int32 field_3 = 3;
+    optional int32 field_4 = 4;
+  }
+}
+
+// navigation.navigation_service.trip_progress
+message TripProgress {
+  NextWaypoint next_waypoint = 1; // live ETA
+  // Live ETA for the last waypoint; missing for one message after the
+  // waypoints change.
+  FinalDestination final_destination = 2;
+
+  optional double distance_remaining = 4; // meters
+  optional double duration_remaining = 5; // seconds
+
+  LocationFix location_fix = 6;
+
+  message NextWaypoint {
+    optional int64 seconds = 1;
+  }
+  message FinalDestination {
+    optional int64 seconds = 1;
+  }
+
+  message LocationFix {
+    GeoCoordinate location = 1;
+    optional float speed = 2; // m/s
+    optional float heading = 3; // degrees
+    optional int64 time = 5; // epoch milliseconds
+  }
+}
