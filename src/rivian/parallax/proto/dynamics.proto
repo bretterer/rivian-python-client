@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package rivian.parallax.dynamics;
+
+// Reverse-engineered `dynamics.*` RVM payloads; see ../dynamics.py.
+
+// dynamics.vehicle.drive_mode
+message DriveMode {
+  optional DriveModeValue mode = 1;
+  optional int32 limited_accel_cold = 8; // flag
+  optional int32 limited_regen_cold = 9; // flag
+}
+
+enum DriveModeValue {
+  DRIVE_MODE_UNSPECIFIED = 0;
+  DRIVE_MODE_INIT = 1;
+  DRIVE_MODE_EVERYDAY = 2;
+  DRIVE_MODE_OFF_ROAD_SNOW_ICE = 3;
+  DRIVE_MODE_OFF_ROAD_SPORT_AUTO = 4;
+  DRIVE_MODE_OFF_ROAD_SPORT_DRIFT = 5;
+  DRIVE_MODE_SPORT_LAUNCH = 6;
+  DRIVE_MODE_FAULT = 7;
+  DRIVE_MODE_SPORT = 8;
+  DRIVE_MODE_DISTANCE = 9;
+  DRIVE_MODE_TOWING = 10;
+  DRIVE_MODE_OFF_ROAD_AUTO = 11;
+  DRIVE_MODE_OFF_ROAD_SAND = 12;
+  DRIVE_MODE_OFF_ROAD_ROCKS = 13;
+  DRIVE_MODE_OFF_ROAD_MUD = 14;
+  DRIVE_MODE_WINTER = 15;
+}
+
+// dynamics.vehicle.gear
+message Gear {
+  optional GearValue gear = 1;
+}
+
+enum GearValue {
+  GEAR_NOT_DEFINED = 0;
+  GEAR_PARK = 1;
+  GEAR_REVERSE = 2;
+  GEAR_NEUTRAL = 3;
+  GEAR_DRIVE = 4;
+}
+
+// dynamics.vehicle.gnss -- the doubles carry float32 precision.
+message Gnss {
+  optional double latitude = 1;
+  optional double longitude = 2;
+  optional double altitude = 3; // meters
+  optional float field_4 = 4; // unmapped; possibly speed (m/s)
+  optional float bearing = 5; // degrees
+  // Unmapped. 6 and 7 grow while parked, like position uncertainty; 8 and 9
+  // barely move. Possibly the gateway's gnssError fields.
+  optional float field_6 = 6;
+  optional float field_7 = 7;
+  optional float field_8 = 8;
+  optional float field_9 = 9;
+  optional int64 time = 10; // epoch milliseconds; time of the whole fix
+}
+
+// dynamics.vehicle.location
+message KnownLocation {
+  optional KnownLocationValue location = 1;
+}
+
+enum KnownLocationValue {
+  KNOWN_LOCATION_UNSPECIFIED = 0;
+  KNOWN_LOCATION_UNKNOWN = 1;
+  KNOWN_LOCATION_HOME = 2;
+  KNOWN_LOCATION_WORK = 3;
+}
+
+// dynamics.vehicle.odometer
+message Odometer {
+  optional int64 distance = 1; // km
+}
+
+// dynamics.vehicle.range
+message Range {
+  optional int32 distance_to_empty = 1; // km
+  optional RangeThreshold threshold = 2;
+  optional TemperatureImpact temperature_impact = 3;
+}
+
+enum RangeThreshold {
+  RANGE_THRESHOLD_UNSPECIFIED = 0;
+  RANGE_NORMAL = 1;
+  RANGE_LOW = 2;
+  RANGE_RED = 3;
+  RANGE_CRITICALLY_LOW = 4;
+}
+
+enum TemperatureImpact {
+  TEMPERATURE_IMPACT_UNSPECIFIED = 0;
+  TEMPERATURE_NORMAL_RANGE = 1;
+  TEMPERATURE_COLD_MAY_IMPACT = 2;
+  TEMPERATURE_COLD_IMPACT = 3;
+}
+
+// dynamics.tires.state
+message TiresState {
+  int32 field_1 = 1; // unknown; constant
+
+  message Tire {
+    TirePosition pos = 1;
+    optional TirePressureStatus status = 2;
+    optional double pressure = 3; // bar
+    bool invalid = 4;
+    int64 timestamp = 5; // epoch milliseconds
+  }
+  repeated Tire tire = 2;
+}
+
+enum TirePosition {
+  TIRE_POSITION_UNSPECIFIED = 0;
+  TIRE_FRONT_LEFT = 1;
+  TIRE_FRONT_RIGHT = 2;
+  TIRE_REAR_LEFT = 3;
+  TIRE_REAR_RIGHT = 4;
+}
+
+enum TirePressureStatus {
+  TIRE_PRESSURE_STATUS_UNSPECIFIED = 0;
+  TIRE_PRESSURE_OK = 1;
+  TIRE_PRESSURE_WARNING = 2;
+}
+
+// dynamics.vehicle.efficiency
+message Efficiency {
+  optional int32 efficiency = 1; // Wh/km; used for the parked-energy ranges
+  optional int32 field_2 = 2; // unmapped; same scale
+  repeated History history = 3;
+
+  message History {
+    optional int32 index = 1; // 1-10
+    optional int32 value = 2; // Wh/km
+  }
+}
+
+// dynamics.vehicle.mass_estimate
+message MassEstimate {
+  optional int32 mass = 1; // kg
+}
+
+// dynamics.brakes.fluid_level
+message BrakeFluidLevel {
+  optional int32 field_1 = 1; // unknown; 1 so far
+}

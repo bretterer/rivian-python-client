@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package rivian.parallax.vehicle_access;
+
+// Reverse-engineered `vehicle_access.*` RVM payloads; see ../vehicle_access.py.
+
+// vehicle_access.state.passive_entry -- unmapped.
+message PassiveEntryState {}

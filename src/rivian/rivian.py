@@ -33,7 +33,6 @@ from .exceptions import (
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
-from .parallax import PARALLAX_RVMS
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
@@ -662,25 +661,32 @@ class Rivian:
         callback: Callable[[dict[str, Any]], None],
         rvms: list[str] | None = None,
     ) -> Callable[[], Awaitable[None]] | None:
-        """Open a web socket connection to receive Parallax message updates."""
-        if not rvms:
-            rvms = PARALLAX_RVMS
+        """Open a web socket connection to receive Parallax message updates.
 
+        With `rvms` left as None, the subscription has no topic filter and
+        the server sends every RVM topic for the vehicle, including ones with
+        no decoder yet (`decode_parallax_message` returns None for those).
+        Pass a list, e.g. `PARALLAX_RVMS`, to only receive those topics.
+        """
         try:
             await self._ws_connect()
             assert self._ws_monitor
             async with async_timeout.timeout(self.request_timeout):
                 await self._ws_monitor.connection_ack.wait()
+            variables: dict[str, Any] = {"vehicleId": vehicle_id}
+            if rvms is not None:
+                variables["rvms"] = rvms
             payload = {
                 "operationName": "ParallaxMessages",
                 "query": "subscription ParallaxMessages($vehicleId: String!, $rvms: [String!]) { parallaxMessages(vehicleId: $vehicleId, rvms: $rvms) { payload timestamp rvm } }",
-                "variables": {
-                    "vehicleId": vehicle_id,
-                    "rvms": rvms,
-                },
+                "variables": variables,
             }
             unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
-            _LOGGER.debug("%s subscribed to %d Parallax RVMs", vehicle_id, len(rvms))
+            _LOGGER.debug(
+                "%s subscribed to %s",
+                vehicle_id,
+                "all Parallax RVMs" if rvms is None else f"{len(rvms)} Parallax RVMs",
+            )
             return unsubscribe
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             _LOGGER.error(ex)
@@ -762,6 +768,11 @@ class Rivian:
                             response.status, response_json, headers, body
                         )
                     if err_cls := ERROR_CODE_CLASS_MAP.get(code):
+                        if response_json.get("data") is not None:
+                            _LOGGER.warning(
+                                "(%s, %s): %s", response.status, code, response_json
+                            )
+                            return response
                         raise err_cls(response.status, response_json, headers, body)
             raise RivianApiException(
                 "Error occurred while reading the graphql response from Rivian.",
