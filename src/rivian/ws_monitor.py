@@ -26,6 +26,10 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+RATE_LIMITED = "Rate limited"
+RATE_LIMIT_BACKOFF_MIN = 30
+RATE_LIMIT_BACKOFF_MAX = 900
+
 
 async def cancel_task(*tasks: asyncio.Task | None) -> None:
     """Cancel task(s)."""
@@ -54,6 +58,8 @@ class WebSocketMonitor:
 
         self._connection_ack: asyncio.Event = asyncio.Event()
         self._disconnect = False
+        self._rate_limited = False
+        self._rate_limit_attempt = 0
         self._ws: ClientWebSocketResponse[bool] | None = None
         self._monitor_task: asyncio.Task | None = None
         self._receiver_task: asyncio.Task | None = None
@@ -88,6 +94,7 @@ class WebSocketMonitor:
         """Create a new connection and, optionally, start the monitor."""
         await cancel_task(self._receiver_task)
         self._disconnect = False
+        self._rate_limited = False
         # pylint: disable=protected-access
         assert self._account._session
         self._ws = await self._account._session.ws_connect(
@@ -145,6 +152,8 @@ class WebSocketMonitor:
                     self._log_message(msg)
                     if msg.extra == "Unauthenticated":
                         self._disconnect = True
+                    elif msg.extra == RATE_LIMITED:
+                        self._rate_limited = True
                     break
                 self._last_received = datetime.now(timezone.utc)
                 if msg.type == WSMsgType.TEXT:
@@ -152,6 +161,7 @@ class WebSocketMonitor:
                     if (data_type := data.get("type")) == "connection_ack":
                         self._connection_ack.set()
                     elif data_type == "next":
+                        self._rate_limit_attempt = 0
                         if (_id := data.get("id")) in self._subscriptions:
                             _fn = self._subscriptions[_id][0]
                             if inspect.iscoroutinefunction(_fn):
@@ -164,6 +174,8 @@ class WebSocketMonitor:
                     self._log_message(msg, True)
                     continue
             except asyncio.TimeoutError:
+                # The connection has stayed open, so any rate limit has passed
+                self._rate_limit_attempt = 0
                 await self._resubscribe_all()
         self._connection_ack.clear()
         self._log_message("web socket stopped")
@@ -177,6 +189,10 @@ class WebSocketMonitor:
                     # Need to restart the receiver
                     self._receiver_task = asyncio.ensure_future(self._receiver())
                 await asyncio.sleep(1)
+            if self._rate_limited:
+                await self._rate_limit_backoff()
+                if self._disconnect or self.connected:
+                    continue
             if not self._disconnect:
                 try:
                     await self.new_connection()
@@ -189,6 +205,21 @@ class WebSocketMonitor:
                 attempt = 0
                 self._log_message("web socket connection reopened")
                 await self._resubscribe_all()
+
+    async def _rate_limit_backoff(self) -> None:
+        """Wait before reconnecting after the server closed the connection due to rate limiting."""
+        self._rate_limited = False
+        delay = min(
+            RATE_LIMIT_BACKOFF_MIN * 2**self._rate_limit_attempt
+            + uniform(0, RATE_LIMIT_BACKOFF_MIN),
+            RATE_LIMIT_BACKOFF_MAX,
+        )
+        self._rate_limit_attempt += 1
+        _LOGGER.warning(
+            "Web socket connection was rate limited, reconnecting in %.0f seconds",
+            delay,
+        )
+        await asyncio.sleep(delay)
 
     async def start_monitor(self) -> None:
         """Start or restart the monitor task."""
