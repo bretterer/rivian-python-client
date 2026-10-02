@@ -65,7 +65,13 @@ def test_ota_config() -> None:
         "ota.user_schedule.ota_config",
         config(
             schedule=[
-                config.Schedule(id="a", field_4=config.Unmapped4()),
+                config.Schedule(
+                    id="a",
+                    enabled=True,
+                    one_time=config.OneTime(
+                        install_time=config.OneTime.InstallTime(seconds=1790977560)
+                    ),
+                ),
                 config.Schedule(
                     id="b",
                     enabled=True,
@@ -79,8 +85,19 @@ def test_ota_config() -> None:
     )
     assert result == {
         "otaSchedules": [
-            {"id": "a", "enabled": False, "_field4": ""},
-            {"id": "b", "enabled": True, "startTime": 240, "location": "home"},
+            {
+                "type": "one_time",
+                "id": "a",
+                "installTime": epoch(1790977560_000),
+                "enabled": True,
+            },
+            {
+                "type": "recurring",
+                "id": "b",
+                "enabled": True,
+                "startTime": 240,
+                "location": "home",
+            },
         ],
         "otaScheduleUpdatedAt": epoch(1723681179_500),
     }
@@ -89,3 +106,13 @@ def test_ota_config() -> None:
 def test_ota_config_empty() -> None:
     """No schedule configured reads as an empty list."""
     assert decode("ota.user_schedule.ota_config") == {"otaSchedules": []}
+
+
+def test_ota_config_one_time_without_time() -> None:
+    """A one-time entry with no time picked has no installTime."""
+    config = ota.OtaConfig
+    result = decode(
+        "ota.user_schedule.ota_config",
+        config(schedule=[config.Schedule(one_time=config.OneTime())]),
+    )
+    assert result == {"otaSchedules": [{"type": "one_time", "enabled": False}]}

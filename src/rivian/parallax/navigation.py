@@ -149,6 +149,8 @@ def _decode_index_ranges(leg: TripInfo.Leg) -> list[dict[str, Any]]:
     return [
         {
             **_copy_present(seg, (("start", "start"), ("end", "end"))),
+            "startFraction": round(seg.start_fraction, 4),
+            "endFraction": round(seg.end_fraction, 4),
             "flagged": seg.HasField("flag"),
         }
         for seg in leg.index_range_segment
@@ -255,9 +257,10 @@ def decode_trip_info(m: navigation_pb2.TripInfo) -> dict[str, Any]:
                 RangeRemaining (percent, meters), departureTime
         legs: list[dict] — distance, duration (meters, seconds),
             roadLabel, polyline (Google-encoded), energyUsed (kWh;
-            unverified), indexRangeSegments ({start, end, flagged}) and
-            categorizedIndexRanges ({start, end, category}), index ranges
-            into the polyline whose meaning is unknown
+            unverified), indexRangeSegments ({start, startFraction, end,
+            endFraction, flagged}; fractions are 0-1 positions past those
+            points) and categorizedIndexRanges ({start, end, category}),
+            index ranges into the polyline whose meaning is unknown
         overviewPolyline: str — Google-encoded, whole trip
         nextWaypointDepartureTime: datetime — the next stop's departure if
             it's a charging stop, else its arrival

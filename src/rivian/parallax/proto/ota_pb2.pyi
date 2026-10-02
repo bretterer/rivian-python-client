@@ -97,16 +97,16 @@ class DeploymentState(_message.Message):
 class OtaConfig(_message.Message):
     __slots__ = ("schedule", "updated_at")
     class Schedule(_message.Message):
-        __slots__ = ("id", "enabled", "time_of_day", "field_4")
+        __slots__ = ("id", "enabled", "time_of_day", "one_time")
         ID_FIELD_NUMBER: _ClassVar[int]
         ENABLED_FIELD_NUMBER: _ClassVar[int]
         TIME_OF_DAY_FIELD_NUMBER: _ClassVar[int]
-        FIELD_4_FIELD_NUMBER: _ClassVar[int]
+        ONE_TIME_FIELD_NUMBER: _ClassVar[int]
         id: str
         enabled: bool
         time_of_day: OtaConfig.TimeOfDay
-        field_4: OtaConfig.Unmapped4
-        def __init__(self, id: _Optional[str] = ..., enabled: _Optional[bool] = ..., time_of_day: _Optional[_Union[OtaConfig.TimeOfDay, _Mapping]] = ..., field_4: _Optional[_Union[OtaConfig.Unmapped4, _Mapping]] = ...) -> None: ...
+        one_time: OtaConfig.OneTime
+        def __init__(self, id: _Optional[str] = ..., enabled: _Optional[bool] = ..., time_of_day: _Optional[_Union[OtaConfig.TimeOfDay, _Mapping]] = ..., one_time: _Optional[_Union[OtaConfig.OneTime, _Mapping]] = ...) -> None: ...
     class TimeOfDay(_message.Message):
         __slots__ = ("start_time", "location")
         START_TIME_FIELD_NUMBER: _ClassVar[int]
@@ -119,11 +119,16 @@ class OtaConfig(_message.Message):
         NAME_FIELD_NUMBER: _ClassVar[int]
         name: str
         def __init__(self, name: _Optional[str] = ...) -> None: ...
-    class Unmapped4(_message.Message):
-        __slots__ = ("field_1",)
-        FIELD_1_FIELD_NUMBER: _ClassVar[int]
-        field_1: str
-        def __init__(self, field_1: _Optional[str] = ...) -> None: ...
+    class OneTime(_message.Message):
+        __slots__ = ("install_time",)
+        class InstallTime(_message.Message):
+            __slots__ = ("seconds",)
+            SECONDS_FIELD_NUMBER: _ClassVar[int]
+            seconds: int
+            def __init__(self, seconds: _Optional[int] = ...) -> None: ...
+        INSTALL_TIME_FIELD_NUMBER: _ClassVar[int]
+        install_time: OtaConfig.OneTime.InstallTime
+        def __init__(self, install_time: _Optional[_Union[OtaConfig.OneTime.InstallTime, _Mapping]] = ...) -> None: ...
     class UpdatedAt(_message.Message):
         __slots__ = ("seconds", "nanos")
         SECONDS_FIELD_NUMBER: _ClassVar[int]

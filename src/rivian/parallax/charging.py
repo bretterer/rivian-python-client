@@ -210,17 +210,37 @@ def decode_time_estimation(m: charging_pb2.TimeEstimation) -> dict[str, Any]:
     return {"timeToEndOfCharge": m.estimated_time_remaining}
 
 
+_CHARGER_STATUS_MAP: Final[dict[int, str]] = {
+    1: "chrgr_sts_not_connected",
+    2: "chrgr_sts_connected_no_chrg",
+    3: "chrgr_sts_connected_charging",
+}
+
+
 @RVMDecoder.register("charging.energy.state", charging_pb2.EnergyState)
 def decode_energy_state(m: charging_pb2.EnergyState) -> dict[str, Any]:
-    """charging.energy.state — unmapped; `_field1`-`_field3`, `_field11` raw."""
-    return {
-        f"_field{num}": v
-        for num in (1, 2, 3, 11)
-        if (v := _present(m, f"field_{num}")) is not None
-    }
+    """charging.energy.state — charger connection status.
+
+    Fields:
+        chargerStatus: str — GraphQL chargerStatus values
+            ("chrgr_sts_not_connected" | "chrgr_sts_connected_no_chrg" |
+            "chrgr_sts_connected_charging"); inferred
+        _field1, _field3, _field11: int — raw
+    """
+    result: dict[str, Any] = {}
+    if (v := _present(m, "charger_status")) is not None:
+        result["chargerStatus"] = _enum(_CHARGER_STATUS_MAP, v, what="charger status")
+    for num in (1, 3, 11):
+        if (v := _present(m, f"field_{num}")) is not None:
+            result[f"_field{num}"] = v
+    return result
 
 
 @RVMDecoder.register("charging.session.power", charging_pb2.SessionPower)
-def decode_session_power(_m: charging_pb2.SessionPower) -> dict[str, Any]:
-    """charging.session.power — unmapped; empty so far."""
-    return {}
+def decode_session_power(m: charging_pb2.SessionPower) -> dict[str, Any]:
+    """charging.session.power — live charging power, about every 5 seconds.
+
+    Fields:
+        power: float (kW; 0 when not charging)
+    """
+    return {"power": round(m.power, 2)}

@@ -126,6 +126,25 @@ def test_energy_state() -> None:
     """Raw unmapped values."""
     result = decode(
         "charging.energy.state",
-        charging.EnergyState(field_1=4, field_2=2, field_3=1, field_11=2),
+        charging.EnergyState(
+            field_1=4,
+            charger_status=charging.CHARGER_STATUS_CONNECTED_NO_CHARGE,
+            field_3=1,
+            field_11=2,
+        ),
     )
-    assert result == {"_field1": 4, "_field2": 2, "_field3": 1, "_field11": 2}
+    assert result == {
+        "chargerStatus": "chrgr_sts_connected_no_chrg",
+        "_field1": 4,
+        "_field3": 1,
+        "_field11": 2,
+    }
+
+
+def test_session_power() -> None:
+    """Live power in kW, and 0 for the empty payload sent when not charging."""
+    rvm = "charging.session.power"
+    assert decode(rvm, charging.SessionPower(power=10.9)) == {
+        "power": pytest.approx(10.9)
+    }
+    assert decode(rvm) == {"power": 0.0}

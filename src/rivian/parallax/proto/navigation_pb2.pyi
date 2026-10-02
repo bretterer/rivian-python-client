@@ -141,14 +141,18 @@ class TripInfo(_message.Message):
             category: int
             def __init__(self, start: _Optional[int] = ..., end: _Optional[int] = ..., category: _Optional[int] = ...) -> None: ...
         class IndexRangeSegment(_message.Message):
-            __slots__ = ("start", "end", "flag")
+            __slots__ = ("start", "start_fraction", "end", "end_fraction", "flag")
             START_FIELD_NUMBER: _ClassVar[int]
+            START_FRACTION_FIELD_NUMBER: _ClassVar[int]
             END_FIELD_NUMBER: _ClassVar[int]
+            END_FRACTION_FIELD_NUMBER: _ClassVar[int]
             FLAG_FIELD_NUMBER: _ClassVar[int]
             start: int
+            start_fraction: float
             end: int
+            end_fraction: float
             flag: bool
-            def __init__(self, start: _Optional[int] = ..., end: _Optional[int] = ..., flag: _Optional[bool] = ...) -> None: ...
+            def __init__(self, start: _Optional[int] = ..., start_fraction: _Optional[float] = ..., end: _Optional[int] = ..., end_fraction: _Optional[float] = ..., flag: _Optional[bool] = ...) -> None: ...
         DISTANCE_FIELD_NUMBER: _ClassVar[int]
         DURATION_FIELD_NUMBER: _ClassVar[int]
         ROAD_LABEL_FIELD_NUMBER: _ClassVar[int]
@@ -181,15 +185,22 @@ class TripInfo(_message.Message):
         def __init__(self, weight_a: _Optional[float] = ..., weight_b: _Optional[float] = ..., road_avoidance: _Optional[_Iterable[str]] = ..., charging_network_filters: _Optional[_Iterable[str]] = ...) -> None: ...
     class TripMeta(_message.Message):
         __slots__ = ("field_1", "field_2", "field_3", "field_4")
+        class Unmapped2(_message.Message):
+            __slots__ = ("field_2", "field_4")
+            FIELD_2_FIELD_NUMBER: _ClassVar[int]
+            FIELD_4_FIELD_NUMBER: _ClassVar[int]
+            field_2: int
+            field_4: int
+            def __init__(self, field_2: _Optional[int] = ..., field_4: _Optional[int] = ...) -> None: ...
         FIELD_1_FIELD_NUMBER: _ClassVar[int]
         FIELD_2_FIELD_NUMBER: _ClassVar[int]
         FIELD_3_FIELD_NUMBER: _ClassVar[int]
         FIELD_4_FIELD_NUMBER: _ClassVar[int]
         field_1: int
-        field_2: int
+        field_2: TripInfo.TripMeta.Unmapped2
         field_3: int
         field_4: int
-        def __init__(self, field_1: _Optional[int] = ..., field_2: _Optional[int] = ..., field_3: _Optional[int] = ..., field_4: _Optional[int] = ...) -> None: ...
+        def __init__(self, field_1: _Optional[int] = ..., field_2: _Optional[_Union[TripInfo.TripMeta.Unmapped2, _Mapping]] = ..., field_3: _Optional[int] = ..., field_4: _Optional[int] = ...) -> None: ...
     TRIP_ID_FIELD_NUMBER: _ClassVar[int]
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
     TRIP_FIELD_NUMBER: _ClassVar[int]
