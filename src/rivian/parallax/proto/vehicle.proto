@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package rivian.parallax.vehicle;
+
+// Reverse-engineered `vehicle.*` RVM payloads; see ../vehicle.py.
+
+// vehicle.profiles.active_user
+// "NN-<uuid>-<suffix>"; may be a device or session id, not a driver profile.
+message ActiveUserProfile {
+  optional string active_user_profile_id = 1;
+}
+
+// vehicle.power.state
+message PowerState {
+  optional PowerStateValue state = 1;
+}
+
+enum PowerStateValue {
+  POWER_STATE_UNSPECIFIED = 0;
+  POWER_SLEEP = 1;
+  POWER_STANDBY = 2;
+  POWER_READY = 3;
+  POWER_GO = 4;
+}
+
+// vehicle.wheels.vehicle_wheels
+message VehicleWheels {
+  repeated Wheel wheel = 1;
+
+  message Wheel {
+    int32 wheel_package = 1;
+    int64 tire_odometer = 2; // meters
+    int64 field_3 = 3; // unknown; only on an uninstalled wheel
+    int64 odometer_at_last_rotation = 4; // meters
+    int64 field_5 = 5; // unknown; only on an uninstalled wheel
+    int64 rotation_reminder_interval = 6; // meters
+    bool is_installed = 7;
+    UpdatedAt updated_at = 8; // changes with the rotation interval
+    int32 tires = 9;
+    int64 current_odometer = 10; // meters
+
+    message UpdatedAt {
+      int64 seconds = 1; // epoch seconds
+    }
+  }
+}
+
+// vehicle.network.state and vehicle.setting.network (same shape).
+// Signals are dBm; -255 means no reading.
+message NetworkState {
+  int32 field_1 = 1; // 1 on wifi, 2 while it's down; likely the active interface
+  repeated InterfaceStatus interfaces = 2;
+  int32 field_3 = 3; // 4-5 on wifi, 3 while it's down; likely a ConnectivityLevel
+  Wifi wifi = 4;
+  Cellular cellular = 5;
+
+  message InterfaceStatus {
+    int32 id = 1;     // 1-4; 1 goes down with wifi
+    int32 status = 2; // 2 up, 1 down (inferred)
+  }
+
+  message Wifi {
+    optional WpaStatus wpa_status = 1;
+    int32 field_2 = 2; // unknown; 2 connected, else 1 or absent
+    optional string ssid = 3;
+    optional string bssid = 4;       // access point MAC address
+    optional string mac_address = 5; // the vehicle's MAC address
+    repeated IpAddress ip_addresses = 6;
+    optional ConnectivityLevel antenna_bars = 7;
+    optional int32 signal = 8; // dBm
+    optional int32 link_speed = 9;
+    optional int32 freq = 10;
+    optional WifiSecurity secure_status = 12;
+    int32 field_13 = 13; // unknown; 2 connected, 1 not
+    int32 field_14 = 14; // unknown; constant
+  }
+
+  message IpAddress {
+    optional string ipv4 = 1;
+    optional string ipv6 = 2;
+  }
+
+  message Cellular {
+    optional string carrier = 1;
+    optional string mode = 2;    // e.g. "LTE"
+    optional ConnectivityLevel antenna_bars = 3;
+    optional int32 signal_strength = 4; // dBm
+  }
+}
+
+enum ConnectivityLevel {
+  CONNECTIVITY_LEVEL_UNSPECIFIED = 0;
+  CONNECTIVITY_LEVEL_0 = 1;
+  CONNECTIVITY_LEVEL_1 = 2;
+  CONNECTIVITY_LEVEL_2 = 3;
+  CONNECTIVITY_LEVEL_3 = 4;
+  CONNECTIVITY_LEVEL_4 = 5;
+}
+
+enum WifiSecurity {
+  WIFI_SECURITY_UNSPECIFIED = 0;
+  WIFI_OPEN = 1;
+  WIFI_WPA_PERSONAL = 2;
+  WIFI_WPA_ENTERPRISE = 3;
+  WIFI_WPA2_PERSONAL = 4;
+  WIFI_WPA2_ENTERPRISE = 5;
+}
+
+enum WpaStatus {
+  WPA_STATUS_UNSPECIFIED = 0;
+  WPA_NOT_CONNECTED = 1;
+  WPA_CONNECTED = 2;
+  WPA_SCANNING = 3;
+  WPA_CONNECTING = 4;
+  WPA_DISCONNECTING = 5;
+}

@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package rivian.parallax.ota;
+
+// Reverse-engineered `ota.*` RVM payloads; see ../ota.py.
+
+// ota.deployment.state
+message DeploymentState {
+  Deployment deployment = 1;
+
+  message Deployment {
+    optional int32 state = 1; // unknown
+    Version version = 2; // installed version
+    ProgressWrapper progress_wrapper = 4;
+  }
+
+  message Version {
+    optional string version_string = 1; // year.week.number
+    optional int32 version_year = 3;
+    optional int32 version_build = 4; // week
+    optional string build_id = 6; // 8-char git hash
+  }
+
+  // Always present; deployment_id is absent at rest.
+  message ProgressWrapper {
+    optional string deployment_id = 1; // UUID; only while an update is in flight
+    Version target_version = 2; // version being installed
+    optional int32 active_flag = 3; // set while an update is active
+    Progress progress = 5;
+    optional int32 timeout_budget = 7; // constant while active; unit unknown
+    optional int32 late_stage_flag = 11; // 1 from SCHEDULED_TO_INSTALL until done
+  }
+
+  message Progress {
+    optional OtaPhase phase = 1;
+    optional int32 field_2 = 2; // unknown
+
+    // Percentages; each moves only during its phase.
+    Progress100 download_progress = 3;
+    Progress100 install_progress = 4;
+
+    optional string field_5 = 5; // always empty
+    // Seconds; counts down during INSTALL_COUNTDOWN, a static default otherwise.
+    optional int32 time_remaining = 6;
+    optional int32 field_7 = 7; // unknown
+    optional int32 update_cycle_count = 8; // increments when an update completes
+    optional int32 field_9 = 9; // unknown; set from SCHEDULED_TO_INSTALL until done
+
+    message Progress100 {
+      optional int32 field_2 = 2; // 0-100
+    }
+  }
+
+  // Update order: IDLE -> DOWNLOADING -> PREPARING -> SCHEDULED_TO_INSTALL
+  // -> INSTALL_COUNTDOWN -> AWAITING_INSTALL -> INSTALLING ->
+  // INSTALL_SUCCESS -> IDLE.
+  enum OtaPhase {
+    OTA_PHASE_UNSPECIFIED = 0;
+    OTA_PHASE_IDLE = 1;
+    OTA_PHASE_INSTALL_COUNTDOWN = 5;
+    OTA_PHASE_PREPARING = 6;
+    OTA_PHASE_DOWNLOADING = 7;
+    OTA_PHASE_SCHEDULED_TO_INSTALL = 8;
+    OTA_PHASE_AWAITING_INSTALL = 10;
+    OTA_PHASE_INSTALLING = 11;
+    OTA_PHASE_INSTALL_SUCCESS = 12;
+  }
+}
+
+// ota.user_schedule.ota_config -- install schedules: a one-time scheduled
+// install and the recurring auto-install. Entries may be resent without
+// their ids.
+message OtaConfig {
+  repeated Schedule schedule = 1;
+  UpdatedAt updated_at = 2;
+
+  message Schedule {
+    optional string id = 1;     // UUID
+    bool enabled = 2;
+    TimeOfDay time_of_day = 3;  // recurring auto-install
+    OneTime one_time = 4;       // one-time scheduled install
+  }
+
+  message TimeOfDay {
+    optional int32 start_time = 1; // minutes after local midnight
+    Location location = 2;
+  }
+
+  message Location {
+    optional string name = 1; // a saved location (e.g. "home") or "anywhere"
+  }
+
+  message OneTime {
+    InstallTime install_time = 1; // empty until a time is picked
+
+    message InstallTime {
+      optional int64 seconds = 1; // epoch seconds
+    }
+  }
+
+  message UpdatedAt {
+    int64 seconds = 1; // epoch seconds
+    int32 nanos = 2;
+  }
+}
+
+// ota.ota_state.vehicle_ota_state -- only its type name; sent when OTA
+// settings change.
+message VehicleOtaState {
+  string name = 1; // "VehicleOTAState"
+}

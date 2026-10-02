@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+package rivian.parallax.body;
+
+// Reverse-engineered `body.*` RVM payloads; see ../body.py.
+
+// body.closures.states
+message ClosuresState {
+  message Closure {
+    ClosureId id = 1;
+    optional ClosureStateValue state = 2;
+    int32 field_4 = 4; // unknown; 1, briefly 2 while re-reporting
+    int32 field_5 = 5; // unknown; only on closure id 10000
+
+    // One field per closure type. Briefly SNA / not-available while the
+    // vehicle re-reports after an app command.
+    optional FrunkNextAction frunk_next_action = 6;
+    optional SideBinNextAction side_bin_next_action = 8;
+    optional TailgateNextAction tailgate_next_action = 9;
+    optional ChargePortDoorNextAction charge_port_door_next_action = 10;
+  }
+  repeated Closure closure = 1;
+}
+
+enum ClosureId {
+  CLOSURE_ID_UNSPECIFIED = 0;
+  DOOR_FRONT_LEFT = 1;
+  DOOR_FRONT_RIGHT = 2;
+  DOOR_REAR_LEFT = 3;
+  DOOR_REAR_RIGHT = 4;
+  FRUNK = 5;
+  TAILGATE = 6;
+  LIFTGATE = 7;
+  SIDE_BIN_LEFT = 8;
+  SIDE_BIN_RIGHT = 9;
+  CHARGE_PORT = 10;
+  TONNEAU = 11;
+  WINDOW_FRONT_LEFT = 12;
+  WINDOW_FRONT_RIGHT = 13;
+  WINDOW_REAR_LEFT = 14;
+  WINDOW_REAR_RIGHT = 15;
+}
+
+enum ClosureStateValue {
+  CLOSURE_STATE_UNSPECIFIED = 0;
+  CLOSURE_STATE_OPEN = 1;
+  CLOSURE_STATE_CLOSED = 2;
+  CLOSURE_STATE_OPENING = 4;
+  CLOSURE_STATE_CLOSING = 5;
+}
+
+// body.locks.states
+message LocksState {
+  message Lock {
+    LockId id = 1;
+    // Briefly absent (with field_3 = 1) while the vehicle re-reports after
+    // waking or an app command.
+    optional LockStateValue state = 2;
+    int32 field_3 = 3;
+  }
+  repeated Lock lock = 1;
+}
+
+enum LockId {
+  LOCK_ID_UNSPECIFIED = 0;
+  LOCK_DOOR_FRONT_LEFT = 1;
+  LOCK_DOOR_FRONT_RIGHT = 2;
+  LOCK_DOOR_REAR_LEFT = 3;
+  LOCK_DOOR_REAR_RIGHT = 4;
+  LOCK_FRUNK = 5;
+  LOCK_TAILGATE = 6;
+  LOCK_LIFTGATE = 7;
+  LOCK_SIDE_BIN_LEFT = 8;
+  LOCK_SIDE_BIN_RIGHT = 9;
+  // 14 (unmapped) stays unlocked while everything else locks; possibly the
+  // charge cable.
+  LOCK_TONNEAU = 15;
+}
+
+enum LockStateValue {
+  LOCK_STATE_UNSPECIFIED = 0;
+  LOCK_STATE_LOCKED = 1;
+  LOCK_STATE_UNLOCKED = 2;
+}
+
+// body.trailer.state
+message TrailerState {
+  optional TrailerPresence presence = 1;
+  int32 field_2 = 2; // unknown; constant
+}
+
+enum TrailerPresence {
+  TRAILER_PRESENCE_UNSPECIFIED = 0;
+  TRAILER_NOT_PRESENT = 1;
+  TRAILER_PRESENT = 2;
+  TRAILER_PRESENT_WITH_BRAKES = 3;
+  TRAILER_INVALID = 4;
+}
+
+// Values follow the app's ChargePortDoorNextActionState order.
+enum ChargePortDoorNextAction {
+  CHARGE_PORT_DOOR_SNA = 0;
+  CHARGE_PORT_DOOR_OPEN_ALLOWED = 1;       // door shut
+  CHARGE_PORT_DOOR_OPEN_NOT_AVAILABLE = 2;
+  CHARGE_PORT_DOOR_OPEN_NOT_ALLOWED_FAULTED = 3;
+  CHARGE_PORT_DOOR_OPENING = 4;
+  CHARGE_PORT_DOOR_CLOSE_ALLOWED = 5;      // door open, no plug
+  CHARGE_PORT_DOOR_OBSTRUCTED_WHILE_OPENING_CLOSE_ALLOWED = 6;
+  CHARGE_PORT_DOOR_OBSTRUCTED_WHILE_OPENING_OPEN_ALLOWED = 7;
+  CHARGE_PORT_DOOR_OBSTRUCTED_WHILE_CLOSING_CLOSE_ALLOWED = 8;
+  CHARGE_PORT_DOOR_CLOSE_NOT_AVAILABLE = 9; // plugged in
+  CHARGE_PORT_DOOR_CLOSE_NOT_ALLOWED_FAULTED = 10;
+  CHARGE_PORT_DOOR_CLOSING = 11;
+}
+
+// Next-action enums follow the app's NextActionState orders; only SNA (0)
+// and OPEN_ALLOWED (1) are confirmed.
+enum FrunkNextAction {
+  FRUNK_SNA = 0;
+  FRUNK_OPEN_ALLOWED = 1;
+  FRUNK_CLOSE_ALLOWED = 2;
+  FRUNK_OPENING = 3;
+  FRUNK_CLOSING = 4;
+  FRUNK_OPEN_NOT_AVAILABLE = 5;
+  FRUNK_CLOSE_NOT_AVAILABLE = 6;
+  FRUNK_OPEN_NOT_ALLOWED_FAULTED = 7;
+  FRUNK_CLOSE_NOT_ALLOWED_FAULTED = 8;
+  FRUNK_OPEN_ALLOWED_NO_POWERED_OPERATION = 9;
+  FRUNK_CLOSE_NOT_ALLOWED_NO_POWERED_OPERATION = 10;
+  FRUNK_OBSTRUCTED_WHILE_OPENING_CLOSE_ALLOWED = 11;
+  FRUNK_OBSTRUCTED_WHILE_CLOSING_OPEN_ALLOWED = 12;
+}
+
+// Unconfirmed past 0 and 1: sources disagree on the order, and 4 appears
+// during re-report blips.
+enum SideBinNextAction {
+  SIDE_BIN_SNA = 0;
+  SIDE_BIN_OPEN_ALLOWED = 1;
+  SIDE_BIN_OPENING = 2;
+  SIDE_BIN_OPEN_NOT_AVAILABLE = 3;
+  SIDE_BIN_OPEN_NOT_ALLOWED_FAULTED = 4;
+  SIDE_BIN_STUCK_AJAR_WHILE_OPENING_OPEN_ALLOWED = 5;
+  SIDE_BIN_OPEN_ALREADY_NO_ACTION_AVAILABLE = 6;
+  SIDE_BIN_OPEN_ALLOWED_CONFIRM_VEHICLE_ANGLE = 7;
+}
+
+enum TailgateNextAction {
+  TAILGATE_SNA = 0;
+  TAILGATE_OPEN_ALLOWED = 1;
+  TAILGATE_OPEN_ALLOWED_TRAILER_DETECTED = 2;
+  TAILGATE_OPENING = 3;
+  TAILGATE_OPEN_NOT_AVAILABLE = 4; // seen while re-reporting
+  TAILGATE_OPEN_NOT_ALLOWED_FAULTED = 5;
+  TAILGATE_STUCK_AJAR_WHILE_OPENING_OPEN_ALLOWED = 6;
+  TAILGATE_OPEN_ALREADY_NO_ACTION_AVAILABLE = 7;
+  TAILGATE_OPEN_ALLOWED_CONFIRM_VEHICLE_ANGLE = 8;
+  TAILGATE_OPEN_ALLOWED_OBSTACLE_DETECTED = 9;
+}
+
+// body.wipers.fluid_level
+message WiperFluidLevel {
+  optional int32 field_2 = 2; // unknown; 1 so far
+}
