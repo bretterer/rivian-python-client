@@ -130,7 +130,9 @@ message TripInfo {
 
     message IndexRangeSegment {
       optional int32 start = 1;
+      float start_fraction = 2; // position past the start point, 0-1
       optional int32 end = 3;
+      float end_fraction = 4;   // position past the end point, 0-1
       optional bool flag = 5; // present means flagged
     }
   }
@@ -145,9 +147,14 @@ message TripInfo {
 
   message TripMeta {
     optional int32 field_1 = 1;
-    optional int32 field_2 = 2;
+    Unmapped2 field_2 = 2;
     optional int32 field_3 = 3;
     optional int32 field_4 = 4;
+
+    message Unmapped2 {
+      int32 field_2 = 2;
+      int32 field_4 = 4;
+    }
   }
 }
 

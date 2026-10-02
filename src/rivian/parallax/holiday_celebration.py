@@ -62,7 +62,7 @@ def decode_halloween_celebration_settings(
     Each field's wrapped value, when set, as a raw `_fieldN`.
     """
     result: dict[str, Any] = {}
-    for num in (1, 2, 3, 4, 7, 8, 9, 10):
+    for num in (1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12):
         field = f"field_{num}"
         if (
             m.HasField(field)

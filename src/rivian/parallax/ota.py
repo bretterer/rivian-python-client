@@ -122,20 +122,25 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
 
 @RVMDecoder.register("ota.user_schedule.ota_config", ota_pb2.OtaConfig)
 def decode_ota_config(m: ota_pb2.OtaConfig) -> dict[str, Any]:
-    """ota.user_schedule.ota_config — the auto-install schedule.
+    """ota.user_schedule.ota_config — install schedules.
 
     Fields:
         otaSchedules: list[dict] (empty when none is set), each with:
+            type: str — "one_time" (a scheduled install) or "recurring"
+                (auto-install)
             id: str — UUID, when sent
-            enabled: bool — whether auto-install is on
-            startTime: int — minutes after local midnight
-            location: str — a saved location (e.g. "home") or "anywhere"
-            _field4: unknown; on the entry with no install time
+            enabled: bool
+            installTime: datetime — one-time only, once a time is picked;
+                kept after the install or a cancel
+            startTime: int — recurring only; minutes after local midnight
+            location: str — recurring only; a saved location (e.g.
+                "home") or "anywhere"
         otaScheduleUpdatedAt: datetime
     """
     schedules: list[dict[str, Any]] = []
     for schedule in m.schedule:
-        entry: dict[str, Any] = {}
+        one_time = schedule.HasField("one_time")
+        entry: dict[str, Any] = {"type": "one_time" if one_time else "recurring"}
         if (v := _present(schedule, "id")) is not None:
             entry["id"] = v
         if schedule.HasField("time_of_day"):
@@ -147,9 +152,11 @@ def decode_ota_config(m: ota_pb2.OtaConfig) -> dict[str, Any]:
                 and (v := _present(time_of_day.location, "name")) is not None
             ):
                 entry["location"] = v
+        if one_time and (
+            seconds := _present(schedule.one_time.install_time, "seconds")
+        ):
+            entry["installTime"] = from_epoch(seconds)
         entry["enabled"] = schedule.enabled
-        if schedule.HasField("field_4"):
-            entry["_field4"] = schedule.field_4.field_1
         schedules.append(entry)
 
     result: dict[str, Any] = {"otaSchedules": schedules}

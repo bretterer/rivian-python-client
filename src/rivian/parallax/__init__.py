@@ -50,7 +50,9 @@ from .core import (
 PARALLAX_RVMS: list[str] = list(RVMDecoder.decoders)
 
 CHARGING_RVMS: list[str] = [
+    "charging.energy.state",
     "charging.session.notification",
+    "charging.session.power",
     "charging.session.remote_command",
     "charging.session.soc_slider",
     "charging.session.status",

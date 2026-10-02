@@ -31,16 +31,19 @@ message CarCostumeState {
 }
 
 // holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings
-// All fields unknown; 1, 3 and 8-10 only sent empty.
+// All fields unknown; 1, 3, 5 and 8-12 only sent empty.
 message HalloweenCelebrationSettings {
   Value field_1 = 1;
   Value field_2 = 2;
   Value field_3 = 3;
   Value field_4 = 4;
+  Value field_5 = 5;
   Value field_7 = 7;
   Value field_8 = 8;
   Value field_9 = 9;
   Value field_10 = 10;
+  Value field_11 = 11;
+  Value field_12 = 12;
 
   message Value {
     optional int32 value = 1;

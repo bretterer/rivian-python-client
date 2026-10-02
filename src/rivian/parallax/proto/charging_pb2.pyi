@@ -44,6 +44,13 @@ class ChargingState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CHARGING_TLS_ERROR_UNKNOWN_CHARGER: _ClassVar[ChargingState]
     CHARGING_TLS_ERROR_UNEXPECTED_FAIL: _ClassVar[ChargingState]
     CHARGING_TLS_ERROR_START_RIVIAN_APP: _ClassVar[ChargingState]
+
+class ChargerStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CHARGER_STATUS_UNSPECIFIED: _ClassVar[ChargerStatus]
+    CHARGER_STATUS_NOT_CONNECTED: _ClassVar[ChargerStatus]
+    CHARGER_STATUS_CONNECTED_NO_CHARGE: _ClassVar[ChargerStatus]
+    CHARGER_STATUS_CONNECTED_CHARGING: _ClassVar[ChargerStatus]
 REMOTE_COMMAND_UNSPECIFIED: RemoteCommand
 REMOTE_COMMAND_START: RemoteCommand
 REMOTE_COMMAND_STOP: RemoteCommand
@@ -74,6 +81,10 @@ CHARGING_PAYMENT_ERROR_START_RIVIAN_APP: ChargingState
 CHARGING_TLS_ERROR_UNKNOWN_CHARGER: ChargingState
 CHARGING_TLS_ERROR_UNEXPECTED_FAIL: ChargingState
 CHARGING_TLS_ERROR_START_RIVIAN_APP: ChargingState
+CHARGER_STATUS_UNSPECIFIED: ChargerStatus
+CHARGER_STATUS_NOT_CONNECTED: ChargerStatus
+CHARGER_STATUS_CONNECTED_NO_CHARGE: ChargerStatus
+CHARGER_STATUS_CONNECTED_CHARGING: ChargerStatus
 
 class ScheduleTimeWindow(_message.Message):
     __slots__ = ("enabled", "window")
@@ -178,19 +189,21 @@ class TimeEstimation(_message.Message):
     def __init__(self, estimated_time_remaining: _Optional[int] = ...) -> None: ...
 
 class EnergyState(_message.Message):
-    __slots__ = ("field_1", "field_2", "field_3", "field_10", "field_11")
+    __slots__ = ("field_1", "charger_status", "field_3", "field_10", "field_11")
     FIELD_1_FIELD_NUMBER: _ClassVar[int]
-    FIELD_2_FIELD_NUMBER: _ClassVar[int]
+    CHARGER_STATUS_FIELD_NUMBER: _ClassVar[int]
     FIELD_3_FIELD_NUMBER: _ClassVar[int]
     FIELD_10_FIELD_NUMBER: _ClassVar[int]
     FIELD_11_FIELD_NUMBER: _ClassVar[int]
     field_1: int
-    field_2: int
+    charger_status: ChargerStatus
     field_3: int
     field_10: str
     field_11: int
-    def __init__(self, field_1: _Optional[int] = ..., field_2: _Optional[int] = ..., field_3: _Optional[int] = ..., field_10: _Optional[str] = ..., field_11: _Optional[int] = ...) -> None: ...
+    def __init__(self, field_1: _Optional[int] = ..., charger_status: _Optional[_Union[ChargerStatus, str]] = ..., field_3: _Optional[int] = ..., field_10: _Optional[str] = ..., field_11: _Optional[int] = ...) -> None: ...
 
 class SessionPower(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("power",)
+    POWER_FIELD_NUMBER: _ClassVar[int]
+    power: float
+    def __init__(self, power: _Optional[float] = ...) -> None: ...

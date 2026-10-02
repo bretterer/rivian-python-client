@@ -122,14 +122,23 @@ message TimeEstimation {
   int32 estimated_time_remaining = 2; // minutes
 }
 
-// charging.energy.state -- unmapped.
+// charging.energy.state
 message EnergyState {
-  optional int32 field_1 = 1;
-  optional int32 field_2 = 2;
-  optional int32 field_3 = 3;
+  optional int32 field_1 = 1; // inferred: ChargingState (1 ready ... 4 complete)
+  optional ChargerStatus charger_status = 2; // inferred
+  optional int32 field_3 = 3; // unknown; 1 so far
   string field_10 = 10; // always empty so far
-  optional int32 field_11 = 11;
+  optional int32 field_11 = 11; // unknown; 1 or 2
 }
 
-// charging.session.power -- unmapped; empty so far.
-message SessionPower {}
+enum ChargerStatus {
+  CHARGER_STATUS_UNSPECIFIED = 0;
+  CHARGER_STATUS_NOT_CONNECTED = 1;
+  CHARGER_STATUS_CONNECTED_NO_CHARGE = 2;
+  CHARGER_STATUS_CONNECTED_CHARGING = 3;
+}
+
+// charging.session.power -- live charging power; empty when not charging.
+message SessionPower {
+  optional float power = 1; // kW
+}

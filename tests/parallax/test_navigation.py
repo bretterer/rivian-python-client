@@ -51,7 +51,9 @@ def test_trip_info() -> None:
                         distance=500.0,
                         polyline="poly",
                         index_range_segment=[
-                            trip.Leg.IndexRangeSegment(start=1, end=4)
+                            trip.Leg.IndexRangeSegment(
+                                start=1, start_fraction=0.5, end=4, end_fraction=0.25
+                            )
                         ],
                     )
                 ],
@@ -90,7 +92,15 @@ def test_trip_info() -> None:
         {
             "distance": 500.0,
             "polyline": "poly",
-            "indexRangeSegments": [{"start": 1, "end": 4, "flagged": False}],
+            "indexRangeSegments": [
+                {
+                    "start": 1,
+                    "startFraction": 0.5,
+                    "end": 4,
+                    "endFraction": 0.25,
+                    "flagged": False,
+                }
+            ],
         }
     ]
     assert result["overviewPolyline"] == "overview"
