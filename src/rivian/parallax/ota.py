@@ -9,14 +9,14 @@ from .core import RVMDecoder, _enum, _present
 from .proto import ota_pb2
 
 _OTA_STATUS_MAP: Final[dict[int, str]] = {
-    1: "idle",
-    5: "install_countdown",
-    6: "preparing",
-    7: "downloading",
-    8: "scheduled_to_install",
-    10: "awaiting_install",
-    11: "installing",
-    12: "install_success",
+    ota_pb2.DeploymentState.OTA_PHASE_IDLE: "idle",
+    ota_pb2.DeploymentState.OTA_PHASE_INSTALL_COUNTDOWN: "install_countdown",
+    ota_pb2.DeploymentState.OTA_PHASE_PREPARING: "preparing",
+    ota_pb2.DeploymentState.OTA_PHASE_DOWNLOADING: "downloading",
+    ota_pb2.DeploymentState.OTA_PHASE_SCHEDULED_TO_INSTALL: "scheduled_to_install",
+    ota_pb2.DeploymentState.OTA_PHASE_AWAITING_INSTALL: "awaiting_install",
+    ota_pb2.DeploymentState.OTA_PHASE_INSTALLING: "installing",
+    ota_pb2.DeploymentState.OTA_PHASE_INSTALL_SUCCESS: "install_success",
 }
 
 
@@ -139,21 +139,21 @@ def decode_ota_config(m: ota_pb2.OtaConfig) -> dict[str, Any]:
     """
     schedules: list[dict[str, Any]] = []
     for schedule in m.schedule:
-        one_time = schedule.HasField("one_time")
+        one_time = schedule.WhichOneof("occurrence") == "single_occurrence"
         entry: dict[str, Any] = {"type": "one_time" if one_time else "recurring"}
         if (v := _present(schedule, "id")) is not None:
             entry["id"] = v
-        if schedule.HasField("time_of_day"):
-            time_of_day = schedule.time_of_day
-            if (v := _present(time_of_day, "start_time")) is not None:
+        if schedule.HasField("repeats_daily"):
+            daily = schedule.repeats_daily
+            if (v := _present(daily, "starts_at")) is not None:
                 entry["startTime"] = v
             if (
-                time_of_day.HasField("location")
-                and (v := _present(time_of_day.location, "name")) is not None
+                daily.HasField("location")
+                and (v := _present(daily.location, "name")) is not None
             ):
                 entry["location"] = v
         if one_time and (
-            seconds := _present(schedule.one_time.install_time, "seconds")
+            seconds := _present(schedule.single_occurrence.starts_at, "seconds")
         ):
             entry["installTime"] = from_epoch(seconds)
         entry["enabled"] = schedule.enabled
@@ -167,6 +167,12 @@ def decode_ota_config(m: ota_pb2.OtaConfig) -> dict[str, Any]:
 
 
 @RVMDecoder.register("ota.ota_state.vehicle_ota_state", ota_pb2.VehicleOtaState)
-def decode_vehicle_ota_state(_m: ota_pb2.VehicleOtaState) -> dict[str, Any]:
-    """ota.ota_state.vehicle_ota_state — sent when OTA settings change; no data."""
-    return {}
+def decode_vehicle_ota_state(m: ota_pb2.VehicleOtaState) -> dict[str, Any]:
+    """ota.ota_state.vehicle_ota_state — the pending scheduled install.
+
+    Fields:
+        otaScheduledInstallTime: datetime | None — None when no install is
+            scheduled (never set, cancelled, or already installed)
+    """
+    seconds = _present(m.scheduled_install, "seconds")
+    return {"otaScheduledInstallTime": from_epoch(seconds) if seconds else None}

@@ -97,38 +97,38 @@ class DeploymentState(_message.Message):
 class OtaConfig(_message.Message):
     __slots__ = ("schedule", "updated_at")
     class Schedule(_message.Message):
-        __slots__ = ("id", "enabled", "time_of_day", "one_time")
+        __slots__ = ("id", "enabled", "repeats_daily", "single_occurrence")
         ID_FIELD_NUMBER: _ClassVar[int]
         ENABLED_FIELD_NUMBER: _ClassVar[int]
-        TIME_OF_DAY_FIELD_NUMBER: _ClassVar[int]
-        ONE_TIME_FIELD_NUMBER: _ClassVar[int]
+        REPEATS_DAILY_FIELD_NUMBER: _ClassVar[int]
+        SINGLE_OCCURRENCE_FIELD_NUMBER: _ClassVar[int]
         id: str
         enabled: bool
-        time_of_day: OtaConfig.TimeOfDay
-        one_time: OtaConfig.OneTime
-        def __init__(self, id: _Optional[str] = ..., enabled: _Optional[bool] = ..., time_of_day: _Optional[_Union[OtaConfig.TimeOfDay, _Mapping]] = ..., one_time: _Optional[_Union[OtaConfig.OneTime, _Mapping]] = ...) -> None: ...
-    class TimeOfDay(_message.Message):
-        __slots__ = ("start_time", "location")
-        START_TIME_FIELD_NUMBER: _ClassVar[int]
+        repeats_daily: OtaConfig.RepeatsDaily
+        single_occurrence: OtaConfig.SingleOccurrence
+        def __init__(self, id: _Optional[str] = ..., enabled: _Optional[bool] = ..., repeats_daily: _Optional[_Union[OtaConfig.RepeatsDaily, _Mapping]] = ..., single_occurrence: _Optional[_Union[OtaConfig.SingleOccurrence, _Mapping]] = ...) -> None: ...
+    class RepeatsDaily(_message.Message):
+        __slots__ = ("starts_at", "location")
+        STARTS_AT_FIELD_NUMBER: _ClassVar[int]
         LOCATION_FIELD_NUMBER: _ClassVar[int]
-        start_time: int
+        starts_at: int
         location: OtaConfig.Location
-        def __init__(self, start_time: _Optional[int] = ..., location: _Optional[_Union[OtaConfig.Location, _Mapping]] = ...) -> None: ...
+        def __init__(self, starts_at: _Optional[int] = ..., location: _Optional[_Union[OtaConfig.Location, _Mapping]] = ...) -> None: ...
     class Location(_message.Message):
         __slots__ = ("name",)
         NAME_FIELD_NUMBER: _ClassVar[int]
         name: str
         def __init__(self, name: _Optional[str] = ...) -> None: ...
-    class OneTime(_message.Message):
-        __slots__ = ("install_time",)
-        class InstallTime(_message.Message):
+    class SingleOccurrence(_message.Message):
+        __slots__ = ("starts_at",)
+        class StartsAt(_message.Message):
             __slots__ = ("seconds",)
             SECONDS_FIELD_NUMBER: _ClassVar[int]
             seconds: int
             def __init__(self, seconds: _Optional[int] = ...) -> None: ...
-        INSTALL_TIME_FIELD_NUMBER: _ClassVar[int]
-        install_time: OtaConfig.OneTime.InstallTime
-        def __init__(self, install_time: _Optional[_Union[OtaConfig.OneTime.InstallTime, _Mapping]] = ...) -> None: ...
+        STARTS_AT_FIELD_NUMBER: _ClassVar[int]
+        starts_at: OtaConfig.SingleOccurrence.StartsAt
+        def __init__(self, starts_at: _Optional[_Union[OtaConfig.SingleOccurrence.StartsAt, _Mapping]] = ...) -> None: ...
     class UpdatedAt(_message.Message):
         __slots__ = ("seconds", "nanos")
         SECONDS_FIELD_NUMBER: _ClassVar[int]
@@ -143,7 +143,14 @@ class OtaConfig(_message.Message):
     def __init__(self, schedule: _Optional[_Iterable[_Union[OtaConfig.Schedule, _Mapping]]] = ..., updated_at: _Optional[_Union[OtaConfig.UpdatedAt, _Mapping]] = ...) -> None: ...
 
 class VehicleOtaState(_message.Message):
-    __slots__ = ("name",)
+    __slots__ = ("name", "scheduled_install")
+    class ScheduledInstall(_message.Message):
+        __slots__ = ("seconds",)
+        SECONDS_FIELD_NUMBER: _ClassVar[int]
+        seconds: int
+        def __init__(self, seconds: _Optional[int] = ...) -> None: ...
     NAME_FIELD_NUMBER: _ClassVar[int]
+    SCHEDULED_INSTALL_FIELD_NUMBER: _ClassVar[int]
     name: str
-    def __init__(self, name: _Optional[str] = ...) -> None: ...
+    scheduled_install: VehicleOtaState.ScheduledInstall
+    def __init__(self, name: _Optional[str] = ..., scheduled_install: _Optional[_Union[VehicleOtaState.ScheduledInstall, _Mapping]] = ...) -> None: ...

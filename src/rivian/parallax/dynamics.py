@@ -9,55 +9,55 @@ from .core import _LOGGER, RVMDecoder, _enum, _present
 from .proto import dynamics_pb2
 
 _DRIVE_MODE_MAP: Final[dict[int, str]] = {
-    1: "init_mode",
-    2: "everyday",
-    3: "off_road_snow_ice",
-    4: "off_road_sport_auto",
-    5: "off_road_sport_drift",
-    6: "sport_launch",
-    7: "fault",
-    8: "sport",
-    9: "distance",
-    10: "towing",
-    11: "off_road_auto",
-    12: "off_road_sand",
-    13: "off_road_rocks",
-    14: "off_road_mud",
-    15: "winter",
+    dynamics_pb2.DRIVE_MODE_INIT: "init_mode",
+    dynamics_pb2.DRIVE_MODE_EVERYDAY: "everyday",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_SNOW_ICE: "off_road_snow_ice",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_SPORT_AUTO: "off_road_sport_auto",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_SPORT_DRIFT: "off_road_sport_drift",
+    dynamics_pb2.DRIVE_MODE_SPORT_LAUNCH: "sport_launch",
+    dynamics_pb2.DRIVE_MODE_FAULT: "fault",
+    dynamics_pb2.DRIVE_MODE_SPORT: "sport",
+    dynamics_pb2.DRIVE_MODE_DISTANCE: "distance",
+    dynamics_pb2.DRIVE_MODE_TOWING: "towing",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_AUTO: "off_road_auto",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_SAND: "off_road_sand",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_ROCKS: "off_road_rocks",
+    dynamics_pb2.DRIVE_MODE_OFF_ROAD_MUD: "off_road_mud",
+    dynamics_pb2.DRIVE_MODE_WINTER: "winter",
 }
 
 _GEAR_MAP: Final[dict[int, str]] = {
-    0: "not_defined",
-    1: "park",
-    2: "reverse",
-    3: "neutral",
-    4: "drive",
+    dynamics_pb2.GEAR_NOT_DEFINED: "not_defined",
+    dynamics_pb2.GEAR_PARK: "park",
+    dynamics_pb2.GEAR_REVERSE: "reverse",
+    dynamics_pb2.GEAR_NEUTRAL: "neutral",
+    dynamics_pb2.GEAR_DRIVE: "drive",
 }
 
 _KNOWN_LOCATION_MAP: Final[dict[int, str]] = {
-    1: "unknown",
-    2: "home",
-    3: "work",
+    dynamics_pb2.KNOWN_LOCATION_UNKNOWN: "unknown",
+    dynamics_pb2.KNOWN_LOCATION_HOME: "home",
+    dynamics_pb2.KNOWN_LOCATION_WORK: "work",
 }
 
 _RANGE_THRESHOLD_MAP: Final[dict[int, str]] = {
-    1: "normal",
-    2: "low",
-    3: "red",
-    4: "critically_low",
+    dynamics_pb2.RANGE_NORMAL: "normal",
+    dynamics_pb2.RANGE_LOW: "low",
+    dynamics_pb2.RANGE_RED: "red",
+    dynamics_pb2.RANGE_CRITICALLY_LOW: "critically_low",
 }
 
 _TEMPERATURE_IMPACT_MAP: Final[dict[int, str]] = {
-    1: "normal_range",
-    2: "cold_may_impact",
-    3: "cold_impact",
+    dynamics_pb2.TEMPERATURE_NORMAL_RANGE: "normal_range",
+    dynamics_pb2.TEMPERATURE_COLD_MAY_IMPACT: "cold_may_impact",
+    dynamics_pb2.TEMPERATURE_COLD_IMPACT: "cold_impact",
 }
 
 _TIRE_POSITION_MAP: Final[dict[int, str]] = {
-    1: "FrontLeft",
-    2: "FrontRight",
-    3: "RearLeft",
-    4: "RearRight",
+    dynamics_pb2.TIRE_FRONT_LEFT: "FrontLeft",
+    dynamics_pb2.TIRE_FRONT_RIGHT: "FrontRight",
+    dynamics_pb2.TIRE_REAR_LEFT: "RearLeft",
+    dynamics_pb2.TIRE_REAR_RIGHT: "RearRight",
 }
 
 

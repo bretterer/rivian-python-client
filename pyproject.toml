@@ -36,7 +36,15 @@ dev = [
     "pre-commit>=4.6.1,<5",
     "types-protobuf>=7.35.1.20260906",
     "grpcio-tools==1.84.0",
+    "pytest-cov>=7.0,<8",
 ]
+
+[tool.coverage.run]
+source = ["rivian"]
+omit = ["*_pb2.py"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.hatch.build.hooks.version]
 path = "src/rivian/__version__.py"

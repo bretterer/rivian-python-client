@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n(rivian/parallax/proto/device_table.proto\x12\x1crivian.parallax.device_table\"\xfc\x06\n\x10VasKeyperDevices\x12I\n\x07\x66ield_1\x18\x01 \x01(\x0b\x32\x38.rivian.parallax.device_table.VasKeyperDevices.Unmapped1\x12\x45\n\x06\x64\x65vice\x18\x02 \x01(\x0b\x32\x35.rivian.parallax.device_table.VasKeyperDevices.Device\x12O\n\x0b\x63redentials\x18\x03 \x01(\x0b\x32:.rivian.parallax.device_table.VasKeyperDevices.Credentials\x1a-\n\tUnmapped1\x12\x14\n\x07\x66ield_3\x18\x03 \x01(\x05H\x00\x88\x01\x01\x42\n\n\x08_field_3\x1a\xa6\x01\n\x06\x44\x65vice\x12\x1f\n\x12mapped_identity_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04hrid\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x17\n\npairing_id\x18\x03 \x01(\tH\x02\x88\x01\x01\x12\x14\n\x07\x66ield_5\x18\x05 \x01(\x05H\x03\x88\x01\x01\x42\x15\n\x13_mapped_identity_idB\x07\n\x05_hridB\r\n\x0b_pairing_idB\n\n\x08_field_5\x1a\xac\x03\n\x0b\x43redentials\x12M\n\x04info\x18\x01 \x01(\x0b\x32?.rivian.parallax.device_table.VasKeyperDevices.Credentials.Info\x12K\n\x03\x62le\x18\x05 \x01(\x0b\x32>.rivian.parallax.device_table.VasKeyperDevices.Credentials.Ble\x12\x15\n\x08key_type\x18\t \x01(\x05H\x00\x88\x01\x01\x12\x13\n\x06\x61\x63tive\x18\n \x01(\x08H\x01\x88\x01\x01\x1ah\n\x04Info\x12\x0e\n\x01\x61\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x0e\n\x01\x63\x18\x04 \x01(\x05H\x01\x88\x01\x01\x12\x13\n\x06status\x18\x05 \x01(\x05H\x02\x88\x01\x01\x12\x0e\n\x01\x62\x18\x06 \x01(\x05H\x03\x88\x01\x01\x42\x04\n\x02_aB\x04\n\x02_cB\t\n\x07_statusB\x04\n\x02_b\x1aS\n\x03\x42le\x12\x16\n\tdevice_id\x18\x01 \x01(\x0cH\x00\x88\x01\x01\x12\x17\n\ncredential\x18\x02 \x01(\x0cH\x01\x88\x01\x01\x42\x0c\n\n_device_idB\r\n\x0b_credentialB\x0b\n\t_key_typeB\t\n\x07_activeb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n(rivian/parallax/proto/device_table.proto\x12\x1crivian.parallax.device_table\"\xe8\x0b\n\x10VasKeyperDevices\x12\x43\n\x05label\x18\x01 \x01(\x0b\x32\x34.rivian.parallax.device_table.VasKeyperDevices.Label\x12\x45\n\x06\x64\x65vice\x18\x02 \x01(\x0b\x32\x35.rivian.parallax.device_table.VasKeyperDevices.Device\x12O\n\x0b\x63redentials\x18\x03 \x01(\x0b\x32:.rivian.parallax.device_table.VasKeyperDevices.Credentials\x1a\x7f\n\x05Label\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12M\n\x08key_type\x18\x03 \x01(\x0e\x32\x36.rivian.parallax.device_table.VasKeyperDevices.KeyTypeH\x01\x88\x01\x01\x42\x07\n\x05_nameB\x0b\n\t_key_type\x1a\xd0\x01\n\x06\x44\x65vice\x12\x1f\n\x12mapped_identity_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04hrid\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x17\n\nprofile_id\x18\x03 \x01(\tH\x02\x88\x01\x01\x12\x17\n\npublic_key\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x15\n\x08revision\x18\x05 \x01(\x05H\x04\x88\x01\x01\x42\x15\n\x13_mapped_identity_idB\x07\n\x05_hridB\r\n\x0b_profile_idB\r\n\x0b_public_keyB\x0b\n\t_revision\x1a\xdb\x04\n\x0b\x43redentials\x12M\n\x04info\x18\x01 \x01(\x0b\x32?.rivian.parallax.device_table.VasKeyperDevices.Credentials.Info\x12H\n\x04\x63\x61rd\x18\x05 \x01(\x0b\x32:.rivian.parallax.device_table.VasKeyperDevices.KeyMaterial\x12G\n\x03\x66ob\x18\x06 \x01(\x0b\x32:.rivian.parallax.device_table.VasKeyperDevices.KeyMaterial\x12I\n\x05phone\x18\x07 \x01(\x0b\x32:.rivian.parallax.device_table.VasKeyperDevices.KeyMaterial\x12M\n\x08key_type\x18\t \x01(\x0e\x32\x36.rivian.parallax.device_table.VasKeyperDevices.KeyTypeH\x00\x88\x01\x01\x12\x13\n\x06\x61\x63tive\x18\n \x01(\x08H\x01\x88\x01\x01\x1a\xa2\x01\n\x04Info\x12\x0e\n\x01\x61\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x0e\n\x01\x63\x18\x04 \x01(\x05H\x01\x88\x01\x01\x12M\n\x06status\x18\x05 \x01(\x0e\x32\x38.rivian.parallax.device_table.VasKeyperDevices.KeyStatusH\x02\x88\x01\x01\x12\x0e\n\x01\x62\x18\x06 \x01(\x05H\x03\x88\x01\x01\x42\x04\n\x02_aB\x04\n\x02_cB\t\n\x07_statusB\x04\n\x02_bB\x0b\n\t_key_typeB\t\n\x07_active\x1aM\n\x0bKeyMaterial\x12\x0f\n\x02id\x18\x01 \x01(\x0cH\x00\x88\x01\x01\x12\x17\n\ncredential\x18\x02 \x01(\x0cH\x01\x88\x01\x01\x42\x05\n\x03_idB\r\n\x0b_credential\"\x8f\x01\n\tKeyStatus\x12\x1a\n\x16KEY_STATUS_UNSPECIFIED\x10\x00\x12\x15\n\x11KEY_STATUS_ACTIVE\x10\x01\x12\x17\n\x13KEY_STATUS_INACTIVE\x10\x03\x12\x1e\n\x1aKEY_STATUS_WAITING_TO_PAIR\x10\x05\x12\x16\n\x12KEY_STATUS_PAIRING\x10\x07\"d\n\x07KeyType\x12\x18\n\x14KEY_TYPE_UNSPECIFIED\x10\x00\x12\x12\n\x0eKEY_TYPE_PHONE\x10\x02\x12\x15\n\x11KEY_TYPE_KEY_CARD\x10\x03\x12\x14\n\x10KEY_TYPE_KEY_FOB\x10\x04\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,15 +32,19 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.devic
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_VASKEYPERDEVICES']._serialized_start=75
-  _globals['_VASKEYPERDEVICES']._serialized_end=967
-  _globals['_VASKEYPERDEVICES_UNMAPPED1']._serialized_start=322
-  _globals['_VASKEYPERDEVICES_UNMAPPED1']._serialized_end=367
-  _globals['_VASKEYPERDEVICES_DEVICE']._serialized_start=370
-  _globals['_VASKEYPERDEVICES_DEVICE']._serialized_end=536
-  _globals['_VASKEYPERDEVICES_CREDENTIALS']._serialized_start=539
-  _globals['_VASKEYPERDEVICES_CREDENTIALS']._serialized_end=967
-  _globals['_VASKEYPERDEVICES_CREDENTIALS_INFO']._serialized_start=754
-  _globals['_VASKEYPERDEVICES_CREDENTIALS_INFO']._serialized_end=858
-  _globals['_VASKEYPERDEVICES_CREDENTIALS_BLE']._serialized_start=860
-  _globals['_VASKEYPERDEVICES_CREDENTIALS_BLE']._serialized_end=943
+  _globals['_VASKEYPERDEVICES']._serialized_end=1587
+  _globals['_VASKEYPERDEVICES_LABEL']._serialized_start=316
+  _globals['_VASKEYPERDEVICES_LABEL']._serialized_end=443
+  _globals['_VASKEYPERDEVICES_DEVICE']._serialized_start=446
+  _globals['_VASKEYPERDEVICES_DEVICE']._serialized_end=654
+  _globals['_VASKEYPERDEVICES_CREDENTIALS']._serialized_start=657
+  _globals['_VASKEYPERDEVICES_CREDENTIALS']._serialized_end=1260
+  _globals['_VASKEYPERDEVICES_CREDENTIALS_INFO']._serialized_start=1074
+  _globals['_VASKEYPERDEVICES_CREDENTIALS_INFO']._serialized_end=1236
+  _globals['_VASKEYPERDEVICES_KEYMATERIAL']._serialized_start=1262
+  _globals['_VASKEYPERDEVICES_KEYMATERIAL']._serialized_end=1339
+  _globals['_VASKEYPERDEVICES_KEYSTATUS']._serialized_start=1342
+  _globals['_VASKEYPERDEVICES_KEYSTATUS']._serialized_end=1485
+  _globals['_VASKEYPERDEVICES_KEYTYPE']._serialized_start=1487
+  _globals['_VASKEYPERDEVICES_KEYTYPE']._serialized_end=1587
 # @@protoc_insertion_point(module_scope)

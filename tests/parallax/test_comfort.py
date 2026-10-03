@@ -77,21 +77,29 @@ def test_pet_mode_status_defaults() -> None:
 
 
 def test_seat_conditioning() -> None:
-    """Heat/vent levels combine seat and type; entries without a state skip."""
-    seat = comfort.SeatConditioningStatus.Seat
-    heat = comfort.SEAT_CONDITIONING_HEAT
+    """Heat/vent levels combine surface and type; entries without a state skip."""
+    surface = comfort.SeatConditioningStatus.Surface
+    heat = comfort.CONDITIONING_HEAT
     result = decode(
         "comfort.cabin.seat_conditioning_status",
         comfort.SeatConditioningStatus(
-            seat=[
-                seat(id=comfort.SEAT_FRONT_LEFT, type=heat, state=comfort.SEAT_LEVEL_2),
-                seat(id=comfort.STEERING_WHEEL, type=heat, state=comfort.SEAT_LEVEL_1),
-                seat(
+            surface=[
+                surface(
+                    id=comfort.SEAT_FRONT_LEFT,
+                    type=heat,
+                    state=comfort.CONDITIONING_LEVEL_2,
+                ),
+                surface(
+                    id=comfort.STEERING_WHEEL,
+                    type=heat,
+                    state=comfort.CONDITIONING_LEVEL_1,
+                ),
+                surface(
                     id=comfort.SEAT_THIRD_ROW_RIGHT,
                     type=heat,
-                    state=comfort.SEAT_LEVEL_3,
+                    state=comfort.CONDITIONING_LEVEL_3,
                 ),
-                seat(id=comfort.SEAT_REAR_LEFT, type=heat),
+                surface(id=comfort.SEAT_REAR_LEFT, type=heat),
             ]
         ),
     )

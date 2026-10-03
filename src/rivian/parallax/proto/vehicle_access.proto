@@ -4,5 +4,16 @@ package rivian.parallax.vehicle_access;
 
 // Reverse-engineered `vehicle_access.*` RVM payloads; see ../vehicle_access.py.
 
-// vehicle_access.state.passive_entry -- unmapped.
-message PassiveEntryState {}
+// vehicle_access.state.passive_entry -- not seen yet; schema from the app.
+message PassiveEntryState {
+  optional bool allow_bluetooth_while_in_ccc = 1;
+  optional CccPassivePermission ccc_passive_permission = 2;
+}
+
+// CCC: Car Connectivity Consortium digital key.
+enum CccPassivePermission {
+  CCC_PASSIVE_PERMISSION_UNSPECIFIED = 0;
+  CCC_PASSIVE_PERMISSION_SNA = 1;
+  CCC_PASSIVE_PERMISSION_ENABLED = 2;
+  CCC_PASSIVE_PERMISSION_DISABLED = 3;
+}

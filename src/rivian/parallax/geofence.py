@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Final
 
-from .core import RVMDecoder, _present
+from .core import RVMDecoder, _enum, _present
 from .proto import geofence_pb2
+
+_GEOFENCE_TYPE_MAP: Final[dict[int, str]] = {
+    geofence_pb2.GEOFENCE_TYPE_HOME: "home",
+    geofence_pb2.GEOFENCE_TYPE_WORK: "work",
+    geofence_pb2.GEOFENCE_TYPE_CUSTOM: "custom",
+}
 
 
 @RVMDecoder.register(
@@ -17,14 +23,14 @@ def decode_favorite_geofences(m: geofence_pb2.FavoriteGeofences) -> dict[str, An
     Fields:
         favoriteGeofences: list[dict]:
             name: str — a name (e.g. "Home") or street address
-            _field1: int, when sent — unknown (1 only on "Home")
+            type: str ("home" | "work" | "custom"), when sent
     """
     places = []
     for geofence in m.geofence:
         place: dict[str, Any] = {}
         if (v := _present(geofence, "name")) is not None:
             place["name"] = v
-        if (v := _present(geofence, "field_1")) is not None:
-            place["_field1"] = v
+        if (v := _present(geofence, "type")) is not None:
+            place["type"] = _enum(_GEOFENCE_TYPE_MAP, v, what="geofence type")
         places.append(place)
     return {"favoriteGeofences": places}

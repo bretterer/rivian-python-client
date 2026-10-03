@@ -15,67 +15,67 @@ def decode_passive_entry(_m: security_pb2.PassiveEntry) -> dict[str, Any]:
 
 
 _ACCESS_CAN_FAULTED_MAP: Final[dict[int, str]] = {
-    1: "no_failure",
-    2: "failure",
+    security_pb2.ACCESS_CAN_NO_FAILURE: "no_failure",
+    security_pb2.ACCESS_CAN_FAILURE: "failure",
 }
 
 _ALARM_SOUND_MAP: Final[dict[int, str]] = {
-    1: "false",
-    2: "true",
-    3: "signal_not_available",
+    security_pb2.ALARM_SOUND_FALSE: "false",
+    security_pb2.ALARM_SOUND_TRUE: "true",
+    security_pb2.ALARM_SOUND_SIGNAL_NOT_AVAILABLE: "signal_not_available",
 }
 
 _HARDWARE_FAILURE_MAP: Final[dict[int, str]] = {
-    0: "unspecified",
-    1: "set",
+    security_pb2.HARDWARE_FAILURE_UNSPECIFIED: "unspecified",
+    security_pb2.HARDWARE_FAILURE_SET: "set",
 }
 
 _IMMOBILIZER_MAP: Final[dict[int, str]] = {
-    0: "not_assigned",
-    1: "not_authorized",
-    2: "authorized_to_drive",
+    security_pb2.IMMOBILIZER_NOT_ASSIGNED: "not_assigned",
+    security_pb2.IMMOBILIZER_NOT_AUTHORIZED: "not_authorized",
+    security_pb2.IMMOBILIZER_AUTHORIZED_TO_DRIVE: "authorized_to_drive",
 }
 
 _PASSIVE_ENTRY_FAIL_MAP: Final[dict[int, str]] = {
-    1: "not_in_park",
-    2: "at_home_disable",
-    3: "passenger_in_seat",
-    4: "device_not_enabled",
-    5: "transport_mode",
-    6: "car_wash_mode",
-    7: "camp_mode",
-    8: "active_ota",
-    9: "show_and_tell_mode",
-    10: "rcvd_rssi_pending",
-    11: "lock_only_at_home",
-    12: "car_costume_mode",
-    13: "slept_immediate",
+    security_pb2.PASSIVE_ENTRY_NOT_IN_PARK: "not_in_park",
+    security_pb2.PASSIVE_ENTRY_AT_HOME_DISABLE: "at_home_disable",
+    security_pb2.PASSIVE_ENTRY_PASSENGER_IN_SEAT: "passenger_in_seat",
+    security_pb2.PASSIVE_ENTRY_DEVICE_NOT_ENABLED: "device_not_enabled",
+    security_pb2.PASSIVE_ENTRY_TRANSPORT_MODE: "transport_mode",
+    security_pb2.PASSIVE_ENTRY_CAR_WASH_MODE: "car_wash_mode",
+    security_pb2.PASSIVE_ENTRY_CAMP_MODE: "camp_mode",
+    security_pb2.PASSIVE_ENTRY_ACTIVE_OTA: "active_ota",
+    security_pb2.PASSIVE_ENTRY_SHOW_AND_TELL_MODE: "show_and_tell_mode",
+    security_pb2.PASSIVE_ENTRY_RCVD_RSSI_PENDING: "rcvd_rssi_pending",
+    security_pb2.PASSIVE_ENTRY_LOCK_ONLY_AT_HOME: "lock_only_at_home",
+    security_pb2.PASSIVE_ENTRY_CAR_COSTUME_MODE: "car_costume_mode",
+    security_pb2.PASSIVE_ENTRY_SLEPT_IMMEDIATE: "slept_immediate",
 }
 
 _SECURE_ELEMENT_FAULTED_MAP: Final[dict[int, str]] = {
-    1: "no_failure",
-    2: "lost_communication",
-    3: "applet_not_programmed",
-    4: "not_configured",
-    5: "attack_counter",
-    6: "ursk_decrypt_failure",
+    security_pb2.SECURE_ELEMENT_NO_FAILURE: "no_failure",
+    security_pb2.SECURE_ELEMENT_LOST_COMMUNICATION: "lost_communication",
+    security_pb2.SECURE_ELEMENT_APPLET_NOT_PROGRAMMED: "applet_not_programmed",
+    security_pb2.SECURE_ELEMENT_NOT_CONFIGURED: "not_configured",
+    security_pb2.SECURE_ELEMENT_ATTACK_COUNTER: "attack_counter",
+    security_pb2.SECURE_ELEMENT_URSK_DECRYPT_FAILURE: "ursk_decrypt_failure",
 }
 
 _TOS_ACCEPTANCE_MAP: Final[dict[int, str]] = {
-    1: "not_accepted",
-    2: "accepted",
+    security_pb2.TOS_NOT_ACCEPTED: "not_accepted",
+    security_pb2.TOS_ACCEPTED: "accepted",
 }
 
 _VIDEO_MODE_MAP: Final[dict[int, str]] = {
-    0: "none",
-    1: "everywhere",
-    2: "away_from_home",
+    security_pb2.VIDEO_MODE_NONE: "none",
+    security_pb2.VIDEO_MODE_EVERYWHERE: "everywhere",
+    security_pb2.VIDEO_MODE_AWAY_FROM_HOME: "away_from_home",
 }
 
 _VIDEO_MONITORING_STATUS_MAP: Final[dict[int, str]] = {
-    1: "disabled",
-    2: "enabled",
-    3: "active",
+    security_pb2.VIDEO_MONITORING_DISABLED: "disabled",
+    security_pb2.VIDEO_MONITORING_ENABLED: "enabled",
+    security_pb2.VIDEO_MONITORING_ACTIVE: "active",
 }
 
 

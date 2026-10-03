@@ -8,14 +8,20 @@ from .helpers import decode
 
 
 def test_halloween_celebration_settings() -> None:
-    """Wrapped values are surfaced raw; empty wrappers are left out."""
+    """Wrapped values are unwrapped; empty wrappers are left out."""
     settings = holiday_celebration.HalloweenCelebrationSettings
     result = decode(
         "holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings",
         settings(
-            field_1=settings.Value(),
-            field_2=settings.Value(value=13),
-            field_4=settings.Value(value=1),
+            costume_theme=settings.CostumeTheme(),
+            sound_volume=settings.Int32Value(value=13),
+            music_type=settings.Int32Value(value=1),
+            exterior_sounds_muted=settings.BoolValue(value=True),
+            lights_color=settings.StringValue(),
         ),
     )
-    assert result == {"_field2": 13, "_field4": 1}
+    assert result == {
+        "halloweenSoundVolume": 13,
+        "halloweenMusicType": 1,
+        "halloweenExteriorSoundsMuted": True,
+    }

@@ -61,12 +61,41 @@ def test_closure_next_actions() -> None:
         "closureSideBinLeftClosed": None,
         "closureSideBinLeftNextAction": "sna",
         "closureSideBinRightClosed": None,
-        "closureSideBinRightNextAction": 4,  # unconfirmed name: raw value
+        "closureSideBinRightNextAction": "open_not_allowed_faulted",
+    }
+
+
+def test_windows_group_and_liftgate() -> None:
+    """The window group carries windowsNextAction only; ajar and liftgate map."""
+    closure = body.ClosuresState.Closure
+    result = decode(
+        "body.closures.states",
+        body.ClosuresState(
+            closure=[
+                closure(
+                    id=body.GROUP_WINDOWS,
+                    fault=body.CLOSURE_FAULT_NO_FAULT,
+                    windows_next_action=body.WINDOWS_CLOSE_ALLOWED,
+                ),
+                closure(id=body.WINDOW_FRONT_LEFT, state=body.CLOSURE_STATE_OPEN),
+                closure(
+                    id=body.LIFTGATE,
+                    state=body.CLOSURE_STATE_AJAR,
+                    liftgate_next_action=body.LIFTGATE_CLOSE_ALLOWED,
+                ),
+            ]
+        ),
+    )
+    assert result == {
+        "windowsNextAction": "close_allowed",
+        "windowFrontLeftClosed": "open",
+        "closureLiftgateClosed": "ajar",
+        "closureLiftgateNextAction": "close_allowed",
     }
 
 
 def test_locks() -> None:
-    """Locked/unlocked by id; entries without a state are skipped."""
+    """Lock states by id; entries without a state are skipped."""
     lock = body.LocksState.Lock
     result = decode(
         "body.locks.states",
@@ -74,13 +103,17 @@ def test_locks() -> None:
             lock=[
                 lock(id=body.LOCK_DOOR_FRONT_LEFT, state=body.LOCK_STATE_LOCKED),
                 lock(id=body.LOCK_DOOR_FRONT_RIGHT, state=body.LOCK_STATE_UNLOCKED),
-                lock(id=body.LOCK_DOOR_REAR_LEFT),
+                lock(id=body.LOCK_DOOR_REAR_LEFT, fault=body.LOCK_FAULT_FAULTED),
+                lock(id=body.LOCK_GEAR_GUARD, state=body.LOCK_STATE_UNLOCKED),
+                lock(id=body.LOCK_TAILGATE, state=body.LOCK_STATE_PARTIALLY_UNLOCKED),
             ]
         ),
     )
     assert result == {
         "doorFrontLeftLocked": "locked",
         "doorFrontRightLocked": "unlocked",
+        "gearGuardLocked": "unlocked",
+        "closureTailgateLocked": "partially_unlocked",
     }
 
 
