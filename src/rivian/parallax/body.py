@@ -8,28 +8,30 @@ from .core import _LOGGER, RVMDecoder, _enum, _present
 from .proto import body_pb2
 
 _CLOSURE_MAP: Final[dict[int, str]] = {
-    1: "doorFrontLeftClosed",
-    2: "doorFrontRightClosed",
-    3: "doorRearLeftClosed",
-    4: "doorRearRightClosed",
-    5: "closureFrunkClosed",
-    6: "closureTailgateClosed",
-    7: "closureLiftgateClosed",
-    8: "closureSideBinLeftClosed",
-    9: "closureSideBinRightClosed",
-    10: "chargePortState",
-    11: "closureTonneauClosed",
-    12: "windowFrontLeftClosed",
-    13: "windowFrontRightClosed",
-    14: "windowRearLeftClosed",
-    15: "windowRearRightClosed",
+    body_pb2.DOOR_FRONT_LEFT: "doorFrontLeftClosed",
+    body_pb2.DOOR_FRONT_RIGHT: "doorFrontRightClosed",
+    body_pb2.DOOR_REAR_LEFT: "doorRearLeftClosed",
+    body_pb2.DOOR_REAR_RIGHT: "doorRearRightClosed",
+    body_pb2.FRUNK: "closureFrunkClosed",
+    body_pb2.TAILGATE: "closureTailgateClosed",
+    body_pb2.LIFTGATE: "closureLiftgateClosed",
+    body_pb2.SIDE_BIN_LEFT: "closureSideBinLeftClosed",
+    body_pb2.SIDE_BIN_RIGHT: "closureSideBinRightClosed",
+    body_pb2.CHARGE_PORT: "chargePortState",
+    body_pb2.TONNEAU: "closureTonneauClosed",
+    body_pb2.WINDOW_FRONT_LEFT: "windowFrontLeftClosed",
+    body_pb2.WINDOW_FRONT_RIGHT: "windowFrontRightClosed",
+    body_pb2.WINDOW_REAR_LEFT: "windowRearLeftClosed",
+    body_pb2.WINDOW_REAR_RIGHT: "windowRearRightClosed",
+    body_pb2.WINDOW_REAR: "windowRearClosed",
 }
 
 _CLOSURE_STATE_MAP: Final[dict[int, str]] = {
-    1: "open",
-    2: "closed",
-    4: "opening",
-    5: "closing",
+    body_pb2.CLOSURE_STATE_OPEN: "open",
+    body_pb2.CLOSURE_STATE_CLOSED: "closed",
+    body_pb2.CLOSURE_STATE_AJAR: "ajar",
+    body_pb2.CLOSURE_STATE_OPENING: "opening",
+    body_pb2.CLOSURE_STATE_CLOSING: "closing",
 }
 
 
@@ -41,11 +43,7 @@ def _enum_names(enum: Any, prefix: str) -> dict[int, str]:
     }
 
 
-# Other side-bin values are unconfirmed, so they pass through as raw ints.
-_SIDE_BIN_NEXT_ACTIONS: Final[dict[int, str]] = {
-    body_pb2.SIDE_BIN_SNA: "sna",
-    body_pb2.SIDE_BIN_OPEN_ALLOWED: "open_allowed",
-}
+_SIDE_BIN_NEXT_ACTIONS: Final = _enum_names(body_pb2.SideBinNextAction, "SIDE_BIN_")
 
 # Closure id -> (next-action field, result key, value names).
 _NEXT_ACTIONS: Final[dict[int, tuple[str, str, dict[int, str]]]] = {
@@ -53,6 +51,11 @@ _NEXT_ACTIONS: Final[dict[int, tuple[str, str, dict[int, str]]]] = {
         "frunk_next_action",
         "closureFrunkNextAction",
         _enum_names(body_pb2.FrunkNextAction, "FRUNK_"),
+    ),
+    body_pb2.LIFTGATE: (
+        "liftgate_next_action",
+        "closureLiftgateNextAction",
+        _enum_names(body_pb2.LiftgateNextAction, "LIFTGATE_"),
     ),
     body_pb2.SIDE_BIN_LEFT: (
         "side_bin_next_action",
@@ -74,26 +77,42 @@ _NEXT_ACTIONS: Final[dict[int, tuple[str, str, dict[int, str]]]] = {
         "closureChargePortDoorNextAction",
         _enum_names(body_pb2.ChargePortDoorNextAction, "CHARGE_PORT_DOOR_"),
     ),
+    body_pb2.GROUP_WINDOWS: (
+        "windows_next_action",
+        "windowsNextAction",
+        _enum_names(body_pb2.WindowsNextAction, "WINDOWS_"),
+    ),
 }
 
 _LOCK_MAP: Final[dict[int, str]] = {
-    1: "doorFrontLeftLocked",
-    2: "doorFrontRightLocked",
-    3: "doorRearLeftLocked",
-    4: "doorRearRightLocked",
-    5: "closureFrunkLocked",
-    6: "closureTailgateLocked",
-    7: "closureLiftgateLocked",
-    8: "closureSideBinLeftLocked",
-    9: "closureSideBinRightLocked",
-    15: "closureTonneauLocked",
+    body_pb2.LOCK_DOOR_FRONT_LEFT: "doorFrontLeftLocked",
+    body_pb2.LOCK_DOOR_FRONT_RIGHT: "doorFrontRightLocked",
+    body_pb2.LOCK_DOOR_REAR_LEFT: "doorRearLeftLocked",
+    body_pb2.LOCK_DOOR_REAR_RIGHT: "doorRearRightLocked",
+    body_pb2.LOCK_FRUNK: "closureFrunkLocked",
+    body_pb2.LOCK_TAILGATE: "closureTailgateLocked",
+    body_pb2.LOCK_LIFTGATE: "closureLiftgateLocked",
+    body_pb2.LOCK_SIDE_BIN_LEFT: "closureSideBinLeftLocked",
+    body_pb2.LOCK_SIDE_BIN_RIGHT: "closureSideBinRightLocked",
+    body_pb2.LOCK_CHARGE_PORT: "closureChargePortLocked",
+    body_pb2.LOCK_TRUNK_SECURITY: "closureTrunkSecurityLocked",
+    body_pb2.LOCK_CENTER_CONSOLE: "closureCenterConsoleLocked",
+    body_pb2.LOCK_GLOVE_BOX: "closureGloveBoxLocked",
+    body_pb2.LOCK_GEAR_GUARD: "gearGuardLocked",
+    body_pb2.LOCK_TONNEAU: "closureTonneauLocked",
+}
+
+_LOCK_STATE_MAP: Final[dict[int, str]] = {
+    body_pb2.LOCK_STATE_LOCKED: "locked",
+    body_pb2.LOCK_STATE_UNLOCKED: "unlocked",
+    body_pb2.LOCK_STATE_PARTIALLY_UNLOCKED: "partially_unlocked",
 }
 
 _TRAILER_PRESENCE_MAP: Final[dict[int, str]] = {
-    1: "trailer_not_present",
-    2: "trailer_present",
-    3: "trailer_present_with_brakes",
-    4: "trailer_invalid",
+    body_pb2.TRAILER_NOT_PRESENT: "trailer_not_present",
+    body_pb2.TRAILER_PRESENT: "trailer_present",
+    body_pb2.TRAILER_PRESENT_WITH_BRAKES: "trailer_present_with_brakes",
+    body_pb2.TRAILER_INVALID: "trailer_invalid",
 }
 
 
@@ -103,10 +122,11 @@ def decode_closures(m: body_pb2.ClosuresState) -> dict[str, Any]:
 
     Fields:
         doorFrontLeftClosed, closureFrunkClosed, etc.: str
-            ("open" | "closed" | "opening" | "closing")
-        closureFrunkNextAction, closureTailgateNextAction,
-        closureSideBinLeftNextAction, closureSideBinRightNextAction,
-        closureChargePortDoorNextAction: str — e.g. "open_allowed" (shut),
+            ("open" | "closed" | "ajar" | "opening" | "closing")
+        closureFrunkNextAction, closureLiftgateNextAction,
+        closureTailgateNextAction, closureSideBinLeftNextAction,
+        closureSideBinRightNextAction, closureChargePortDoorNextAction,
+        windowsNextAction: str — e.g. "open_allowed" (shut),
             "close_allowed" (open); for the charge port,
             "close_not_available" means plugged in
 
@@ -122,7 +142,7 @@ def decode_closures(m: body_pb2.ClosuresState) -> dict[str, Any]:
             result[_CLOSURE_MAP[cid]] = _enum(
                 _CLOSURE_STATE_MAP, state_val, what="closure state"
             )
-        else:
+        elif cid != body_pb2.GROUP_WINDOWS:
             _LOGGER.debug("Unknown closure id %s (state %s)", cid, state_val)
         if cid in _NEXT_ACTIONS:
             field, key, names = _NEXT_ACTIONS[cid]
@@ -133,10 +153,12 @@ def decode_closures(m: body_pb2.ClosuresState) -> dict[str, Any]:
 
 @RVMDecoder.register("body.locks.states", body_pb2.LocksState)
 def decode_locks(m: body_pb2.LocksState) -> dict[str, Any]:
-    """body.locks.states — lock state of every lockable closure.
+    """body.locks.states — lock state of every lock.
 
     Fields:
-        doorFrontLeftLocked, closureFrunkLocked, etc.: str ("locked" | "unlocked")
+        doorFrontLeftLocked, closureFrunkLocked, gearGuardLocked (the Gear
+            Guard cable), etc.: str ("locked" | "unlocked" |
+            "partially_unlocked")
     """
     result: dict[str, Any] = {}
     for s in m.lock:
@@ -145,7 +167,9 @@ def decode_locks(m: body_pb2.LocksState) -> dict[str, Any]:
         if state_val is None:
             continue
         if lid in _LOCK_MAP:
-            result[_LOCK_MAP[lid]] = "locked" if state_val == 1 else "unlocked"
+            result[_LOCK_MAP[lid]] = _enum(
+                _LOCK_STATE_MAP, state_val, what="lock state"
+            )
         else:
             _LOGGER.debug("Unknown lock id %s (state %s)", lid, state_val)
     return result

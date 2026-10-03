@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Final
 
 from .core import RVMDecoder, _present
 from .proto import holiday_celebration_pb2
@@ -50,6 +50,21 @@ def decode_car_costume_state(
     return {"costumeId": v}
 
 
+# Wrapped HalloweenCelebrationSettings field -> result key.
+_HALLOWEEN_WRAPPED: Final = (
+    ("sound_volume", "halloweenSoundVolume"),
+    ("music_enabled", "halloweenMusicEnabled"),
+    ("music_type", "halloweenMusicType"),
+    ("sound_effect", "halloweenSoundEffect"),
+    ("exterior_sounds_muted", "halloweenExteriorSoundsMuted"),
+    ("light_show_enabled", "halloweenLightShowEnabled"),
+    ("interior_overhead_lights_enabled", "halloweenInteriorOverheadLightsEnabled"),
+    ("exterior_light_show_enabled", "halloweenExteriorLightShowEnabled"),
+    ("lights_color", "halloweenLightsColor"),
+    ("car_costume_availability", "halloweenCarCostumeAvailability"),
+)
+
+
 @RVMDecoder.register(
     "holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings",
     holiday_celebration_pb2.HalloweenCelebrationSettings,
@@ -57,16 +72,41 @@ def decode_car_costume_state(
 def decode_halloween_celebration_settings(
     m: holiday_celebration_pb2.HalloweenCelebrationSettings,
 ) -> dict[str, Any]:
-    """holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings — unmapped.
+    """holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings.
 
-    Each field's wrapped value, when set, as a raw `_fieldN`.
+    Names come from the app; most fields have only been sent empty.
+
+    Fields (each only when set):
+        halloweenCostumeTheme: str
+        halloweenSoundVolume: int
+        halloweenMusicEnabled: bool
+        halloweenMusicType: int
+        halloweenSoundEffect: str
+        halloweenExteriorSoundEffect: int
+        halloweenExteriorSoundsMuted: bool
+        halloweenLightShowEnabled: bool
+        halloweenInteriorOverheadLightsEnabled: bool
+        halloweenExteriorLightShowEnabled: bool
+        halloweenLightsColor: str
+        halloweenCarCostumeAvailability: str
+        halloweenMotionLightSoundEnabled: bool
     """
     result: dict[str, Any] = {}
-    for num in (1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12):
-        field = f"field_{num}"
+    if (
+        m.HasField("costume_theme")
+        and (v := _present(m.costume_theme, "theme_name")) is not None
+    ):
+        result["halloweenCostumeTheme"] = v
+    for field, key in _HALLOWEEN_WRAPPED:
         if (
             m.HasField(field)
             and (v := _present(getattr(m, field), "value")) is not None
         ):
-            result[f"_field{num}"] = v
+            result[key] = v
+    for field, key in (
+        ("exterior_sound_effect", "halloweenExteriorSoundEffect"),
+        ("motion_light_sound_enabled", "halloweenMotionLightSoundEnabled"),
+    ):
+        if (v := _present(m, field)) is not None:
+            result[key] = v
     return result

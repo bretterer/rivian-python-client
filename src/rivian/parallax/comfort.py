@@ -34,60 +34,67 @@ def decode_user_modes_state(m: comfort_pb2.UserModesState) -> dict[str, Any]:
 
 
 _CLIMATE_HOLD_AVAILABILITY_MAP: Final[dict[int, str]] = {
-    0: "unspecified",
-    1: "available",
-    2: "controllable",
-    3: "unavailable",
+    comfort_pb2.CLIMATE_HOLD_AVAILABILITY_UNSPECIFIED: "unspecified",
+    comfort_pb2.CLIMATE_HOLD_AVAILABLE: "available",
+    comfort_pb2.CLIMATE_HOLD_CONTROLLABLE: "controllable",
+    comfort_pb2.CLIMATE_HOLD_UNAVAILABLE: "unavailable",
 }
 
 _CLIMATE_HOLD_STATUS_MAP: Final[dict[int, str]] = {
-    0: "unspecified",
-    1: "unavailable",
-    2: "off",
-    3: "on",
-    4: "fault",
+    comfort_pb2.CLIMATE_HOLD_STATUS_UNSPECIFIED: "unspecified",
+    comfort_pb2.CLIMATE_HOLD_STATUS_UNAVAILABLE: "unavailable",
+    comfort_pb2.CLIMATE_HOLD_STATUS_OFF: "off",
+    comfort_pb2.CLIMATE_HOLD_STATUS_ON: "on",
+    comfort_pb2.CLIMATE_HOLD_STATUS_FAULT: "fault",
 }
 
 _CLIMATE_HOLD_UNAVAILABILITY_REASON_MAP: Final[dict[int, str]] = {
-    0: "unspecified",
-    1: "unknown",
-    2: "low_soc",
+    comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_UNSPECIFIED: "unspecified",
+    comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_UNKNOWN: "unknown",
+    comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_LOW_SOC: "low_soc",
 }
 
 _PET_MODE_STATE_MAP: Final[dict[int, str]] = {
-    0: "off",
-    1: "on",
-    2: "disabled",
-    3: "faulty",
+    comfort_pb2.PET_MODE_OFF: "off",
+    comfort_pb2.PET_MODE_ON: "on",
+    comfort_pb2.PET_MODE_DISABLED: "disabled",
+    comfort_pb2.PET_MODE_FAULTY: "faulty",
 }
 
 _PET_MODE_TEMPERATURE_MAP: Final[dict[int, str]] = {
-    0: "default",
-    1: "cold",
-    2: "hot",
-    3: "faulty",
+    comfort_pb2.PET_MODE_TEMPERATURE_DEFAULT: "default",
+    comfort_pb2.PET_MODE_TEMPERATURE_COLD: "cold",
+    comfort_pb2.PET_MODE_TEMPERATURE_HOT: "hot",
+    comfort_pb2.PET_MODE_TEMPERATURE_FAULTY: "faulty",
 }
 
-_SEAT_CONDITIONING_MAP: Final[dict[int, str]] = {
-    1: "steeringWheel",
-    5: "seatFrontLeft",
-    7: "seatFrontRight",  # inferred
-    8: "seatRearLeft",
-    10: "seatRearRight",
-    11: "seatThirdRowLeft",  # R1S
-    13: "seatThirdRowRight",  # R1S
+_CABIN_SURFACE_MAP: Final[dict[int, str]] = {
+    comfort_pb2.STEERING_WHEEL: "steeringWheel",
+    comfort_pb2.REAR_GLASS: "rearGlass",
+    comfort_pb2.FRONT_GLASS: "frontGlass",
+    comfort_pb2.SIDEVIEW_MIRRORS: "sideviewMirrors",
+    comfort_pb2.SEAT_FRONT_LEFT: "seatFrontLeft",
+    comfort_pb2.SEAT_FRONT_MIDDLE: "seatFrontMiddle",
+    comfort_pb2.SEAT_FRONT_RIGHT: "seatFrontRight",
+    comfort_pb2.SEAT_REAR_LEFT: "seatRearLeft",
+    comfort_pb2.SEAT_REAR_MIDDLE: "seatRearMiddle",
+    comfort_pb2.SEAT_REAR_RIGHT: "seatRearRight",
+    comfort_pb2.SEAT_THIRD_ROW_LEFT: "seatThirdRowLeft",
+    comfort_pb2.SEAT_THIRD_ROW_MIDDLE: "seatThirdRowMiddle",
+    comfort_pb2.SEAT_THIRD_ROW_RIGHT: "seatThirdRowRight",
+    comfort_pb2.WIPER_AREA: "wiperArea",
 }
 
-_SEAT_CONDITIONING_STATUS_MAP: Final[dict[int | None, str]] = {
+_CONDITIONING_LEVEL_MAP: Final[dict[int | None, str]] = {
     None: "Off",
-    1: "Level_1",
-    2: "Level_2",
-    3: "Level_3",
+    comfort_pb2.CONDITIONING_LEVEL_1: "Level_1",
+    comfort_pb2.CONDITIONING_LEVEL_2: "Level_2",
+    comfort_pb2.CONDITIONING_LEVEL_3: "Level_3",
 }
 
-_SEAT_CONDITIONING_TYPE_MAP: Final[dict[int, str]] = {
-    1: "Heat",
-    2: "Vent",
+_CONDITIONING_TYPE_MAP: Final[dict[int, str]] = {
+    comfort_pb2.CONDITIONING_HEAT: "Heat",
+    comfort_pb2.CONDITIONING_VENT: "Vent",
 }
 
 
@@ -247,23 +254,23 @@ def decode_seat_conditioning(m: comfort_pb2.SeatConditioningStatus) -> dict[str,
         seatThirdRowLeftHeat, seatThirdRowRightHeat: str
             ("Off" | "Level_1" | "Level_2" | "Level_3")
         steeringWheelHeat: str ("Off" | "Level_1")
+        plus <surface>Heat/Vent for any other surface sent (middle seats,
+        rearGlass, frontGlass, sideviewMirrors, wiperArea)
 
     Entries without a state are skipped.
     """
     result: dict[str, Any] = {}
-    for s in m.seat:
-        cid, hvac_type = s.id, s.type
-        if (state_val := _present(s, "state")) is None:
+    for surface in m.surface:
+        surface_id, hvac_type = surface.id, surface.type
+        if (state_val := _present(surface, "state")) is None:
             continue
-        if cid in _SEAT_CONDITIONING_MAP and hvac_type in _SEAT_CONDITIONING_TYPE_MAP:
-            key = (
-                f"{_SEAT_CONDITIONING_MAP[cid]}{_SEAT_CONDITIONING_TYPE_MAP[hvac_type]}"
-            )
-            result[key] = _SEAT_CONDITIONING_STATUS_MAP.get(state_val, state_val)
+        if surface_id in _CABIN_SURFACE_MAP and hvac_type in _CONDITIONING_TYPE_MAP:
+            key = f"{_CABIN_SURFACE_MAP[surface_id]}{_CONDITIONING_TYPE_MAP[hvac_type]}"
+            result[key] = _CONDITIONING_LEVEL_MAP.get(state_val, state_val)
         else:
             _LOGGER.debug(
-                "Unknown seat conditioning status id %s (hvac_type %s; state %s)",
-                cid,
+                "Unknown cabin surface %s (hvac_type %s; state %s)",
+                surface_id,
                 hvac_type,
                 state_val,
             )

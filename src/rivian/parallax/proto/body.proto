@@ -8,13 +8,15 @@ package rivian.parallax.body;
 message ClosuresState {
   message Closure {
     ClosureId id = 1;
-    optional ClosureStateValue state = 2;
-    int32 field_4 = 4; // unknown; 1, briefly 2 while re-reporting
-    int32 field_5 = 5; // unknown; only on closure id 10000
+    optional ClosureState state = 2;
+    // Unset on doors and windows; briefly GENERAL while re-reporting.
+    ClosureFault fault = 4;
+    optional WindowsNextAction windows_next_action = 5; // on GROUP_WINDOWS
 
     // One field per closure type. Briefly SNA / not-available while the
     // vehicle re-reports after an app command.
     optional FrunkNextAction frunk_next_action = 6;
+    optional LiftgateNextAction liftgate_next_action = 7; // field inferred
     optional SideBinNextAction side_bin_next_action = 8;
     optional TailgateNextAction tailgate_next_action = 9;
     optional ChargePortDoorNextAction charge_port_door_next_action = 10;
@@ -39,12 +41,15 @@ enum ClosureId {
   WINDOW_FRONT_RIGHT = 13;
   WINDOW_REAR_LEFT = 14;
   WINDOW_REAR_RIGHT = 15;
+  WINDOW_REAR = 16;
+  GROUP_WINDOWS = 10000; // all windows together
 }
 
-enum ClosureStateValue {
+enum ClosureState {
   CLOSURE_STATE_UNSPECIFIED = 0;
   CLOSURE_STATE_OPEN = 1;
   CLOSURE_STATE_CLOSED = 2;
+  CLOSURE_STATE_AJAR = 3;
   CLOSURE_STATE_OPENING = 4;
   CLOSURE_STATE_CLOSING = 5;
 }
@@ -53,10 +58,10 @@ enum ClosureStateValue {
 message LocksState {
   message Lock {
     LockId id = 1;
-    // Briefly absent (with field_3 = 1) while the vehicle re-reports after
+    // Briefly absent (with fault set) while the vehicle re-reports after
     // waking or an app command.
-    optional LockStateValue state = 2;
-    int32 field_3 = 3;
+    optional LockState state = 2;
+    LockFault fault = 3;
   }
   repeated Lock lock = 1;
 }
@@ -72,21 +77,38 @@ enum LockId {
   LOCK_LIFTGATE = 7;
   LOCK_SIDE_BIN_LEFT = 8;
   LOCK_SIDE_BIN_RIGHT = 9;
-  // 14 (unmapped) stays unlocked while everything else locks; possibly the
-  // charge cable.
+  LOCK_CHARGE_PORT = 10;
+  LOCK_TRUNK_SECURITY = 11;
+  LOCK_CENTER_CONSOLE = 12;
+  LOCK_GLOVE_BOX = 13;
+  LOCK_GEAR_GUARD = 14; // the Gear Guard cable lock
   LOCK_TONNEAU = 15;
 }
 
-enum LockStateValue {
+enum LockState {
   LOCK_STATE_UNSPECIFIED = 0;
   LOCK_STATE_LOCKED = 1;
   LOCK_STATE_UNLOCKED = 2;
+  LOCK_STATE_PARTIALLY_UNLOCKED = 3;
+}
+
+enum LockFault {
+  LOCK_FAULT_UNSPECIFIED = 0;
+  LOCK_FAULT_FAULTED = 1;
 }
 
 // body.trailer.state
 message TrailerState {
   optional TrailerPresence presence = 1;
   int32 field_2 = 2; // unknown; constant
+}
+
+enum ClosureFault {
+  CLOSURE_FAULT_UNSPECIFIED = 0;
+  CLOSURE_FAULT_NO_FAULT = 1;
+  CLOSURE_FAULT_GENERAL = 2;
+  CLOSURE_FAULT_NO_POWERED_OPERATION = 3;
+  CLOSURE_FAULT_OBSTRUCTED = 4;
 }
 
 enum TrailerPresence {
@@ -97,7 +119,8 @@ enum TrailerPresence {
   TRAILER_INVALID = 4;
 }
 
-// Values follow the app's ChargePortDoorNextActionState order.
+// Next actions: what each closure can do next. 0 is SNA (signal not
+// available).
 enum ChargePortDoorNextAction {
   CHARGE_PORT_DOOR_SNA = 0;
   CHARGE_PORT_DOOR_OPEN_ALLOWED = 1;       // door shut
@@ -113,8 +136,6 @@ enum ChargePortDoorNextAction {
   CHARGE_PORT_DOOR_CLOSING = 11;
 }
 
-// Next-action enums follow the app's NextActionState orders; only SNA (0)
-// and OPEN_ALLOWED (1) are confirmed.
 enum FrunkNextAction {
   FRUNK_SNA = 0;
   FRUNK_OPEN_ALLOWED = 1;
@@ -125,14 +146,36 @@ enum FrunkNextAction {
   FRUNK_CLOSE_NOT_AVAILABLE = 6;
   FRUNK_OPEN_NOT_ALLOWED_FAULTED = 7;
   FRUNK_CLOSE_NOT_ALLOWED_FAULTED = 8;
-  FRUNK_OPEN_ALLOWED_NO_POWERED_OPERATION = 9;
-  FRUNK_CLOSE_NOT_ALLOWED_NO_POWERED_OPERATION = 10;
-  FRUNK_OBSTRUCTED_WHILE_OPENING_CLOSE_ALLOWED = 11;
-  FRUNK_OBSTRUCTED_WHILE_CLOSING_OPEN_ALLOWED = 12;
+  FRUNK_OPEN_ALLOWED_NO_POWER_OPERATION = 9;
+  FRUNK_CLOSE_NOT_ALLOWED_NO_POWER_OPERATION = 10;
+  FRUNK_OBSTRUCTED_OPENING_CLOSE_ALLOWED = 11;
+  FRUNK_OBSTRUCTED_CLOSING_CLOSE_ALLOWED = 12;
 }
 
-// Unconfirmed past 0 and 1: sources disagree on the order, and 4 appears
-// during re-report blips.
+enum LiftgateNextAction {
+  LIFTGATE_SNA = 0;
+  LIFTGATE_OPEN_ALLOWED = 1;
+  LIFTGATE_CLOSE_ALLOWED = 2;
+  LIFTGATE_OPENING = 3;
+  LIFTGATE_CLOSING = 4;
+  LIFTGATE_OPEN_NOT_AVAILABLE = 5;
+  LIFTGATE_CLOSE_NOT_AVAILABLE = 6;
+  LIFTGATE_OPEN_NOT_ALLOWED_FAULTED = 7;
+  LIFTGATE_CLOSE_NOT_ALLOWED_FAULTED = 8;
+  LIFTGATE_OPEN_ALLOWED_NO_POWER_OPERATION = 9;
+  LIFTGATE_CLOSE_NOT_ALLOWED_NO_POWER_OPERATION = 10;
+  LIFTGATE_OBSTRUCTED_OPENING_CLOSE_ALLOWED = 11;
+  LIFTGATE_OBSTRUCTED_CLOSING_CLOSE_ALLOWED = 12;
+  LIFTGATE_LOWER_GATE_OPEN_CLOSE_NOT_ALLOWED = 13;
+  LIFTGATE_OPENING_PAUSE_NOT_ALLOWED = 14;
+  LIFTGATE_CLOSING_PAUSE_NOT_ALLOWED = 15;
+  LIFTGATE_OPEN_ALLOWED_OBSTACLE_DETECTED = 16;
+  LIFTGATE_OPEN_ALLOWED_TRAILER_DETECTED = 17;
+  LIFTGATE_CLOSE_ALLOWED_OBSTACLE_DETECTED = 18;
+  LIFTGATE_CLOSE_ALLOWED_TRAILER_DETECTED = 19;
+  LIFTGATE_PROCESSING = 20;
+}
+
 enum SideBinNextAction {
   SIDE_BIN_SNA = 0;
   SIDE_BIN_OPEN_ALLOWED = 1;
@@ -147,14 +190,30 @@ enum SideBinNextAction {
 enum TailgateNextAction {
   TAILGATE_SNA = 0;
   TAILGATE_OPEN_ALLOWED = 1;
-  TAILGATE_OPEN_ALLOWED_TRAILER_DETECTED = 2;
-  TAILGATE_OPENING = 3;
-  TAILGATE_OPEN_NOT_AVAILABLE = 4; // seen while re-reporting
-  TAILGATE_OPEN_NOT_ALLOWED_FAULTED = 5;
-  TAILGATE_STUCK_AJAR_WHILE_OPENING_OPEN_ALLOWED = 6;
-  TAILGATE_OPEN_ALREADY_NO_ACTION_AVAILABLE = 7;
-  TAILGATE_OPEN_ALLOWED_CONFIRM_VEHICLE_ANGLE = 8;
-  TAILGATE_OPEN_ALLOWED_OBSTACLE_DETECTED = 9;
+  TAILGATE_OPENING = 2;
+  TAILGATE_OPEN_NOT_AVAILABLE = 3;
+  TAILGATE_OPEN_NOT_ALLOWED_FAULTED = 4;
+  TAILGATE_STUCK_AJAR_WHILE_OPENING_OPEN_ALLOWED = 5;
+  TAILGATE_OPEN_ALREADY_NO_ACTION_AVAILABLE = 6;
+  TAILGATE_OPEN_ALLOWED_CONFIRM_VEHICLE_ANGLE = 7;
+  TAILGATE_OPEN_ALLOWED_OBSTACLE_DETECTED = 8;
+  TAILGATE_OPEN_ALLOWED_TRAILER_DETECTED = 9;
+}
+
+enum WindowsNextAction {
+  WINDOWS_SNA = 0;
+  WINDOWS_OPEN_ALLOWED = 1;  // all closed
+  WINDOWS_CLOSE_ALLOWED = 2; // any open
+  WINDOWS_OPENING = 3;
+  WINDOWS_CLOSING = 4;
+  WINDOWS_MOVING = 5;
+  WINDOWS_OPEN_NOT_AVAILABLE = 6;
+  WINDOWS_CLOSE_NOT_AVAILABLE = 7;
+  WINDOWS_OPEN_NOT_ALLOWED_FAULTED = 8;
+  WINDOWS_CLOSE_NOT_ALLOWED_FAULTED = 9;
+  WINDOWS_OBSTRUCTED_WHILE_CLOSING_CLOSE_ALLOWED = 10;
+  WINDOWS_CLOSE_NOT_ALLOWED_UNCALIBRATED = 11;
+  WINDOWS_OPEN_NOT_ALLOWED_UNCALIBRATED = 12;
 }
 
 // body.wipers.fluid_level

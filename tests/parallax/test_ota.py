@@ -68,15 +68,15 @@ def test_ota_config() -> None:
                 config.Schedule(
                     id="a",
                     enabled=True,
-                    one_time=config.OneTime(
-                        install_time=config.OneTime.InstallTime(seconds=1790977560)
+                    single_occurrence=config.SingleOccurrence(
+                        starts_at=config.SingleOccurrence.StartsAt(seconds=1790977560)
                     ),
                 ),
                 config.Schedule(
                     id="b",
                     enabled=True,
-                    time_of_day=config.TimeOfDay(
-                        start_time=240, location=config.Location(name="home")
+                    repeats_daily=config.RepeatsDaily(
+                        starts_at=240, location=config.Location(name="home")
                     ),
                 ),
             ],
@@ -113,6 +113,20 @@ def test_ota_config_one_time_without_time() -> None:
     config = ota.OtaConfig
     result = decode(
         "ota.user_schedule.ota_config",
-        config(schedule=[config.Schedule(one_time=config.OneTime())]),
+        config(schedule=[config.Schedule(single_occurrence=config.SingleOccurrence())]),
     )
     assert result == {"otaSchedules": [{"type": "one_time", "enabled": False}]}
+
+
+def test_vehicle_ota_state() -> None:
+    """The pending scheduled install time, or None when nothing is scheduled."""
+    state = ota.VehicleOtaState
+    rvm = "ota.ota_state.vehicle_ota_state"
+    scheduled = state(
+        name="VehicleOTAState",
+        scheduled_install=state.ScheduledInstall(seconds=1790977560),
+    )
+    assert decode(rvm, scheduled) == {"otaScheduledInstallTime": epoch(1790977560_000)}
+    assert decode(rvm, state(name="VehicleOTAState")) == {
+        "otaScheduledInstallTime": None
+    }

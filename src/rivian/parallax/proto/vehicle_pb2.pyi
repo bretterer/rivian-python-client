@@ -7,13 +7,13 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class PowerStateValue(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+class PowerState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    POWER_STATE_UNSPECIFIED: _ClassVar[PowerStateValue]
-    POWER_SLEEP: _ClassVar[PowerStateValue]
-    POWER_STANDBY: _ClassVar[PowerStateValue]
-    POWER_READY: _ClassVar[PowerStateValue]
-    POWER_GO: _ClassVar[PowerStateValue]
+    POWER_STATE_UNSPECIFIED: _ClassVar[PowerState]
+    POWER_SLEEP: _ClassVar[PowerState]
+    POWER_STANDBY: _ClassVar[PowerState]
+    POWER_READY: _ClassVar[PowerState]
+    POWER_GO: _ClassVar[PowerState]
 
 class ConnectivityLevel(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -41,11 +41,11 @@ class WpaStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     WPA_SCANNING: _ClassVar[WpaStatus]
     WPA_CONNECTING: _ClassVar[WpaStatus]
     WPA_DISCONNECTING: _ClassVar[WpaStatus]
-POWER_STATE_UNSPECIFIED: PowerStateValue
-POWER_SLEEP: PowerStateValue
-POWER_STANDBY: PowerStateValue
-POWER_READY: PowerStateValue
-POWER_GO: PowerStateValue
+POWER_STATE_UNSPECIFIED: PowerState
+POWER_SLEEP: PowerState
+POWER_STANDBY: PowerState
+POWER_READY: PowerState
+POWER_GO: PowerState
 CONNECTIVITY_LEVEL_UNSPECIFIED: ConnectivityLevel
 CONNECTIVITY_LEVEL_0: ConnectivityLevel
 CONNECTIVITY_LEVEL_1: ConnectivityLevel
@@ -71,16 +71,16 @@ class ActiveUserProfile(_message.Message):
     active_user_profile_id: str
     def __init__(self, active_user_profile_id: _Optional[str] = ...) -> None: ...
 
-class PowerState(_message.Message):
+class VehiclePowerState(_message.Message):
     __slots__ = ("state",)
     STATE_FIELD_NUMBER: _ClassVar[int]
-    state: PowerStateValue
-    def __init__(self, state: _Optional[_Union[PowerStateValue, str]] = ...) -> None: ...
+    state: PowerState
+    def __init__(self, state: _Optional[_Union[PowerState, str]] = ...) -> None: ...
 
 class VehicleWheels(_message.Message):
     __slots__ = ("wheel",)
     class Wheel(_message.Message):
-        __slots__ = ("wheel_package", "tire_odometer", "field_3", "odometer_at_last_rotation", "field_5", "rotation_reminder_interval", "is_installed", "updated_at", "tires", "current_odometer")
+        __slots__ = ("wheel_package", "tire_odometer", "saved_tire_odometer_delta", "odometer_at_last_rotation", "saved_odometer_at_last_rotation_delta", "rotation_reminder_interval", "is_installed", "updated_at", "tires", "current_odometer")
         class UpdatedAt(_message.Message):
             __slots__ = ("seconds",)
             SECONDS_FIELD_NUMBER: _ClassVar[int]
@@ -88,9 +88,9 @@ class VehicleWheels(_message.Message):
             def __init__(self, seconds: _Optional[int] = ...) -> None: ...
         WHEEL_PACKAGE_FIELD_NUMBER: _ClassVar[int]
         TIRE_ODOMETER_FIELD_NUMBER: _ClassVar[int]
-        FIELD_3_FIELD_NUMBER: _ClassVar[int]
+        SAVED_TIRE_ODOMETER_DELTA_FIELD_NUMBER: _ClassVar[int]
         ODOMETER_AT_LAST_ROTATION_FIELD_NUMBER: _ClassVar[int]
-        FIELD_5_FIELD_NUMBER: _ClassVar[int]
+        SAVED_ODOMETER_AT_LAST_ROTATION_DELTA_FIELD_NUMBER: _ClassVar[int]
         ROTATION_REMINDER_INTERVAL_FIELD_NUMBER: _ClassVar[int]
         IS_INSTALLED_FIELD_NUMBER: _ClassVar[int]
         UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -98,15 +98,15 @@ class VehicleWheels(_message.Message):
         CURRENT_ODOMETER_FIELD_NUMBER: _ClassVar[int]
         wheel_package: int
         tire_odometer: int
-        field_3: int
+        saved_tire_odometer_delta: int
         odometer_at_last_rotation: int
-        field_5: int
+        saved_odometer_at_last_rotation_delta: int
         rotation_reminder_interval: int
         is_installed: bool
         updated_at: VehicleWheels.Wheel.UpdatedAt
         tires: int
         current_odometer: int
-        def __init__(self, wheel_package: _Optional[int] = ..., tire_odometer: _Optional[int] = ..., field_3: _Optional[int] = ..., odometer_at_last_rotation: _Optional[int] = ..., field_5: _Optional[int] = ..., rotation_reminder_interval: _Optional[int] = ..., is_installed: _Optional[bool] = ..., updated_at: _Optional[_Union[VehicleWheels.Wheel.UpdatedAt, _Mapping]] = ..., tires: _Optional[int] = ..., current_odometer: _Optional[int] = ...) -> None: ...
+        def __init__(self, wheel_package: _Optional[int] = ..., tire_odometer: _Optional[int] = ..., saved_tire_odometer_delta: _Optional[int] = ..., odometer_at_last_rotation: _Optional[int] = ..., saved_odometer_at_last_rotation_delta: _Optional[int] = ..., rotation_reminder_interval: _Optional[int] = ..., is_installed: _Optional[bool] = ..., updated_at: _Optional[_Union[VehicleWheels.Wheel.UpdatedAt, _Mapping]] = ..., tires: _Optional[int] = ..., current_odometer: _Optional[int] = ...) -> None: ...
     WHEEL_FIELD_NUMBER: _ClassVar[int]
     wheel: _containers.RepeatedCompositeFieldContainer[VehicleWheels.Wheel]
     def __init__(self, wheel: _Optional[_Iterable[_Union[VehicleWheels.Wheel, _Mapping]]] = ...) -> None: ...

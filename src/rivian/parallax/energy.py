@@ -8,15 +8,15 @@ from .core import RVMDecoder, _enum, _present
 from .proto import energy_pb2
 
 _BATTERY_CELL_TYPE_MAP: Final[dict[int, str]] = {
-    1: "50g",
-    2: "53g",
-    3: "g124",
-    4: "lg_4695",
+    energy_pb2.BATTERY_CELL_50G: "50g",
+    energy_pb2.BATTERY_CELL_53G: "53g",
+    energy_pb2.BATTERY_CELL_G124: "g124",
+    energy_pb2.BATTERY_CELL_LG_4695: "lg_4695",
 }
 
 _LOW_VOLTAGE_HEALTH_MAP: Final[dict[int, str]] = {
-    1: "normal",
-    2: "low",
+    energy_pb2.LOW_VOLTAGE_NORMAL: "normal",
+    energy_pb2.LOW_VOLTAGE_LOW: "low",
 }
 
 

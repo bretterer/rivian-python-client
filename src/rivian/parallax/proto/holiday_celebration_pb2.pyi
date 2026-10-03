@@ -42,32 +42,51 @@ class CarCostumeState(_message.Message):
     def __init__(self, costume_id: _Optional[int] = ..., field_2: _Optional[int] = ..., field_3: _Optional[int] = ..., field_6: _Optional[int] = ...) -> None: ...
 
 class HalloweenCelebrationSettings(_message.Message):
-    __slots__ = ("field_1", "field_2", "field_3", "field_4", "field_5", "field_7", "field_8", "field_9", "field_10", "field_11", "field_12")
-    class Value(_message.Message):
+    __slots__ = ("costume_theme", "sound_volume", "music_enabled", "music_type", "sound_effect", "exterior_sound_effect", "exterior_sounds_muted", "light_show_enabled", "interior_overhead_lights_enabled", "exterior_light_show_enabled", "lights_color", "car_costume_availability", "motion_light_sound_enabled")
+    class CostumeTheme(_message.Message):
+        __slots__ = ("theme_name",)
+        THEME_NAME_FIELD_NUMBER: _ClassVar[int]
+        theme_name: str
+        def __init__(self, theme_name: _Optional[str] = ...) -> None: ...
+    class BoolValue(_message.Message):
+        __slots__ = ("value",)
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        value: bool
+        def __init__(self, value: _Optional[bool] = ...) -> None: ...
+    class Int32Value(_message.Message):
         __slots__ = ("value",)
         VALUE_FIELD_NUMBER: _ClassVar[int]
         value: int
         def __init__(self, value: _Optional[int] = ...) -> None: ...
-    FIELD_1_FIELD_NUMBER: _ClassVar[int]
-    FIELD_2_FIELD_NUMBER: _ClassVar[int]
-    FIELD_3_FIELD_NUMBER: _ClassVar[int]
-    FIELD_4_FIELD_NUMBER: _ClassVar[int]
-    FIELD_5_FIELD_NUMBER: _ClassVar[int]
-    FIELD_7_FIELD_NUMBER: _ClassVar[int]
-    FIELD_8_FIELD_NUMBER: _ClassVar[int]
-    FIELD_9_FIELD_NUMBER: _ClassVar[int]
-    FIELD_10_FIELD_NUMBER: _ClassVar[int]
-    FIELD_11_FIELD_NUMBER: _ClassVar[int]
-    FIELD_12_FIELD_NUMBER: _ClassVar[int]
-    field_1: HalloweenCelebrationSettings.Value
-    field_2: HalloweenCelebrationSettings.Value
-    field_3: HalloweenCelebrationSettings.Value
-    field_4: HalloweenCelebrationSettings.Value
-    field_5: HalloweenCelebrationSettings.Value
-    field_7: HalloweenCelebrationSettings.Value
-    field_8: HalloweenCelebrationSettings.Value
-    field_9: HalloweenCelebrationSettings.Value
-    field_10: HalloweenCelebrationSettings.Value
-    field_11: HalloweenCelebrationSettings.Value
-    field_12: HalloweenCelebrationSettings.Value
-    def __init__(self, field_1: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_2: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_3: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_4: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_5: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_7: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_8: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_9: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_10: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_11: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ..., field_12: _Optional[_Union[HalloweenCelebrationSettings.Value, _Mapping]] = ...) -> None: ...
+    class StringValue(_message.Message):
+        __slots__ = ("value",)
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        value: str
+        def __init__(self, value: _Optional[str] = ...) -> None: ...
+    COSTUME_THEME_FIELD_NUMBER: _ClassVar[int]
+    SOUND_VOLUME_FIELD_NUMBER: _ClassVar[int]
+    MUSIC_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    MUSIC_TYPE_FIELD_NUMBER: _ClassVar[int]
+    SOUND_EFFECT_FIELD_NUMBER: _ClassVar[int]
+    EXTERIOR_SOUND_EFFECT_FIELD_NUMBER: _ClassVar[int]
+    EXTERIOR_SOUNDS_MUTED_FIELD_NUMBER: _ClassVar[int]
+    LIGHT_SHOW_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    INTERIOR_OVERHEAD_LIGHTS_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    EXTERIOR_LIGHT_SHOW_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    LIGHTS_COLOR_FIELD_NUMBER: _ClassVar[int]
+    CAR_COSTUME_AVAILABILITY_FIELD_NUMBER: _ClassVar[int]
+    MOTION_LIGHT_SOUND_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    costume_theme: HalloweenCelebrationSettings.CostumeTheme
+    sound_volume: HalloweenCelebrationSettings.Int32Value
+    music_enabled: HalloweenCelebrationSettings.BoolValue
+    music_type: HalloweenCelebrationSettings.Int32Value
+    sound_effect: HalloweenCelebrationSettings.StringValue
+    exterior_sound_effect: int
+    exterior_sounds_muted: HalloweenCelebrationSettings.BoolValue
+    light_show_enabled: HalloweenCelebrationSettings.BoolValue
+    interior_overhead_lights_enabled: HalloweenCelebrationSettings.BoolValue
+    exterior_light_show_enabled: HalloweenCelebrationSettings.BoolValue
+    lights_color: HalloweenCelebrationSettings.StringValue
+    car_costume_availability: HalloweenCelebrationSettings.StringValue
+    motion_light_sound_enabled: bool
+    def __init__(self, costume_theme: _Optional[_Union[HalloweenCelebrationSettings.CostumeTheme, _Mapping]] = ..., sound_volume: _Optional[_Union[HalloweenCelebrationSettings.Int32Value, _Mapping]] = ..., music_enabled: _Optional[_Union[HalloweenCelebrationSettings.BoolValue, _Mapping]] = ..., music_type: _Optional[_Union[HalloweenCelebrationSettings.Int32Value, _Mapping]] = ..., sound_effect: _Optional[_Union[HalloweenCelebrationSettings.StringValue, _Mapping]] = ..., exterior_sound_effect: _Optional[int] = ..., exterior_sounds_muted: _Optional[_Union[HalloweenCelebrationSettings.BoolValue, _Mapping]] = ..., light_show_enabled: _Optional[_Union[HalloweenCelebrationSettings.BoolValue, _Mapping]] = ..., interior_overhead_lights_enabled: _Optional[_Union[HalloweenCelebrationSettings.BoolValue, _Mapping]] = ..., exterior_light_show_enabled: _Optional[_Union[HalloweenCelebrationSettings.BoolValue, _Mapping]] = ..., lights_color: _Optional[_Union[HalloweenCelebrationSettings.StringValue, _Mapping]] = ..., car_costume_availability: _Optional[_Union[HalloweenCelebrationSettings.StringValue, _Mapping]] = ..., motion_light_sound_enabled: _Optional[bool] = ...) -> None: ...

@@ -118,34 +118,41 @@ enum PetModeTemperatureStatus {
 
 // comfort.cabin.seat_conditioning_status
 message SeatConditioningStatus {
-  message Seat {
-    SeatId id = 1;
-    SeatConditioningType type = 2;
-    optional SeatConditioningLevel state = 3; // absent when off
+  message Surface {
+    CabinSurface id = 1;
+    ConditioningType type = 2;
+    optional ConditioningLevel state = 3; // absent when off
   }
-  repeated Seat seat = 1;
+  repeated Surface surface = 1;
 }
 
-enum SeatId {
-  SEAT_ID_UNSPECIFIED = 0;
+enum CabinSurface {
+  CABIN_SURFACE_UNSPECIFIED = 0;
   STEERING_WHEEL = 1;
+  REAR_GLASS = 2;
+  FRONT_GLASS = 3;
+  SIDEVIEW_MIRRORS = 4;
   SEAT_FRONT_LEFT = 5;
-  SEAT_FRONT_RIGHT = 7; // inferred
+  SEAT_FRONT_MIDDLE = 6;
+  SEAT_FRONT_RIGHT = 7;
   SEAT_REAR_LEFT = 8;
+  SEAT_REAR_MIDDLE = 9;
   SEAT_REAR_RIGHT = 10;
-  SEAT_THIRD_ROW_LEFT = 11;  // R1S
-  SEAT_THIRD_ROW_RIGHT = 13; // R1S
+  SEAT_THIRD_ROW_LEFT = 11;
+  SEAT_THIRD_ROW_MIDDLE = 12;
+  SEAT_THIRD_ROW_RIGHT = 13;
+  WIPER_AREA = 14;
 }
 
-enum SeatConditioningType {
-  SEAT_CONDITIONING_TYPE_UNSPECIFIED = 0;
-  SEAT_CONDITIONING_HEAT = 1;
-  SEAT_CONDITIONING_VENT = 2;
+enum ConditioningType {
+  CONDITIONING_TYPE_UNSPECIFIED = 0;
+  CONDITIONING_HEAT = 1;
+  CONDITIONING_VENT = 2;
 }
 
-enum SeatConditioningLevel {
-  SEAT_LEVEL_UNSPECIFIED = 0;
-  SEAT_LEVEL_1 = 1;
-  SEAT_LEVEL_2 = 2;
-  SEAT_LEVEL_3 = 3;
+enum ConditioningLevel {
+  CONDITIONING_LEVEL_UNSPECIFIED = 0;
+  CONDITIONING_LEVEL_1 = 1;
+  CONDITIONING_LEVEL_2 = 2;
+  CONDITIONING_LEVEL_3 = 3;
 }

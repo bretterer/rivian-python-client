@@ -8,13 +8,13 @@ from .core import RVMDecoder, _enum, _present
 from .proto import charging_pb2
 
 _DAY_OF_WEEK_MAP: Final[dict[int, str]] = {
-    1: "sunday",
-    2: "monday",
-    3: "tuesday",
-    4: "wednesday",
-    5: "thursday",
-    6: "friday",
-    7: "saturday",
+    charging_pb2.ScheduleTimeWindow.SUNDAY: "sunday",
+    charging_pb2.ScheduleTimeWindow.MONDAY: "monday",
+    charging_pb2.ScheduleTimeWindow.TUESDAY: "tuesday",
+    charging_pb2.ScheduleTimeWindow.WEDNESDAY: "wednesday",
+    charging_pb2.ScheduleTimeWindow.THURSDAY: "thursday",
+    charging_pb2.ScheduleTimeWindow.FRIDAY: "friday",
+    charging_pb2.ScheduleTimeWindow.SATURDAY: "saturday",
 }
 
 
@@ -65,8 +65,8 @@ def decode_session_notification(m: charging_pb2.SessionNotification) -> dict[str
 
 
 _REMOTE_COMMAND_MAP: Final[dict[int, str]] = {
-    1: "start",
-    2: "stop",
+    charging_pb2.REMOTE_COMMAND_START: "start",
+    charging_pb2.REMOTE_COMMAND_STOP: "stop",
 }
 
 
@@ -144,34 +144,34 @@ def decode_weighted_charging_forecast(
 
 
 _CONNECTION_STATE_MAP: Final[dict[int, str]] = {
-    1: "disconnected",
-    2: "connected",
+    charging_pb2.CONNECTION_STATE_DISCONNECTED: "disconnected",
+    charging_pb2.CONNECTION_STATE_CONNECTED: "connected",
 }
 
 _CHARGING_STATE_MAP: Final[dict[int, str]] = {
-    1: "charging_ready",
-    2: "charging_connecting",
-    3: "charging_active",
-    4: "charging_complete",
-    5: "charging_scheduled",
-    6: "charging_vehicle_error",
-    7: "charging_station_error",
-    8: "charging_stopped_by_user",
-    9: "charging_stopped_by_station",
-    10: "charging_payment_error",
-    11: "charging_cert_error",
-    12: "charging_tls_error",
-    13: "charging_error_ac_adapter_used_on_dc",
-    14: "charging_error_dc_adapter_used_on_ac",
-    15: "charging_error_incompatible_charger",
-    16: "charging_sd_compensation",
-    17: "waiting_on_charger",
-    18: "charging_error_not_ready_or_incompatible_charger",
-    19: "charging_vehicle_stopped",
-    20: "charging_payment_error_start_rivian_app",
-    21: "charging_tls_error_unknown_charger",
-    22: "charging_tls_error_unexpected_fail",
-    23: "charging_tls_error_start_rivian_app",
+    charging_pb2.CHARGING_READY: "charging_ready",
+    charging_pb2.CHARGING_CONNECTING: "charging_connecting",
+    charging_pb2.CHARGING_ACTIVE: "charging_active",
+    charging_pb2.CHARGING_COMPLETE: "charging_complete",
+    charging_pb2.CHARGING_SCHEDULED: "charging_scheduled",
+    charging_pb2.CHARGING_VEHICLE_ERROR: "charging_vehicle_error",
+    charging_pb2.CHARGING_STATION_ERROR: "charging_station_error",
+    charging_pb2.CHARGING_USER_STOPPED: "charging_stopped_by_user",
+    charging_pb2.CHARGING_STATION_STOPPED: "charging_stopped_by_station",
+    charging_pb2.CHARGING_PAYMENT_ERROR: "charging_payment_error",
+    charging_pb2.CHARGING_CERT_ERROR: "charging_cert_error",
+    charging_pb2.CHARGING_TLS_ERROR: "charging_tls_error",
+    charging_pb2.CHARGING_ERROR_AC_ADAPTER_USED_ON_DC: "charging_error_ac_adapter_used_on_dc",
+    charging_pb2.CHARGING_ERROR_DC_ADAPTER_USED_ON_AC: "charging_error_dc_adapter_used_on_ac",
+    charging_pb2.CHARGING_ERROR_INCOMPATIBLE_CHARGER: "charging_error_incompatible_charger",
+    charging_pb2.CHARGING_SD_COMPENSATION: "charging_sd_compensation",
+    charging_pb2.WAITING_ON_CHARGER: "waiting_on_charger",
+    charging_pb2.CHARGER_NOT_READY_OR_INCOMPATIBLE: "charging_error_not_ready_or_incompatible_charger",
+    charging_pb2.CHARGING_VEHICLE_STOPPED: "charging_vehicle_stopped",
+    charging_pb2.CHARGING_PAYMENT_ERROR_START_RIVIAN_APP: "charging_payment_error_start_rivian_app",
+    charging_pb2.CHARGING_TLS_ERROR_UNKNOWN_CHARGER: "charging_tls_error_unknown_charger",
+    charging_pb2.CHARGING_TLS_ERROR_UNEXPECTED_FAIL: "charging_tls_error_unexpected_fail",
+    charging_pb2.CHARGING_TLS_ERROR_START_RIVIAN_APP: "charging_tls_error_start_rivian_app",
 }
 
 
@@ -211,9 +211,9 @@ def decode_time_estimation(m: charging_pb2.TimeEstimation) -> dict[str, Any]:
 
 
 _CHARGER_STATUS_MAP: Final[dict[int, str]] = {
-    1: "chrgr_sts_not_connected",
-    2: "chrgr_sts_connected_no_chrg",
-    3: "chrgr_sts_connected_charging",
+    charging_pb2.CHARGER_STATUS_NOT_CONNECTED: "chrgr_sts_not_connected",
+    charging_pb2.CHARGER_STATUS_CONNECTED_NO_CHARGE: "chrgr_sts_connected_no_chrg",
+    charging_pb2.CHARGER_STATUS_CONNECTED_CHARGING: "chrgr_sts_connected_charging",
 }
 
 

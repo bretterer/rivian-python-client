@@ -9,7 +9,14 @@ message FavoriteGeofences {
   repeated Geofence geofence = 1;
 
   message Geofence {
-    optional int32 field_1 = 1; // unknown; 1 only on "Home"
-    optional string name = 2;   // a name or street address
+    optional GeofenceType type = 1; // absent on plain addresses so far
+    optional string name = 2;       // a name or street address
   }
+}
+
+enum GeofenceType {
+  GEOFENCE_TYPE_UNSPECIFIED = 0;
+  GEOFENCE_TYPE_HOME = 1;
+  GEOFENCE_TYPE_WORK = 2;
+  GEOFENCE_TYPE_CUSTOM = 3;
 }

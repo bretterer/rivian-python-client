@@ -24,13 +24,15 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n*rivian/parallax/proto/vehicle_access.proto\x12\x1erivian.parallax.vehicle_access\"\x13\n\x11PassiveEntryStateb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n*rivian/parallax/proto/vehicle_access.proto\x12\x1erivian.parallax.vehicle_access\"\xd5\x01\n\x11PassiveEntryState\x12)\n\x1c\x61llow_bluetooth_while_in_ccc\x18\x01 \x01(\x08H\x00\x88\x01\x01\x12Y\n\x16\x63\x63\x63_passive_permission\x18\x02 \x01(\x0e\x32\x34.rivian.parallax.vehicle_access.CccPassivePermissionH\x01\x88\x01\x01\x42\x1f\n\x1d_allow_bluetooth_while_in_cccB\x19\n\x17_ccc_passive_permission*\xa7\x01\n\x14\x43\x63\x63PassivePermission\x12&\n\"CCC_PASSIVE_PERMISSION_UNSPECIFIED\x10\x00\x12\x1e\n\x1a\x43\x43\x43_PASSIVE_PERMISSION_SNA\x10\x01\x12\"\n\x1e\x43\x43\x43_PASSIVE_PERMISSION_ENABLED\x10\x02\x12#\n\x1f\x43\x43\x43_PASSIVE_PERMISSION_DISABLED\x10\x03\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.vehicle_access_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_PASSIVEENTRYSTATE']._serialized_start=78
-  _globals['_PASSIVEENTRYSTATE']._serialized_end=97
+  _globals['_CCCPASSIVEPERMISSION']._serialized_start=295
+  _globals['_CCCPASSIVEPERMISSION']._serialized_end=462
+  _globals['_PASSIVEENTRYSTATE']._serialized_start=79
+  _globals['_PASSIVEENTRYSTATE']._serialized_end=292
 # @@protoc_insertion_point(module_scope)

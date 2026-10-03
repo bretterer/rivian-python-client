@@ -8,10 +8,10 @@ from .core import RVMDecoder, _enum, _present
 from .proto import vehicle_pb2
 
 _POWER_STATE_MAP: Final[dict[int, str]] = {
-    1: "sleep",
-    2: "standby",
-    3: "ready",
-    4: "go",
+    vehicle_pb2.POWER_SLEEP: "sleep",
+    vehicle_pb2.POWER_STANDBY: "standby",
+    vehicle_pb2.POWER_READY: "ready",
+    vehicle_pb2.POWER_GO: "go",
 }
 
 
@@ -28,8 +28,8 @@ def decode_active_user_profile(m: vehicle_pb2.ActiveUserProfile) -> dict[str, An
     return {"activeUserProfileId": v}
 
 
-@RVMDecoder.register("vehicle.power.state", vehicle_pb2.PowerState)
-def decode_power_state(m: vehicle_pb2.PowerState) -> dict[str, Any]:
+@RVMDecoder.register("vehicle.power.state", vehicle_pb2.VehiclePowerState)
+def decode_power_state(m: vehicle_pb2.VehiclePowerState) -> dict[str, Any]:
     """vehicle.power.state — vehicle power state.
 
     Fields:
@@ -50,15 +50,21 @@ def decode_wheels(m: vehicle_pb2.VehicleWheels) -> dict[str, Any]:
 
     Fields:
         wheels: list[dict] — wheelPackage, tireOdometer,
-            odometerAtLastRotation, rotationReminderInterval, isInstalled,
-            tires, currentOdometer (distances in meters)
+            savedTireOdometerDelta, odometerAtLastRotation,
+            savedOdometerAtLastRotationDelta, rotationReminderInterval,
+            isInstalled, tires, currentOdometer (distances in meters; the
+            saved deltas are only set on an uninstalled wheel set)
         wheelsInstalled: int — how many are installed
     """
     wheels = [
         {
             "wheelPackage": w.wheel_package,
             "tireOdometer": w.tire_odometer,
+            "savedTireOdometerDelta": w.saved_tire_odometer_delta,
             "odometerAtLastRotation": w.odometer_at_last_rotation,
+            "savedOdometerAtLastRotationDelta": (
+                w.saved_odometer_at_last_rotation_delta
+            ),
             "rotationReminderInterval": w.rotation_reminder_interval,
             "isInstalled": w.is_installed,
             "tires": w.tires,
@@ -75,27 +81,27 @@ def decode_wheels(m: vehicle_pb2.VehicleWheels) -> dict[str, Any]:
 
 
 _CONNECTIVITY_LEVEL_MAP: Final[dict[int, str]] = {
-    1: "level_0",
-    2: "level_1",
-    3: "level_2",
-    4: "level_3",
-    5: "level_4",
+    vehicle_pb2.CONNECTIVITY_LEVEL_0: "level_0",
+    vehicle_pb2.CONNECTIVITY_LEVEL_1: "level_1",
+    vehicle_pb2.CONNECTIVITY_LEVEL_2: "level_2",
+    vehicle_pb2.CONNECTIVITY_LEVEL_3: "level_3",
+    vehicle_pb2.CONNECTIVITY_LEVEL_4: "level_4",
 }
 
 _WIFI_SECURITY_MAP: Final[dict[int, str]] = {
-    1: "open",
-    2: "wpa_personal",
-    3: "wpa_enterprise",
-    4: "wpa2_personal",
-    5: "wpa2_enterprise",
+    vehicle_pb2.WIFI_OPEN: "open",
+    vehicle_pb2.WIFI_WPA_PERSONAL: "wpa_personal",
+    vehicle_pb2.WIFI_WPA_ENTERPRISE: "wpa_enterprise",
+    vehicle_pb2.WIFI_WPA2_PERSONAL: "wpa2_personal",
+    vehicle_pb2.WIFI_WPA2_ENTERPRISE: "wpa2_enterprise",
 }
 
 _WPA_STATUS_MAP: Final[dict[int, str]] = {
-    1: "not_connected",
-    2: "connected",
-    3: "scanning",
-    4: "connecting",
-    5: "disconnecting",
+    vehicle_pb2.WPA_NOT_CONNECTED: "not_connected",
+    vehicle_pb2.WPA_CONNECTED: "connected",
+    vehicle_pb2.WPA_SCANNING: "scanning",
+    vehicle_pb2.WPA_CONNECTING: "connecting",
+    vehicle_pb2.WPA_DISCONNECTING: "disconnecting",
 }
 
 
