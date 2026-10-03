@@ -68,20 +68,22 @@ _PET_MODE_TEMPERATURE_MAP: Final[dict[int, str]] = {
     comfort_pb2.PET_MODE_TEMPERATURE_FAULTY: "faulty",
 }
 
+# Seat keys use the GraphQL names: row 1 is "Front", row 2 "Rear", row 3
+# "ThirdRow".
 _CABIN_SURFACE_MAP: Final[dict[int, str]] = {
     comfort_pb2.STEERING_WHEEL: "steeringWheel",
     comfort_pb2.REAR_GLASS: "rearGlass",
     comfort_pb2.FRONT_GLASS: "frontGlass",
     comfort_pb2.SIDEVIEW_MIRRORS: "sideviewMirrors",
-    comfort_pb2.SEAT_FRONT_LEFT: "seatFrontLeft",
-    comfort_pb2.SEAT_FRONT_MIDDLE: "seatFrontMiddle",
-    comfort_pb2.SEAT_FRONT_RIGHT: "seatFrontRight",
-    comfort_pb2.SEAT_REAR_LEFT: "seatRearLeft",
-    comfort_pb2.SEAT_REAR_MIDDLE: "seatRearMiddle",
-    comfort_pb2.SEAT_REAR_RIGHT: "seatRearRight",
-    comfort_pb2.SEAT_THIRD_ROW_LEFT: "seatThirdRowLeft",
-    comfort_pb2.SEAT_THIRD_ROW_MIDDLE: "seatThirdRowMiddle",
-    comfort_pb2.SEAT_THIRD_ROW_RIGHT: "seatThirdRowRight",
+    comfort_pb2.SEAT_ROW_1_LEFT: "seatFrontLeft",
+    comfort_pb2.SEAT_ROW_1_MIDDLE: "seatFrontMiddle",
+    comfort_pb2.SEAT_ROW_1_RIGHT: "seatFrontRight",
+    comfort_pb2.SEAT_ROW_2_LEFT: "seatRearLeft",
+    comfort_pb2.SEAT_ROW_2_MIDDLE: "seatRearMiddle",
+    comfort_pb2.SEAT_ROW_2_RIGHT: "seatRearRight",
+    comfort_pb2.SEAT_ROW_3_LEFT: "seatThirdRowLeft",
+    comfort_pb2.SEAT_ROW_3_MIDDLE: "seatThirdRowMiddle",
+    comfort_pb2.SEAT_ROW_3_RIGHT: "seatThirdRowRight",
     comfort_pb2.WIPER_AREA: "wiperArea",
 }
 

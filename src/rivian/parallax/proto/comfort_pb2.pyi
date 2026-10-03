@@ -63,15 +63,15 @@ class CabinSurface(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     REAR_GLASS: _ClassVar[CabinSurface]
     FRONT_GLASS: _ClassVar[CabinSurface]
     SIDEVIEW_MIRRORS: _ClassVar[CabinSurface]
-    SEAT_FRONT_LEFT: _ClassVar[CabinSurface]
-    SEAT_FRONT_MIDDLE: _ClassVar[CabinSurface]
-    SEAT_FRONT_RIGHT: _ClassVar[CabinSurface]
-    SEAT_REAR_LEFT: _ClassVar[CabinSurface]
-    SEAT_REAR_MIDDLE: _ClassVar[CabinSurface]
-    SEAT_REAR_RIGHT: _ClassVar[CabinSurface]
-    SEAT_THIRD_ROW_LEFT: _ClassVar[CabinSurface]
-    SEAT_THIRD_ROW_MIDDLE: _ClassVar[CabinSurface]
-    SEAT_THIRD_ROW_RIGHT: _ClassVar[CabinSurface]
+    SEAT_ROW_1_LEFT: _ClassVar[CabinSurface]
+    SEAT_ROW_1_MIDDLE: _ClassVar[CabinSurface]
+    SEAT_ROW_1_RIGHT: _ClassVar[CabinSurface]
+    SEAT_ROW_2_LEFT: _ClassVar[CabinSurface]
+    SEAT_ROW_2_MIDDLE: _ClassVar[CabinSurface]
+    SEAT_ROW_2_RIGHT: _ClassVar[CabinSurface]
+    SEAT_ROW_3_LEFT: _ClassVar[CabinSurface]
+    SEAT_ROW_3_MIDDLE: _ClassVar[CabinSurface]
+    SEAT_ROW_3_RIGHT: _ClassVar[CabinSurface]
     WIPER_AREA: _ClassVar[CabinSurface]
 
 class ConditioningType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -119,15 +119,15 @@ STEERING_WHEEL: CabinSurface
 REAR_GLASS: CabinSurface
 FRONT_GLASS: CabinSurface
 SIDEVIEW_MIRRORS: CabinSurface
-SEAT_FRONT_LEFT: CabinSurface
-SEAT_FRONT_MIDDLE: CabinSurface
-SEAT_FRONT_RIGHT: CabinSurface
-SEAT_REAR_LEFT: CabinSurface
-SEAT_REAR_MIDDLE: CabinSurface
-SEAT_REAR_RIGHT: CabinSurface
-SEAT_THIRD_ROW_LEFT: CabinSurface
-SEAT_THIRD_ROW_MIDDLE: CabinSurface
-SEAT_THIRD_ROW_RIGHT: CabinSurface
+SEAT_ROW_1_LEFT: CabinSurface
+SEAT_ROW_1_MIDDLE: CabinSurface
+SEAT_ROW_1_RIGHT: CabinSurface
+SEAT_ROW_2_LEFT: CabinSurface
+SEAT_ROW_2_MIDDLE: CabinSurface
+SEAT_ROW_2_RIGHT: CabinSurface
+SEAT_ROW_3_LEFT: CabinSurface
+SEAT_ROW_3_MIDDLE: CabinSurface
+SEAT_ROW_3_RIGHT: CabinSurface
 WIPER_AREA: CabinSurface
 CONDITIONING_TYPE_UNSPECIFIED: ConditioningType
 CONDITIONING_HEAT: ConditioningType

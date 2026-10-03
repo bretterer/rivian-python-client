@@ -85,7 +85,7 @@ def test_seat_conditioning() -> None:
         comfort.SeatConditioningStatus(
             surface=[
                 surface(
-                    id=comfort.SEAT_FRONT_LEFT,
+                    id=comfort.SEAT_ROW_1_LEFT,
                     type=heat,
                     state=comfort.CONDITIONING_LEVEL_2,
                 ),
@@ -95,11 +95,11 @@ def test_seat_conditioning() -> None:
                     state=comfort.CONDITIONING_LEVEL_1,
                 ),
                 surface(
-                    id=comfort.SEAT_THIRD_ROW_RIGHT,
+                    id=comfort.SEAT_ROW_3_RIGHT,
                     type=heat,
                     state=comfort.CONDITIONING_LEVEL_3,
                 ),
-                surface(id=comfort.SEAT_REAR_LEFT, type=heat),
+                surface(id=comfort.SEAT_ROW_2_LEFT, type=heat),
             ]
         ),
     )
