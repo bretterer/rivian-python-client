@@ -71,7 +71,7 @@ message ChargingGraphGlobal {
     int64 start_time = 3; // epoch milliseconds
     int64 end_time = 4; // epoch milliseconds
     rivian.parallax.charging.ChargingState state = 6;
-    int32 field_7 = 7; // unknown
+    int32 field_7 = 7; // unknown; 0 while charging, 2 once a segment has ended
   }
   repeated Segment segment = 1;
 }

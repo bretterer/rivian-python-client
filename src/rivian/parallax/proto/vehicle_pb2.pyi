@@ -15,6 +15,12 @@ class PowerState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     POWER_READY: _ClassVar[PowerState]
     POWER_GO: _ClassVar[PowerState]
 
+class ActiveInterface(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ACTIVE_INTERFACE_UNSPECIFIED: _ClassVar[ActiveInterface]
+    ACTIVE_INTERFACE_WIFI: _ClassVar[ActiveInterface]
+    ACTIVE_INTERFACE_CELLULAR: _ClassVar[ActiveInterface]
+
 class ConnectivityLevel(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     CONNECTIVITY_LEVEL_UNSPECIFIED: _ClassVar[ConnectivityLevel]
@@ -46,6 +52,9 @@ POWER_SLEEP: PowerState
 POWER_STANDBY: PowerState
 POWER_READY: PowerState
 POWER_GO: PowerState
+ACTIVE_INTERFACE_UNSPECIFIED: ActiveInterface
+ACTIVE_INTERFACE_WIFI: ActiveInterface
+ACTIVE_INTERFACE_CELLULAR: ActiveInterface
 CONNECTIVITY_LEVEL_UNSPECIFIED: ConnectivityLevel
 CONNECTIVITY_LEVEL_0: ConnectivityLevel
 CONNECTIVITY_LEVEL_1: ConnectivityLevel
@@ -112,7 +121,7 @@ class VehicleWheels(_message.Message):
     def __init__(self, wheel: _Optional[_Iterable[_Union[VehicleWheels.Wheel, _Mapping]]] = ...) -> None: ...
 
 class NetworkState(_message.Message):
-    __slots__ = ("field_1", "interfaces", "field_3", "wifi", "cellular")
+    __slots__ = ("active_interface", "interfaces", "connectivity_level", "wifi", "cellular")
     class InterfaceStatus(_message.Message):
         __slots__ = ("id", "status")
         ID_FIELD_NUMBER: _ClassVar[int]
@@ -167,14 +176,14 @@ class NetworkState(_message.Message):
         antenna_bars: ConnectivityLevel
         signal_strength: int
         def __init__(self, carrier: _Optional[str] = ..., mode: _Optional[str] = ..., antenna_bars: _Optional[_Union[ConnectivityLevel, str]] = ..., signal_strength: _Optional[int] = ...) -> None: ...
-    FIELD_1_FIELD_NUMBER: _ClassVar[int]
+    ACTIVE_INTERFACE_FIELD_NUMBER: _ClassVar[int]
     INTERFACES_FIELD_NUMBER: _ClassVar[int]
-    FIELD_3_FIELD_NUMBER: _ClassVar[int]
+    CONNECTIVITY_LEVEL_FIELD_NUMBER: _ClassVar[int]
     WIFI_FIELD_NUMBER: _ClassVar[int]
     CELLULAR_FIELD_NUMBER: _ClassVar[int]
-    field_1: int
+    active_interface: ActiveInterface
     interfaces: _containers.RepeatedCompositeFieldContainer[NetworkState.InterfaceStatus]
-    field_3: int
+    connectivity_level: ConnectivityLevel
     wifi: NetworkState.Wifi
     cellular: NetworkState.Cellular
-    def __init__(self, field_1: _Optional[int] = ..., interfaces: _Optional[_Iterable[_Union[NetworkState.InterfaceStatus, _Mapping]]] = ..., field_3: _Optional[int] = ..., wifi: _Optional[_Union[NetworkState.Wifi, _Mapping]] = ..., cellular: _Optional[_Union[NetworkState.Cellular, _Mapping]] = ...) -> None: ...
+    def __init__(self, active_interface: _Optional[_Union[ActiveInterface, str]] = ..., interfaces: _Optional[_Iterable[_Union[NetworkState.InterfaceStatus, _Mapping]]] = ..., connectivity_level: _Optional[_Union[ConnectivityLevel, str]] = ..., wifi: _Optional[_Union[NetworkState.Wifi, _Mapping]] = ..., cellular: _Optional[_Union[NetworkState.Cellular, _Mapping]] = ...) -> None: ...

@@ -88,6 +88,11 @@ _CONNECTIVITY_LEVEL_MAP: Final[dict[int, str]] = {
     vehicle_pb2.CONNECTIVITY_LEVEL_4: "level_4",
 }
 
+_ACTIVE_INTERFACE_MAP: Final[dict[int, str]] = {
+    vehicle_pb2.ACTIVE_INTERFACE_WIFI: "wifi",
+    vehicle_pb2.ACTIVE_INTERFACE_CELLULAR: "cellular",
+}
+
 _WIFI_SECURITY_MAP: Final[dict[int, str]] = {
     vehicle_pb2.WIFI_OPEN: "open",
     vehicle_pb2.WIFI_WPA_PERSONAL: "wpa_personal",
@@ -143,6 +148,9 @@ def decode_network_state(m: vehicle_pb2.NetworkState) -> dict[str, Any]:
     """vehicle.network.state — wifi and cellular status.
 
     Fields:
+        networkActiveInterface: str | None ("wifi" | "cellular"); inferred
+        networkAntennaBars: str | None — the active connection's level;
+            inferred
         wifiWpaStatus, wifiSsid, wifiAntennaBars, wifiSecureStatus: str
         wifiSignal: int (dBm; -255 = no reading)
         wifiLinkSpeed: int (Mbps)
@@ -150,7 +158,18 @@ def decode_network_state(m: vehicle_pb2.NetworkState) -> dict[str, Any]:
         cellularCarrier, cellularMode, cellularAntennaBars: str
         cellularSignalStrength: int (dBm; -255 = no reading)
     """
-    result: dict[str, Any] = {}
+    result: dict[str, Any] = {
+        "networkActiveInterface": _enum(
+            _ACTIVE_INTERFACE_MAP,
+            m.active_interface or None,
+            what="active network interface",
+        ),
+        "networkAntennaBars": _enum(
+            _CONNECTIVITY_LEVEL_MAP,
+            m.connectivity_level or None,
+            what="network antenna bars",
+        ),
+    }
     if m.HasField("wifi"):
         result.update(_decode_wifi(m.wifi))
     if m.HasField("cellular"):

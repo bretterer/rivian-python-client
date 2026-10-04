@@ -189,18 +189,18 @@ class TimeEstimation(_message.Message):
     def __init__(self, estimated_time_remaining: _Optional[int] = ...) -> None: ...
 
 class EnergyState(_message.Message):
-    __slots__ = ("field_1", "charger_status", "field_3", "field_10", "field_11")
-    FIELD_1_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("charging_state", "charger_status", "field_3", "field_10", "connection_state")
+    CHARGING_STATE_FIELD_NUMBER: _ClassVar[int]
     CHARGER_STATUS_FIELD_NUMBER: _ClassVar[int]
     FIELD_3_FIELD_NUMBER: _ClassVar[int]
     FIELD_10_FIELD_NUMBER: _ClassVar[int]
-    FIELD_11_FIELD_NUMBER: _ClassVar[int]
-    field_1: int
+    CONNECTION_STATE_FIELD_NUMBER: _ClassVar[int]
+    charging_state: ChargingState
     charger_status: ChargerStatus
     field_3: int
     field_10: str
-    field_11: int
-    def __init__(self, field_1: _Optional[int] = ..., charger_status: _Optional[_Union[ChargerStatus, str]] = ..., field_3: _Optional[int] = ..., field_10: _Optional[str] = ..., field_11: _Optional[int] = ...) -> None: ...
+    connection_state: ConnectionState
+    def __init__(self, charging_state: _Optional[_Union[ChargingState, str]] = ..., charger_status: _Optional[_Union[ChargerStatus, str]] = ..., field_3: _Optional[int] = ..., field_10: _Optional[str] = ..., connection_state: _Optional[_Union[ConnectionState, str]] = ...) -> None: ...
 
 class SessionPower(_message.Message):
     __slots__ = ("power",)

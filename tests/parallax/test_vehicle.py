@@ -39,6 +39,8 @@ def test_network_state() -> None:
         ),
     )
     assert result == {
+        "networkActiveInterface": None,
+        "networkAntennaBars": None,
         "wifiWpaStatus": "connected",
         "wifiSsid": "Home",
         "wifiAntennaBars": None,
@@ -98,3 +100,18 @@ def test_wheels() -> None:
     assert result["wheels"][0]["tireOdometer"] == 5000
     assert result["wheels"][1]["savedTireOdometerDelta"] == 1200
     assert result["wheels"][1]["savedOdometerAtLastRotationDelta"] == 300
+
+
+def test_network_active_interface() -> None:
+    """The active interface and its signal level."""
+    result = decode(
+        "vehicle.network.state",
+        vehicle.NetworkState(
+            active_interface=vehicle.ACTIVE_INTERFACE_CELLULAR,
+            connectivity_level=vehicle.CONNECTIVITY_LEVEL_2,
+        ),
+    )
+    assert result == {
+        "networkActiveInterface": "cellular",
+        "networkAntennaBars": "level_2",
+    }

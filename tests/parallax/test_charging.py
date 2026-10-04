@@ -123,21 +123,21 @@ def test_time_estimation() -> None:
 
 
 def test_energy_state() -> None:
-    """Raw unmapped values."""
+    """Charger status plus the session's charging and connection states."""
     result = decode(
         "charging.energy.state",
         charging.EnergyState(
-            field_1=4,
+            charging_state=charging.CHARGING_COMPLETE,
             charger_status=charging.CHARGER_STATUS_CONNECTED_NO_CHARGE,
             field_3=1,
-            field_11=2,
+            connection_state=charging.CONNECTION_STATE_CONNECTED,
         ),
     )
     assert result == {
+        "chargerState": "charging_complete",
+        "connectionState": "connected",
         "chargerStatus": "chrgr_sts_connected_no_chrg",
-        "_field1": 4,
         "_field3": 1,
-        "_field11": 2,
     }
 
 

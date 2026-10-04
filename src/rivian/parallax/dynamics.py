@@ -88,7 +88,7 @@ def decode_gear(m: dynamics_pb2.Gear) -> dict[str, Any]:
 
 @RVMDecoder.register("dynamics.vehicle.gnss", dynamics_pb2.Gnss)
 def decode_gnss(m: dynamics_pb2.Gnss) -> dict[str, Any]:
-    """dynamics.vehicle.gnss — GPS position, altitude and bearing.
+    """dynamics.vehicle.gnss — GPS position, altitude, bearing and speed.
 
     Fields:
         gnssTimeStamp: datetime — time of the fix
@@ -96,6 +96,10 @@ def decode_gnss(m: dynamics_pb2.Gnss) -> dict[str, Any]:
             (the gateway's VehicleLocation shape)
         gnssAltitude: float (meters)
         gnssBearing: float (degrees)
+        gnssSpeed: float (m/s)
+        gnssError: {"timeStamp": datetime, "positionVertical": float (m),
+            "positionHorizontal": float (m), "speed": float (m/s),
+            "bearing": float} (the gateway's gnssError shape)
     """
     if not m.ByteSize():
         return {}
@@ -109,6 +113,14 @@ def decode_gnss(m: dynamics_pb2.Gnss) -> dict[str, Any]:
         },
         "gnssAltitude": round(m.altitude, 1),
         "gnssBearing": round(m.bearing, 1),
+        "gnssSpeed": round(m.speed, 2),
+        "gnssError": {
+            "timeStamp": fix_time,
+            "positionVertical": round(m.position_vertical_error, 1),
+            "positionHorizontal": round(m.position_horizontal_error, 1),
+            "speed": round(m.speed_error, 1),
+            "bearing": round(m.bearing_error, 1),
+        },
     }
 
 
@@ -228,7 +240,7 @@ def decode_brake_fluid_level(m: dynamics_pb2.BrakeFluidLevel) -> dict[str, Any]:
     """dynamics.brakes.fluid_level — brake fluid level.
 
     Fields:
-        _brakeFluidLevel: int — raw (1 so far, presumably normal)
+        _brakeFluidLevel: int — raw
     """
     if (v := _present(m, "field_1")) is None:
         return {}

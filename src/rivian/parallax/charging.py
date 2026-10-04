@@ -219,20 +219,30 @@ _CHARGER_STATUS_MAP: Final[dict[int, str]] = {
 
 @RVMDecoder.register("charging.energy.state", charging_pb2.EnergyState)
 def decode_energy_state(m: charging_pb2.EnergyState) -> dict[str, Any]:
-    """charging.energy.state — charger connection status.
+    """charging.energy.state — charger connection and charging state.
 
     Fields:
         chargerStatus: str — GraphQL chargerStatus values
             ("chrgr_sts_not_connected" | "chrgr_sts_connected_no_chrg" |
             "chrgr_sts_connected_charging"); inferred
-        _field1, _field3, _field11: int — raw
+        chargerState, connectionState: str | None — as in
+            charging.session.status
+        _field3: int — raw
     """
-    result: dict[str, Any] = {}
+    result: dict[str, Any] = {
+        "chargerState": _enum(
+            _CHARGING_STATE_MAP, m.charging_state or None, what="charging state"
+        ),
+        "connectionState": _enum(
+            _CONNECTION_STATE_MAP,
+            m.connection_state or None,
+            what="charging connection state",
+        ),
+    }
     if (v := _present(m, "charger_status")) is not None:
         result["chargerStatus"] = _enum(_CHARGER_STATUS_MAP, v, what="charger status")
-    for num in (1, 3, 11):
-        if (v := _present(m, f"field_{num}")) is not None:
-            result[f"_field{num}"] = v
+    if (v := _present(m, "field_3")) is not None:
+        result["_field3"] = v
     return result
 
 

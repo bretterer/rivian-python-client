@@ -123,12 +123,13 @@ message TimeEstimation {
 }
 
 // charging.energy.state
+// The states match charging.session.status, give or take a message.
 message EnergyState {
-  optional int32 field_1 = 1; // inferred: ChargingState (1 ready ... 4 complete)
+  ChargingState charging_state = 1;
   optional ChargerStatus charger_status = 2; // inferred
-  optional int32 field_3 = 3; // unknown; 1 so far
-  string field_10 = 10; // always empty so far
-  optional int32 field_11 = 11; // unknown; 1 or 2
+  optional int32 field_3 = 3; // unknown
+  string field_10 = 10; // unknown
+  ConnectionState connection_state = 11;
 }
 
 enum ChargerStatus {

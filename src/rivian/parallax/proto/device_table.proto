@@ -34,7 +34,7 @@ message VasKeyperDevices {
     optional bool active = 10;
 
     message Info {
-      optional int32 a = 1; // unknown; always equal to b
+      optional int32 a = 1; // unknown
       // 1 while active, INT32_MAX while inactive, else the pairing attempt.
       optional int32 c = 4;
       optional KeyStatus status = 5;

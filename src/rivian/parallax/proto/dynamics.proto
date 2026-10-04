@@ -48,14 +48,13 @@ message Gnss {
   double latitude = 1;
   double longitude = 2;
   double altitude = 3; // meters
-  optional float field_4 = 4; // unmapped; possibly speed (m/s)
+  float speed = 4; // m/s
   float bearing = 5; // degrees
-  // Unmapped. 6 and 7 grow while parked, like position uncertainty; 8 and 9
-  // barely move. Possibly the gateway's gnssError fields.
-  optional float field_6 = 6;
-  optional float field_7 = 7;
-  optional float field_8 = 8;
-  optional float field_9 = 9;
+  // Errors for the fields above, in the same order (the gateway's gnssError).
+  float position_horizontal_error = 6; // meters
+  float position_vertical_error = 7;   // meters
+  float speed_error = 8;               // m/s
+  float bearing_error = 9;
   int64 time = 10; // epoch milliseconds; time of the whole fix
 }
 
@@ -100,7 +99,7 @@ enum TemperatureImpact {
 
 // dynamics.tires.state
 message TiresState {
-  int32 field_1 = 1; // unknown; constant
+  int32 field_1 = 1; // unknown
 
   message Tire {
     TirePosition pos = 1;
@@ -145,5 +144,5 @@ message MassEstimate {
 
 // dynamics.brakes.fluid_level
 message BrakeFluidLevel {
-  optional int32 field_1 = 1; // unknown; 1 so far
+  optional int32 field_1 = 1; // unknown
 }
