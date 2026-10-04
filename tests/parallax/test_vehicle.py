@@ -41,9 +41,14 @@ def test_network_state() -> None:
     assert result == {
         "wifiWpaStatus": "connected",
         "wifiSsid": "Home",
+        "wifiAntennaBars": None,
         "wifiSignal": -55,
+        "wifiLinkSpeed": 0,
+        "wifiFreq": 0,
+        "wifiSecureStatus": None,
         "cellularCarrier": "Carrier",
         "cellularMode": "LTE",
+        "cellularAntennaBars": None,
         "cellularSignalStrength": -255,
     }
 

@@ -81,6 +81,8 @@ def test_trip_info() -> None:
         "longitude": -80.1,
         "placeType": 2,
         "name": "Store",
+        "stateOfCharge": 0.0,
+        "rangeRemaining": 0.0,
         "arrivalTime": epoch(1790554000_000),
     }
     assert charger["type"] == "chargingStop"
@@ -91,6 +93,7 @@ def test_trip_info() -> None:
     assert result["legs"] == [
         {
             "distance": 500.0,
+            "duration": 0.0,
             "polyline": "poly",
             "indexRangeSegments": [
                 {
@@ -145,8 +148,10 @@ def test_trip_progress() -> None:
     assert result == {
         "nextWaypointArrivalTime": epoch(1790553420_000),
         "distanceRemaining": 54.0,
+        "durationRemaining": 0.0,
         "latitude": 33.4,
         "longitude": -80.8,
         "speed": 10.5,
+        "heading": 0.0,
         "locationTime": epoch(1790553428211),
     }

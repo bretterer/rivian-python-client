@@ -81,7 +81,7 @@ enum AccessCanFaulted {
 // security.alarm.state
 // Field 1's mapping is a guess.
 message AlarmState {
-  optional int32 consecutive_alarm_disabled_notification = 1;
+  int32 consecutive_alarm_disabled_notification = 1;
   optional AlarmSound sound_status = 2;
 }
 

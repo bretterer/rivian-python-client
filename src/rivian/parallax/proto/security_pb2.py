@@ -24,31 +24,31 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/security.proto\x12\x18rivian.parallax.security\"\x0e\n\x0cPassiveEntry\"\x9b\x03\n\x03\x42tm\x12:\n\x02\x66\x66\x18\x01 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x00\x88\x01\x01\x12:\n\x02ic\x18\x02 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x01\x88\x01\x01\x12;\n\x03lfd\x18\x03 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x02\x88\x01\x01\x12:\n\x02rf\x18\x04 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x03\x88\x01\x01\x12;\n\x03rfd\x18\x05 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x04\x88\x01\x01\x12:\n\x02oc\x18\x06 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x05\x88\x01\x01\x42\x05\n\x03_ffB\x05\n\x03_icB\x06\n\x04_lfdB\x05\n\x03_rfB\x06\n\x04_rfdB\x05\n\x03_oc\"_\n\x10ImmobilizerState\x12@\n\x06status\x18\x01 \x01(\x0e\x32+.rivian.parallax.security.ImmobilizerStatusH\x00\x88\x01\x01\x42\t\n\x07_status\"e\n\x11PassiveEntryDebug\x12\x45\n\x06reason\x18\x02 \x01(\x0e\x32\x30.rivian.parallax.security.PassiveEntryFailReasonH\x00\x88\x01\x01\x42\t\n\x07_reason\"\xbe\x01\n\x08VasFault\x12K\n\x0esecure_element\x18\x01 \x01(\x0e\x32..rivian.parallax.security.SecureElementFaultedH\x00\x88\x01\x01\x12\x43\n\naccess_can\x18\x02 \x01(\x0e\x32*.rivian.parallax.security.AccessCanFaultedH\x01\x88\x01\x01\x42\x11\n\x0f_secure_elementB\r\n\x0b_access_can\"\xc0\x01\n\nAlarmState\x12\x34\n\'consecutive_alarm_disabled_notification\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12?\n\x0csound_status\x18\x02 \x01(\x0e\x32$.rivian.parallax.security.AlarmSoundH\x01\x88\x01\x01\x42*\n(_consecutive_alarm_disabled_notificationB\x0f\n\r_sound_status\"\x81\x02\n\x14VideoMonitoringState\x12\x44\n\x06status\x18\x01 \x01(\x0e\x32/.rivian.parallax.security.VideoMonitoringStatusH\x00\x88\x01\x01\x12\x36\n\x04mode\x18\x02 \x01(\x0e\x32#.rivian.parallax.security.VideoModeH\x01\x88\x01\x01\x12\x44\n\x0eterms_accepted\x18\x03 \x01(\x0e\x32\'.rivian.parallax.security.TosAcceptanceH\x02\x88\x01\x01\x42\t\n\x07_statusB\x07\n\x05_modeB\x11\n\x0f_terms_accepted*M\n\x0fHardwareFailure\x12 \n\x1cHARDWARE_FAILURE_UNSPECIFIED\x10\x00\x12\x18\n\x14HARDWARE_FAILURE_SET\x10\x01*v\n\x11ImmobilizerStatus\x12\x1c\n\x18IMMOBILIZER_NOT_ASSIGNED\x10\x00\x12\x1e\n\x1aIMMOBILIZER_NOT_AUTHORIZED\x10\x01\x12#\n\x1fIMMOBILIZER_AUTHORIZED_TO_DRIVE\x10\x02*\xfe\x03\n\x16PassiveEntryFailReason\x12\"\n\x1ePASSIVE_ENTRY_FAIL_UNSPECIFIED\x10\x00\x12\x1d\n\x19PASSIVE_ENTRY_NOT_IN_PARK\x10\x01\x12!\n\x1dPASSIVE_ENTRY_AT_HOME_DISABLE\x10\x02\x12#\n\x1fPASSIVE_ENTRY_PASSENGER_IN_SEAT\x10\x03\x12$\n PASSIVE_ENTRY_DEVICE_NOT_ENABLED\x10\x04\x12 \n\x1cPASSIVE_ENTRY_TRANSPORT_MODE\x10\x05\x12\x1f\n\x1bPASSIVE_ENTRY_CAR_WASH_MODE\x10\x06\x12\x1b\n\x17PASSIVE_ENTRY_CAMP_MODE\x10\x07\x12\x1c\n\x18PASSIVE_ENTRY_ACTIVE_OTA\x10\x08\x12$\n PASSIVE_ENTRY_SHOW_AND_TELL_MODE\x10\t\x12#\n\x1fPASSIVE_ENTRY_RCVD_RSSI_PENDING\x10\n\x12#\n\x1fPASSIVE_ENTRY_LOCK_ONLY_AT_HOME\x10\x0b\x12\"\n\x1ePASSIVE_ENTRY_CAR_COSTUME_MODE\x10\x0c\x12!\n\x1dPASSIVE_ENTRY_SLEPT_IMMEDIATE\x10\r*\x9b\x02\n\x14SecureElementFaulted\x12$\n SECURE_ELEMENT_FAULT_UNSPECIFIED\x10\x00\x12\x1d\n\x19SECURE_ELEMENT_NO_FAILURE\x10\x01\x12%\n!SECURE_ELEMENT_LOST_COMMUNICATION\x10\x02\x12(\n$SECURE_ELEMENT_APPLET_NOT_PROGRAMMED\x10\x03\x12!\n\x1dSECURE_ELEMENT_NOT_CONFIGURED\x10\x04\x12!\n\x1dSECURE_ELEMENT_ATTACK_COUNTER\x10\x05\x12\'\n#SECURE_ELEMENT_URSK_DECRYPT_FAILURE\x10\x06*g\n\x10\x41\x63\x63\x65ssCanFaulted\x12 \n\x1c\x41\x43\x43\x45SS_CAN_FAULT_UNSPECIFIED\x10\x00\x12\x19\n\x15\x41\x43\x43\x45SS_CAN_NO_FAILURE\x10\x01\x12\x16\n\x12\x41\x43\x43\x45SS_CAN_FAILURE\x10\x02*|\n\nAlarmSound\x12\x1b\n\x17\x41LARM_SOUND_UNSPECIFIED\x10\x00\x12\x15\n\x11\x41LARM_SOUND_FALSE\x10\x01\x12\x14\n\x10\x41LARM_SOUND_TRUE\x10\x02\x12$\n ALARM_SOUND_SIGNAL_NOT_AVAILABLE\x10\x03*\x9a\x01\n\x15VideoMonitoringStatus\x12\'\n#VIDEO_MONITORING_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n\x19VIDEO_MONITORING_DISABLED\x10\x01\x12\x1c\n\x18VIDEO_MONITORING_ENABLED\x10\x02\x12\x1b\n\x17VIDEO_MONITORING_ACTIVE\x10\x03*Z\n\tVideoMode\x12\x13\n\x0fVIDEO_MODE_NONE\x10\x00\x12\x19\n\x15VIDEO_MODE_EVERYWHERE\x10\x01\x12\x1d\n\x19VIDEO_MODE_AWAY_FROM_HOME\x10\x02*W\n\rTosAcceptance\x12\x1e\n\x1aTOS_ACCEPTANCE_UNSPECIFIED\x10\x00\x12\x14\n\x10TOS_NOT_ACCEPTED\x10\x01\x12\x10\n\x0cTOS_ACCEPTED\x10\x02\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/security.proto\x12\x18rivian.parallax.security\"\x0e\n\x0cPassiveEntry\"\x9b\x03\n\x03\x42tm\x12:\n\x02\x66\x66\x18\x01 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x00\x88\x01\x01\x12:\n\x02ic\x18\x02 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x01\x88\x01\x01\x12;\n\x03lfd\x18\x03 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x02\x88\x01\x01\x12:\n\x02rf\x18\x04 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x03\x88\x01\x01\x12;\n\x03rfd\x18\x05 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x04\x88\x01\x01\x12:\n\x02oc\x18\x06 \x01(\x0e\x32).rivian.parallax.security.HardwareFailureH\x05\x88\x01\x01\x42\x05\n\x03_ffB\x05\n\x03_icB\x06\n\x04_lfdB\x05\n\x03_rfB\x06\n\x04_rfdB\x05\n\x03_oc\"_\n\x10ImmobilizerState\x12@\n\x06status\x18\x01 \x01(\x0e\x32+.rivian.parallax.security.ImmobilizerStatusH\x00\x88\x01\x01\x42\t\n\x07_status\"e\n\x11PassiveEntryDebug\x12\x45\n\x06reason\x18\x02 \x01(\x0e\x32\x30.rivian.parallax.security.PassiveEntryFailReasonH\x00\x88\x01\x01\x42\t\n\x07_reason\"\xbe\x01\n\x08VasFault\x12K\n\x0esecure_element\x18\x01 \x01(\x0e\x32..rivian.parallax.security.SecureElementFaultedH\x00\x88\x01\x01\x12\x43\n\naccess_can\x18\x02 \x01(\x0e\x32*.rivian.parallax.security.AccessCanFaultedH\x01\x88\x01\x01\x42\x11\n\x0f_secure_elementB\r\n\x0b_access_can\"\x8f\x01\n\nAlarmState\x12/\n\'consecutive_alarm_disabled_notification\x18\x01 \x01(\x05\x12?\n\x0csound_status\x18\x02 \x01(\x0e\x32$.rivian.parallax.security.AlarmSoundH\x00\x88\x01\x01\x42\x0f\n\r_sound_status\"\x81\x02\n\x14VideoMonitoringState\x12\x44\n\x06status\x18\x01 \x01(\x0e\x32/.rivian.parallax.security.VideoMonitoringStatusH\x00\x88\x01\x01\x12\x36\n\x04mode\x18\x02 \x01(\x0e\x32#.rivian.parallax.security.VideoModeH\x01\x88\x01\x01\x12\x44\n\x0eterms_accepted\x18\x03 \x01(\x0e\x32\'.rivian.parallax.security.TosAcceptanceH\x02\x88\x01\x01\x42\t\n\x07_statusB\x07\n\x05_modeB\x11\n\x0f_terms_accepted*M\n\x0fHardwareFailure\x12 \n\x1cHARDWARE_FAILURE_UNSPECIFIED\x10\x00\x12\x18\n\x14HARDWARE_FAILURE_SET\x10\x01*v\n\x11ImmobilizerStatus\x12\x1c\n\x18IMMOBILIZER_NOT_ASSIGNED\x10\x00\x12\x1e\n\x1aIMMOBILIZER_NOT_AUTHORIZED\x10\x01\x12#\n\x1fIMMOBILIZER_AUTHORIZED_TO_DRIVE\x10\x02*\xfe\x03\n\x16PassiveEntryFailReason\x12\"\n\x1ePASSIVE_ENTRY_FAIL_UNSPECIFIED\x10\x00\x12\x1d\n\x19PASSIVE_ENTRY_NOT_IN_PARK\x10\x01\x12!\n\x1dPASSIVE_ENTRY_AT_HOME_DISABLE\x10\x02\x12#\n\x1fPASSIVE_ENTRY_PASSENGER_IN_SEAT\x10\x03\x12$\n PASSIVE_ENTRY_DEVICE_NOT_ENABLED\x10\x04\x12 \n\x1cPASSIVE_ENTRY_TRANSPORT_MODE\x10\x05\x12\x1f\n\x1bPASSIVE_ENTRY_CAR_WASH_MODE\x10\x06\x12\x1b\n\x17PASSIVE_ENTRY_CAMP_MODE\x10\x07\x12\x1c\n\x18PASSIVE_ENTRY_ACTIVE_OTA\x10\x08\x12$\n PASSIVE_ENTRY_SHOW_AND_TELL_MODE\x10\t\x12#\n\x1fPASSIVE_ENTRY_RCVD_RSSI_PENDING\x10\n\x12#\n\x1fPASSIVE_ENTRY_LOCK_ONLY_AT_HOME\x10\x0b\x12\"\n\x1ePASSIVE_ENTRY_CAR_COSTUME_MODE\x10\x0c\x12!\n\x1dPASSIVE_ENTRY_SLEPT_IMMEDIATE\x10\r*\x9b\x02\n\x14SecureElementFaulted\x12$\n SECURE_ELEMENT_FAULT_UNSPECIFIED\x10\x00\x12\x1d\n\x19SECURE_ELEMENT_NO_FAILURE\x10\x01\x12%\n!SECURE_ELEMENT_LOST_COMMUNICATION\x10\x02\x12(\n$SECURE_ELEMENT_APPLET_NOT_PROGRAMMED\x10\x03\x12!\n\x1dSECURE_ELEMENT_NOT_CONFIGURED\x10\x04\x12!\n\x1dSECURE_ELEMENT_ATTACK_COUNTER\x10\x05\x12\'\n#SECURE_ELEMENT_URSK_DECRYPT_FAILURE\x10\x06*g\n\x10\x41\x63\x63\x65ssCanFaulted\x12 \n\x1c\x41\x43\x43\x45SS_CAN_FAULT_UNSPECIFIED\x10\x00\x12\x19\n\x15\x41\x43\x43\x45SS_CAN_NO_FAILURE\x10\x01\x12\x16\n\x12\x41\x43\x43\x45SS_CAN_FAILURE\x10\x02*|\n\nAlarmSound\x12\x1b\n\x17\x41LARM_SOUND_UNSPECIFIED\x10\x00\x12\x15\n\x11\x41LARM_SOUND_FALSE\x10\x01\x12\x14\n\x10\x41LARM_SOUND_TRUE\x10\x02\x12$\n ALARM_SOUND_SIGNAL_NOT_AVAILABLE\x10\x03*\x9a\x01\n\x15VideoMonitoringStatus\x12\'\n#VIDEO_MONITORING_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n\x19VIDEO_MONITORING_DISABLED\x10\x01\x12\x1c\n\x18VIDEO_MONITORING_ENABLED\x10\x02\x12\x1b\n\x17VIDEO_MONITORING_ACTIVE\x10\x03*Z\n\tVideoMode\x12\x13\n\x0fVIDEO_MODE_NONE\x10\x00\x12\x19\n\x15VIDEO_MODE_EVERYWHERE\x10\x01\x12\x1d\n\x19VIDEO_MODE_AWAY_FROM_HOME\x10\x02*W\n\rTosAcceptance\x12\x1e\n\x1aTOS_ACCEPTANCE_UNSPECIFIED\x10\x00\x12\x14\n\x10TOS_NOT_ACCEPTED\x10\x01\x12\x10\n\x0cTOS_ACCEPTED\x10\x02\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.security_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_HARDWAREFAILURE']._serialized_start=1344
-  _globals['_HARDWAREFAILURE']._serialized_end=1421
-  _globals['_IMMOBILIZERSTATUS']._serialized_start=1423
-  _globals['_IMMOBILIZERSTATUS']._serialized_end=1541
-  _globals['_PASSIVEENTRYFAILREASON']._serialized_start=1544
-  _globals['_PASSIVEENTRYFAILREASON']._serialized_end=2054
-  _globals['_SECUREELEMENTFAULTED']._serialized_start=2057
-  _globals['_SECUREELEMENTFAULTED']._serialized_end=2340
-  _globals['_ACCESSCANFAULTED']._serialized_start=2342
-  _globals['_ACCESSCANFAULTED']._serialized_end=2445
-  _globals['_ALARMSOUND']._serialized_start=2447
-  _globals['_ALARMSOUND']._serialized_end=2571
-  _globals['_VIDEOMONITORINGSTATUS']._serialized_start=2574
-  _globals['_VIDEOMONITORINGSTATUS']._serialized_end=2728
-  _globals['_VIDEOMODE']._serialized_start=2730
-  _globals['_VIDEOMODE']._serialized_end=2820
-  _globals['_TOSACCEPTANCE']._serialized_start=2822
-  _globals['_TOSACCEPTANCE']._serialized_end=2909
+  _globals['_HARDWAREFAILURE']._serialized_start=1295
+  _globals['_HARDWAREFAILURE']._serialized_end=1372
+  _globals['_IMMOBILIZERSTATUS']._serialized_start=1374
+  _globals['_IMMOBILIZERSTATUS']._serialized_end=1492
+  _globals['_PASSIVEENTRYFAILREASON']._serialized_start=1495
+  _globals['_PASSIVEENTRYFAILREASON']._serialized_end=2005
+  _globals['_SECUREELEMENTFAULTED']._serialized_start=2008
+  _globals['_SECUREELEMENTFAULTED']._serialized_end=2291
+  _globals['_ACCESSCANFAULTED']._serialized_start=2293
+  _globals['_ACCESSCANFAULTED']._serialized_end=2396
+  _globals['_ALARMSOUND']._serialized_start=2398
+  _globals['_ALARMSOUND']._serialized_end=2522
+  _globals['_VIDEOMONITORINGSTATUS']._serialized_start=2525
+  _globals['_VIDEOMONITORINGSTATUS']._serialized_end=2679
+  _globals['_VIDEOMODE']._serialized_start=2681
+  _globals['_VIDEOMODE']._serialized_end=2771
+  _globals['_TOSACCEPTANCE']._serialized_start=2773
+  _globals['_TOSACCEPTANCE']._serialized_end=2860
   _globals['_PASSIVEENTRY']._serialized_start=66
   _globals['_PASSIVEENTRY']._serialized_end=80
   _globals['_BTM']._serialized_start=83
@@ -60,7 +60,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_VASFAULT']._serialized_start=697
   _globals['_VASFAULT']._serialized_end=887
   _globals['_ALARMSTATE']._serialized_start=890
-  _globals['_ALARMSTATE']._serialized_end=1082
-  _globals['_VIDEOMONITORINGSTATE']._serialized_start=1085
-  _globals['_VIDEOMONITORINGSTATE']._serialized_end=1342
+  _globals['_ALARMSTATE']._serialized_end=1033
+  _globals['_VIDEOMONITORINGSTATE']._serialized_start=1036
+  _globals['_VIDEOMONITORINGSTATE']._serialized_end=1293
 # @@protoc_insertion_point(module_scope)

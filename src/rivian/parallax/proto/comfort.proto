@@ -7,7 +7,7 @@ package rivian.parallax.comfort;
 // comfort.cabin.hvac_settings_status
 // Requested set point; 63.5 ("HI") while defrost runs.
 message HvacSettingsStatus {
-  optional float target_temperature = 1; // °C
+  float target_temperature = 1; // °C
 }
 
 // comfort.user_modes.state -- unmapped.
@@ -34,17 +34,17 @@ enum PreconditioningStatus {
 
 // comfort.cabin.cabin_temperatures
 message CabinTemperatures {
-  optional float interior_temperature = 3; // °C
-  optional float driver_set_point = 4; // °C; same as HvacSettingsStatus's target
+  float interior_temperature = 3; // °C
+  float driver_set_point = 4; // °C; same as HvacSettingsStatus's target
 }
 
 // comfort.cabin.cabin_ventilation_setting
 message CabinVentilationSetting {
-  optional bool enabled = 1;
-  optional string mode = 2; // "AUTO" | "MANUAL" | "OFF"
-  optional int32 windows_position = 3; // percent open
-  optional int32 sunroof_position = 4; // percent open
-  optional int32 duration = 5; // minutes
+  bool enabled = 1;
+  string mode = 2; // "AUTO" | "MANUAL" | "OFF"
+  int32 windows_position = 3; // percent open
+  int32 sunroof_position = 4; // percent open
+  int32 duration = 5; // minutes
 }
 
 // comfort.cabin.climate_hold_setting
@@ -54,9 +54,9 @@ message ClimateHoldSetting {
 
 // comfort.cabin.climate_hold_status
 message ClimateHoldStatus {
-  optional ClimateHoldStatusValue status = 1;
-  optional ClimateHoldAvailability availability = 2;
-  optional ClimateHoldUnavailabilityReason unavailability_reason = 3;
+  ClimateHoldStatusValue status = 1;
+  ClimateHoldAvailability availability = 2;
+  ClimateHoldUnavailabilityReason unavailability_reason = 3;
   EndTime end_time = 4; // empty when no hold is running
 
   message EndTime {

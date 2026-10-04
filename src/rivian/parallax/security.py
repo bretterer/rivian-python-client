@@ -175,8 +175,8 @@ def decode_alarm_state(m: security_pb2.AlarmState) -> dict[str, Any]:
         "alarmSoundStatus": _enum(
             _ALARM_SOUND_MAP, _present(m, "sound_status"), what="alarm sound status"
         ),
-        "consecutiveAlarmDisabledNotification": _present(
-            m, "consecutive_alarm_disabled_notification"
+        "consecutiveAlarmDisabledNotification": (
+            m.consecutive_alarm_disabled_notification
         ),
     }
 

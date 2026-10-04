@@ -64,6 +64,7 @@ def test_climate_hold_status() -> None:
     assert result == {
         "climateHoldStatus": "on",
         "climateHoldAvailability": "available",
+        "climateHoldUnavailabilityReason": None,
         "climateHoldEndTime": 1790000000,
     }
 
@@ -77,7 +78,7 @@ def test_pet_mode_status_defaults() -> None:
 
 
 def test_seat_conditioning() -> None:
-    """Heat/vent levels combine surface and type; entries without a state skip."""
+    """Heat/vent levels combine surface and type; no state means off."""
     surface = comfort.SeatConditioningStatus.Surface
     heat = comfort.CONDITIONING_HEAT
     result = decode(
@@ -107,4 +108,5 @@ def test_seat_conditioning() -> None:
         "seatFrontLeftHeat": "Level_2",
         "steeringWheelHeat": "Level_1",
         "seatThirdRowRightHeat": "Level_3",
+        "seatRearLeftHeat": "Off",
     }

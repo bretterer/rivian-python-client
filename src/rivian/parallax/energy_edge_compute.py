@@ -70,14 +70,12 @@ def decode_parked_energy_distributions(
         if not m.HasField(field):
             continue
         distribution = getattr(m, field)
-        window: dict[str, float] = {}
-        for measure, measure_key in _ENERGY_DISTRIBUTION_MAP.items():
-            if (v := _present(distribution, measure)) is not None:
-                window[measure_key] = round(v, 4)
-        if (v := _present(distribution, "duration")) is not None:
-            window["duration"] = v
-        if window:
-            result[key] = window
+        window: dict[str, float] = {
+            measure_key: round(getattr(distribution, measure), 4)
+            for measure, measure_key in _ENERGY_DISTRIBUTION_MAP.items()
+        }
+        window["duration"] = distribution.duration
+        result[key] = window
     return result
 
 

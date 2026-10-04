@@ -140,5 +140,5 @@ enum ChargerStatus {
 
 // charging.session.power -- live charging power; empty when not charging.
 message SessionPower {
-  optional float power = 1; // kW
+  float power = 1; // kW
 }

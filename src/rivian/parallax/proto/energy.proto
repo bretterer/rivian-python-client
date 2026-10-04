@@ -34,15 +34,15 @@ message BatteryState {
 
   // The doubles carry float32 precision.
   message ChargeState {
-    optional double soc = 1; // percent
-    optional double pack_energy = 2; // kWh
+    double soc = 1; // percent
+    double pack_energy = 2; // kWh
     optional float range = 3; // km; often absent
   }
 
   message Temperatures {
-    optional float mid = 1; // °C
-    optional float max = 2; // °C
-    optional float min = 3; // °C
+    float mid = 1; // °C
+    float max = 2; // °C
+    float min = 3; // °C
   }
 }
 

@@ -17,9 +17,7 @@ def decode_hvac_settings_status(m: comfort_pb2.HvacSettingsStatus) -> dict[str, 
     Fields:
         hvacTargetTemperature: float (°C; 63.5 = "HI", set while defrosting)
     """
-    if (v := _present(m, "target_temperature")) is None:
-        return {}
-    return {"hvacTargetTemperature": round(v, 1)}
+    return {"hvacTargetTemperature": round(m.target_temperature, 1)}
 
 
 @RVMDecoder.register("comfort.user_modes.state", comfort_pb2.UserModesState)
@@ -132,12 +130,10 @@ def decode_cabin_temperatures(m: comfort_pb2.CabinTemperatures) -> dict[str, Any
         cabinClimateDriverTemperature: float (°C) — set point, same as
             `hvacTargetTemperature`
     """
-    result: dict[str, Any] = {}
-    if (v := _present(m, "interior_temperature")) is not None:
-        result["cabinClimateInteriorTemperature"] = round(v, 1)
-    if (v := _present(m, "driver_set_point")) is not None:
-        result["cabinClimateDriverTemperature"] = round(v, 1)
-    return result
+    return {
+        "cabinClimateInteriorTemperature": round(m.interior_temperature, 1),
+        "cabinClimateDriverTemperature": round(m.driver_set_point, 1),
+    }
 
 
 @RVMDecoder.register(
@@ -146,24 +142,20 @@ def decode_cabin_temperatures(m: comfort_pb2.CabinTemperatures) -> dict[str, Any
 def decode_cabin_ventilation(m: comfort_pb2.CabinVentilationSetting) -> dict[str, Any]:
     """comfort.cabin.cabin_ventilation_setting — passive ventilation settings.
 
-    Fields (each only when sent):
+    Fields:
         cabinVentilationEnabled: bool
-        cabinVentilationMode: str ("AUTO" | "MANUAL" | "OFF")
+        cabinVentilationMode: str | None ("AUTO" | "MANUAL" | "OFF")
         cabinVentilationWindowsPosition: int (percent open)
         cabinVentilationSunroofPosition: int (percent open)
         cabinVentilationDuration: int (minutes)
     """
-    result: dict[str, Any] = {}
-    for field, key in (
-        ("enabled", "cabinVentilationEnabled"),
-        ("mode", "cabinVentilationMode"),
-        ("windows_position", "cabinVentilationWindowsPosition"),
-        ("sunroof_position", "cabinVentilationSunroofPosition"),
-        ("duration", "cabinVentilationDuration"),
-    ):
-        if (v := _present(m, field)) is not None:
-            result[key] = v
-    return result
+    return {
+        "cabinVentilationEnabled": m.enabled,
+        "cabinVentilationMode": m.mode or None,
+        "cabinVentilationWindowsPosition": m.windows_position,
+        "cabinVentilationSunroofPosition": m.sunroof_position,
+        "cabinVentilationDuration": m.duration,
+    }
 
 
 @RVMDecoder.register(
@@ -185,29 +177,26 @@ def decode_climate_hold_status(m: comfort_pb2.ClimateHoldStatus) -> dict[str, An
     Fields:
         climateHoldStatus: str ("off" | "on" | "unavailable" | "fault" | "unspecified")
         climateHoldAvailability: str
-        climateHoldUnavailabilityReason: str (only when not "unspecified")
-        climateHoldEndTime: int (epoch seconds, only while a hold runs)
+        climateHoldUnavailabilityReason: str | None — None when unspecified
+        climateHoldEndTime: int | None (epoch seconds; None unless a hold runs)
     """
-    result: dict[str, Any] = {}
-    if (val := _present(m, "status")) is not None:
-        result["climateHoldStatus"] = _enum(
-            _CLIMATE_HOLD_STATUS_MAP, val, what="climate hold status"
-        )
-    if (val := _present(m, "availability")) is not None:
-        result["climateHoldAvailability"] = _enum(
-            _CLIMATE_HOLD_AVAILABILITY_MAP, val, what="climate hold availability"
-        )
-    if (val := _present(m, "unavailability_reason")) is not None:
-        reason = _enum(
-            _CLIMATE_HOLD_UNAVAILABILITY_REASON_MAP,
-            val,
-            what="climate hold unavailability reason",
-        )
-        if reason != "unspecified":
-            result["climateHoldUnavailabilityReason"] = reason
-    if m.end_time.seconds:
-        result["climateHoldEndTime"] = m.end_time.seconds
-    return result
+    reason = _enum(
+        _CLIMATE_HOLD_UNAVAILABILITY_REASON_MAP,
+        m.unavailability_reason,
+        what="climate hold unavailability reason",
+    )
+    return {
+        "climateHoldStatus": _enum(
+            _CLIMATE_HOLD_STATUS_MAP, m.status, what="climate hold status"
+        ),
+        "climateHoldAvailability": _enum(
+            _CLIMATE_HOLD_AVAILABILITY_MAP,
+            m.availability,
+            what="climate hold availability",
+        ),
+        "climateHoldUnavailabilityReason": None if reason == "unspecified" else reason,
+        "climateHoldEndTime": m.end_time.seconds or None,
+    }
 
 
 @RVMDecoder.register(
@@ -259,13 +248,12 @@ def decode_seat_conditioning(m: comfort_pb2.SeatConditioningStatus) -> dict[str,
         plus <surface>Heat/Vent for any other surface sent (middle seats,
         rearGlass, frontGlass, sideviewMirrors, wiperArea)
 
-    Entries without a state are skipped.
+    A surface sent without a state is off.
     """
     result: dict[str, Any] = {}
     for surface in m.surface:
         surface_id, hvac_type = surface.id, surface.type
-        if (state_val := _present(surface, "state")) is None:
-            continue
+        state_val = _present(surface, "state")
         if surface_id in _CABIN_SURFACE_MAP and hvac_type in _CONDITIONING_TYPE_MAP:
             key = f"{_CABIN_SURFACE_MAP[surface_id]}{_CONDITIONING_TYPE_MAP[hvac_type]}"
             result[key] = _CONDITIONING_LEVEL_MAP.get(state_val, state_val)

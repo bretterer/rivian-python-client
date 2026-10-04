@@ -41,9 +41,9 @@ message DeploymentState {
 
     optional string field_5 = 5; // always empty
     // Seconds; counts down during INSTALL_COUNTDOWN, a static default otherwise.
-    optional int32 time_remaining = 6;
+    int32 time_remaining = 6;
     optional int32 field_7 = 7; // unknown
-    optional int32 update_cycle_count = 8; // increments when an update completes
+    int32 update_cycle_count = 8; // increments when an update completes
     optional int32 field_9 = 9; // unknown; set from SCHEDULED_TO_INSTALL until done
 
     message Progress100 {

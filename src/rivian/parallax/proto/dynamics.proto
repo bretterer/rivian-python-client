@@ -7,8 +7,8 @@ package rivian.parallax.dynamics;
 // dynamics.vehicle.drive_mode
 message DriveMode {
   optional DriveModeValue mode = 1;
-  optional int32 limited_accel_cold = 8; // flag
-  optional int32 limited_regen_cold = 9; // flag
+  int32 limited_accel_cold = 8; // flag
+  int32 limited_regen_cold = 9; // flag
 }
 
 enum DriveModeValue {
@@ -32,7 +32,7 @@ enum DriveModeValue {
 
 // dynamics.vehicle.gear
 message Gear {
-  optional GearValue gear = 1;
+  GearValue gear = 1;
 }
 
 enum GearValue {
@@ -45,18 +45,18 @@ enum GearValue {
 
 // dynamics.vehicle.gnss -- the doubles carry float32 precision.
 message Gnss {
-  optional double latitude = 1;
-  optional double longitude = 2;
-  optional double altitude = 3; // meters
+  double latitude = 1;
+  double longitude = 2;
+  double altitude = 3; // meters
   optional float field_4 = 4; // unmapped; possibly speed (m/s)
-  optional float bearing = 5; // degrees
+  float bearing = 5; // degrees
   // Unmapped. 6 and 7 grow while parked, like position uncertainty; 8 and 9
   // barely move. Possibly the gateway's gnssError fields.
   optional float field_6 = 6;
   optional float field_7 = 7;
   optional float field_8 = 8;
   optional float field_9 = 9;
-  optional int64 time = 10; // epoch milliseconds; time of the whole fix
+  int64 time = 10; // epoch milliseconds; time of the whole fix
 }
 
 // dynamics.vehicle.location
@@ -78,7 +78,7 @@ message Odometer {
 
 // dynamics.vehicle.range
 message Range {
-  optional int32 distance_to_empty = 1; // km
+  int32 distance_to_empty = 1; // km
   optional RangeThreshold threshold = 2;
   optional TemperatureImpact temperature_impact = 3;
 }
@@ -133,8 +133,8 @@ message Efficiency {
   repeated History history = 3;
 
   message History {
-    optional int32 index = 1; // 1-10
-    optional int32 value = 2; // Wh/km
+    int32 index = 1; // 1-10
+    int32 value = 2; // Wh/km
   }
 }
 

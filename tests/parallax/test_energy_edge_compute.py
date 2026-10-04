@@ -23,7 +23,7 @@ def test_cold_weather_soc() -> None:
 
 
 def test_parked_energy_distributions() -> None:
-    """Each window is a nested dict, including its duration in minutes."""
+    """Each window is a nested dict with its duration; unsent measures are 0."""
     window = eec.ParkedEnergyDistributions.EnergyDistribution
     result = decode(
         "energy_edge_compute.graphs.parked_energy_distributions",
@@ -32,13 +32,29 @@ def test_parked_energy_distributions() -> None:
             last_park_session=window(total_energy=0.9, duration=896),
         ),
     )
+    zeros = dict.fromkeys(
+        (
+            "totalEnergy",
+            "thermalEnergy",
+            "outletsEnergy",
+            "systemEnergy",
+            "gearGuardEnergy",
+            "totalRange",
+            "thermalRange",
+            "outletsRange",
+            "systemRange",
+            "gearGuardRange",
+        ),
+        0.0,
+    )
     assert result == {
         "parkedEnergyLast24Hours": {
+            **zeros,
             "totalEnergy": 1.5,
             "totalRange": 5.9524,
             "duration": 1440,
         },
-        "parkedEnergyLastParkSession": {"totalEnergy": 0.9, "duration": 896},
+        "parkedEnergyLastParkSession": {**zeros, "totalEnergy": 0.9, "duration": 896},
     }
 
 
