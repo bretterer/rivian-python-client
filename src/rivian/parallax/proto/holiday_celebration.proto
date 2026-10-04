@@ -24,7 +24,7 @@ message CarCostumeSettings {
 // holiday_celebration.car_costume.state
 // Fields 2, 3 and 6 are unknown.
 message CarCostumeState {
-  optional int32 costume_id = 1; // 0 = none; other ids unmapped
+  int32 costume_id = 1; // 0 = none; other ids unmapped
   optional int32 field_2 = 2;
   optional int32 field_3 = 3;
   optional int32 field_6 = 6;

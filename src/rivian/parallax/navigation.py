@@ -60,8 +60,7 @@ def _decode_origin(origin: TripInfo.Origin) -> dict[str, Any]:
     result = _decode_geocoordinate(
         _present(origin, "location"), "originLatitude", "originLongitude"
     )
-    if (v := _present(origin, "heading")) is not None:
-        result["originHeading"] = v
+    result["originHeading"] = origin.heading
     if (origin_epoch := _present(origin, "time")) is not None:
         result["originTime"] = from_epoch(origin_epoch)
     return result
@@ -93,11 +92,11 @@ def _decode_place(place: TripInfo.Place) -> dict[str, Any]:
                 ("place_type", "placeType"),
                 ("name", "name"),
                 ("place_id", "placeId"),
-                ("soc", "stateOfCharge"),
-                ("range", "rangeRemaining"),
             ),
         )
     )
+    entry["stateOfCharge"] = place.soc
+    entry["rangeRemaining"] = place.range
     if (arrival := _decode_timestamp(_present(place, "arrival"))) is not None:
         entry["arrivalTime"] = arrival
     return entry
@@ -170,17 +169,12 @@ def _decode_categorized_ranges(leg: TripInfo.Leg) -> list[dict[str, Any]]:
 
 def _decode_leg(leg: TripInfo.Leg) -> dict[str, Any]:
     """Decode one route leg."""
-    entry = _copy_present(
-        leg,
-        (
-            ("distance", "distance"),
-            ("duration", "duration"),
-            ("road_label", "roadLabel"),
-            ("polyline", "polyline"),
-        ),
+    entry: dict[str, Any] = {"distance": leg.distance, "duration": leg.duration}
+    entry.update(
+        _copy_present(leg, (("road_label", "roadLabel"), ("polyline", "polyline")))
     )
-    if leg.HasField("energy") and (v := _present(leg.energy, "kwh")) is not None:
-        entry["energyUsed"] = v
+    if leg.HasField("energy"):
+        entry["energyUsed"] = leg.energy.kwh
     # flagged/unflagged_ranges_packed duplicate the index ranges.
     if index_ranges := _decode_index_ranges(leg):
         entry["indexRangeSegments"] = index_ranges
@@ -307,29 +301,15 @@ def decode_trip_progress(m: navigation_pb2.TripProgress) -> dict[str, Any]:
         result["nextWaypointArrivalTime"] = eta
     if (eta := _decode_timestamp(_present(m, "final_destination"))) is not None:
         result["finalDestinationArrivalTime"] = eta
-    result.update(
-        _copy_present(
-            m,
-            (
-                ("distance_remaining", "distanceRemaining"),
-                ("duration_remaining", "durationRemaining"),
-            ),
-        )
-    )
+    result["distanceRemaining"] = m.distance_remaining
+    result["durationRemaining"] = m.duration_remaining
     if m.HasField("location_fix"):
         fix = m.location_fix
         result.update(
             _decode_geocoordinate(_present(fix, "location"), "latitude", "longitude")
         )
-        result.update(
-            _copy_present(
-                fix,
-                (
-                    ("speed", "speed"),
-                    ("heading", "heading"),
-                ),
-            )
-        )
+        result["speed"] = fix.speed
+        result["heading"] = fix.heading
         if (fix_epoch := _present(fix, "time")) is not None:
             result["locationTime"] = from_epoch(fix_epoch)
     return result

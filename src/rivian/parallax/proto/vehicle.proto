@@ -60,31 +60,31 @@ message NetworkState {
   }
 
   message Wifi {
-    optional WpaStatus wpa_status = 1;
+    WpaStatus wpa_status = 1;
     int32 field_2 = 2; // unknown; 2 connected, else 1 or absent
-    optional string ssid = 3;
+    string ssid = 3;
     optional string bssid = 4;       // access point MAC address
     optional string mac_address = 5; // the vehicle's MAC address
     repeated IpAddress ip_addresses = 6;
-    optional ConnectivityLevel antenna_bars = 7;
-    optional int32 signal = 8; // dBm
-    optional int32 link_speed = 9;
-    optional int32 freq = 10;
-    optional WifiSecurity secure_status = 12;
+    ConnectivityLevel antenna_bars = 7;
+    int32 signal = 8; // dBm
+    int32 link_speed = 9;
+    int32 freq = 10;
+    WifiSecurity secure_status = 12;
     int32 field_13 = 13; // unknown; 2 connected, 1 not
     int32 field_14 = 14; // unknown; constant
   }
 
   message IpAddress {
-    optional string ipv4 = 1;
-    optional string ipv6 = 2;
+    string ipv4 = 1;
+    string ipv6 = 2;
   }
 
   message Cellular {
-    optional string carrier = 1;
-    optional string mode = 2;    // e.g. "LTE"
-    optional ConnectivityLevel antenna_bars = 3;
-    optional int32 signal_strength = 4; // dBm
+    string carrier = 1;
+    string mode = 2;    // e.g. "LTE"
+    ConnectivityLevel antenna_bars = 3;
+    int32 signal_strength = 4; // dBm
   }
 }
 

@@ -71,8 +71,8 @@ def decode_drive_mode(m: dynamics_pb2.DriveMode) -> dict[str, Any]:
     """
     return {
         "driveMode": _enum(_DRIVE_MODE_MAP, _present(m, "mode"), what="drive mode"),
-        "limitedAccelCold": _present(m, "limited_accel_cold"),
-        "limitedRegenCold": _present(m, "limited_regen_cold"),
+        "limitedAccelCold": m.limited_accel_cold,
+        "limitedRegenCold": m.limited_regen_cold,
     }
 
 
@@ -83,7 +83,7 @@ def decode_gear(m: dynamics_pb2.Gear) -> dict[str, Any]:
     Fields:
         gearStatus: str
     """
-    return {"gearStatus": _enum(_GEAR_MAP, _present(m, "gear"), what="gear")}
+    return {"gearStatus": _enum(_GEAR_MAP, m.gear, what="gear")}
 
 
 @RVMDecoder.register("dynamics.vehicle.gnss", dynamics_pb2.Gnss)
@@ -97,29 +97,19 @@ def decode_gnss(m: dynamics_pb2.Gnss) -> dict[str, Any]:
         gnssAltitude: float (meters)
         gnssBearing: float (degrees)
     """
-    lat = _present(m, "latitude")
-    lon = _present(m, "longitude")
-    alt = _present(m, "altitude")
-    bearing = _present(m, "bearing")
-    epoch = _present(m, "time")
-    fix_time = from_epoch(epoch) if epoch is not None else None
-
-    result: dict[str, Any] = {}
-    if fix_time is not None:
-        result["gnssTimeStamp"] = fix_time
-    if lat is not None and lon is not None:
-        location: dict[str, Any] = {
-            "latitude": round(lat, 6),
-            "longitude": round(lon, 6),
-        }
-        if fix_time is not None:
-            location["timeStamp"] = fix_time
-        result["gnssLocation"] = location
-    if alt is not None:
-        result["gnssAltitude"] = round(alt, 1)
-    if bearing is not None:
-        result["gnssBearing"] = round(bearing, 1)
-    return result
+    if not m.ByteSize():
+        return {}
+    fix_time = from_epoch(m.time)
+    return {
+        "gnssTimeStamp": fix_time,
+        "gnssLocation": {
+            "latitude": round(m.latitude, 6),
+            "longitude": round(m.longitude, 6),
+            "timeStamp": fix_time,
+        },
+        "gnssAltitude": round(m.altitude, 1),
+        "gnssBearing": round(m.bearing, 1),
+    }
 
 
 @RVMDecoder.register("dynamics.vehicle.location", dynamics_pb2.KnownLocation)
@@ -158,7 +148,7 @@ def decode_range(m: dynamics_pb2.Range) -> dict[str, Any]:
         coldRangeNotification: str
     """
     return {
-        "distanceToEmpty": _present(m, "distance_to_empty"),
+        "distanceToEmpty": m.distance_to_empty,
         "rangeThreshold": _enum(
             _RANGE_THRESHOLD_MAP, _present(m, "threshold"), what="range threshold"
         ),

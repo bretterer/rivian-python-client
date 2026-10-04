@@ -45,9 +45,7 @@ def decode_car_costume_state(
     Fields:
         costumeId: int (0 = none; other ids unmapped)
     """
-    if (v := _present(m, "costume_id")) is None:
-        return {}
-    return {"costumeId": v}
+    return {"costumeId": m.costume_id}
 
 
 # Wrapped HalloweenCelebrationSettings field -> result key.

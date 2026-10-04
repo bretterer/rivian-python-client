@@ -19,17 +19,17 @@ message ParkedEnergyDistributions {
   EnergyDistribution last_park_session = 3;
 
   message EnergyDistribution {
-    optional float total_energy = 1; // kWh
-    optional float thermal_energy = 2; // kWh
-    optional float outlets_energy = 3; // kWh
-    optional float system_energy = 4; // kWh
-    optional float gear_guard_energy = 5; // kWh
-    optional float total_range = 6;
-    optional float thermal_range = 7;
-    optional float outlets_range = 8;
-    optional float system_range = 9;
-    optional float gear_guard_range = 10;
-    optional int32 duration = 11; // minutes; counts up for last_park_session
+    float total_energy = 1; // kWh
+    float thermal_energy = 2; // kWh
+    float outlets_energy = 3; // kWh
+    float system_energy = 4; // kWh
+    float gear_guard_energy = 5; // kWh
+    float total_range = 6;
+    float thermal_range = 7;
+    float outlets_range = 8;
+    float system_range = 9;
+    float gear_guard_range = 10;
+    int32 duration = 11; // minutes; counts up for last_park_session
   }
 }
 

@@ -32,11 +32,9 @@ def test_gnss() -> None:
     }
 
 
-def test_gnss_without_location() -> None:
-    """The fix time is still reported when no lat/lon is sent."""
-    ms = 1790553428211
-    result = decode("dynamics.vehicle.gnss", dynamics.Gnss(altitude=10.0, time=ms))
-    assert result == {"gnssTimeStamp": epoch(ms), "gnssAltitude": 10.0}
+def test_gnss_empty() -> None:
+    """An empty payload has no fix, so nothing is reported."""
+    assert decode("dynamics.vehicle.gnss") == {}
 
 
 def test_drive_mode_and_gear() -> None:

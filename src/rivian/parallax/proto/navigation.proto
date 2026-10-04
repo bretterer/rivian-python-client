@@ -30,7 +30,7 @@ message TripInfo {
 
   message Origin {
     GeoCoordinate location = 1;
-    optional float heading = 3; // degrees
+    float heading = 3; // degrees
     optional int64 time = 5; // epoch milliseconds
   }
 
@@ -66,8 +66,8 @@ message TripInfo {
     optional string name = 4;
     optional string place_id = 5; // Google Place ID, or a Rivian charger ID
 
-    optional double soc = 7; // percent; projected on arrival
-    optional double range = 8; // meters; projected on arrival
+    double soc = 7; // percent; projected on arrival
+    double range = 8; // meters; projected on arrival
     Timestamp arrival = 9;
   }
 
@@ -102,8 +102,8 @@ message TripInfo {
   }
 
   message Leg {
-    optional double distance = 1; // meters
-    optional double duration = 2; // seconds
+    double distance = 1; // meters
+    double duration = 2; // seconds
     optional string road_label = 3; // highway or street name
     optional string polyline = 4;   // Google-encoded
 
@@ -119,7 +119,7 @@ message TripInfo {
     repeated IndexRangeSegment index_range_segment = 10; // not on every leg
 
     message Energy {
-      optional double kwh = 1; // unverified
+      double kwh = 1; // unverified
     }
 
     message CategorizedRangeSegment {
@@ -165,8 +165,8 @@ message TripProgress {
   // waypoints change.
   FinalDestination final_destination = 2;
 
-  optional double distance_remaining = 4; // meters
-  optional double duration_remaining = 5; // seconds
+  double distance_remaining = 4; // meters
+  double duration_remaining = 5; // seconds
 
   LocationFix location_fix = 6;
 
@@ -179,8 +179,8 @@ message TripProgress {
 
   message LocationFix {
     GeoCoordinate location = 1;
-    optional float speed = 2; // m/s
-    optional float heading = 3; // degrees
+    float speed = 2; // m/s
+    float heading = 3; // degrees
     optional int64 time = 5; // epoch milliseconds
   }
 }

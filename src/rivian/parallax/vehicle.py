@@ -106,41 +106,36 @@ _WPA_STATUS_MAP: Final[dict[int, str]] = {
 
 
 def _decode_wifi(wifi: vehicle_pb2.NetworkState.Wifi) -> dict[str, Any]:
-    """Decode NetworkState.wifi."""
-    result: dict[str, Any] = {}
-    if (v := _present(wifi, "wpa_status")) is not None:
-        result["wifiWpaStatus"] = _enum(_WPA_STATUS_MAP, v, what="wifi WPA status")
-    if (v := _present(wifi, "ssid")) is not None:
-        result["wifiSsid"] = v
-    if (v := _present(wifi, "antenna_bars")) is not None:
-        result["wifiAntennaBars"] = _enum(
-            _CONNECTIVITY_LEVEL_MAP, v, what="wifi antenna bars"
-        )
-    if (v := _present(wifi, "signal")) is not None:
-        result["wifiSignal"] = v
-    if (v := _present(wifi, "link_speed")) is not None:
-        result["wifiLinkSpeed"] = v
-    if (v := _present(wifi, "freq")) is not None:
-        result["wifiFreq"] = v
-    if (v := _present(wifi, "secure_status")) is not None:
-        result["wifiSecureStatus"] = _enum(_WIFI_SECURITY_MAP, v, what="wifi security")
-    return result
+    """Decode NetworkState.wifi; unset enums and strings are None."""
+    return {
+        "wifiWpaStatus": _enum(
+            _WPA_STATUS_MAP, wifi.wpa_status or None, what="wifi WPA status"
+        ),
+        "wifiSsid": wifi.ssid or None,
+        "wifiAntennaBars": _enum(
+            _CONNECTIVITY_LEVEL_MAP, wifi.antenna_bars or None, what="wifi antenna bars"
+        ),
+        "wifiSignal": wifi.signal,
+        "wifiLinkSpeed": wifi.link_speed,
+        "wifiFreq": wifi.freq,
+        "wifiSecureStatus": _enum(
+            _WIFI_SECURITY_MAP, wifi.secure_status or None, what="wifi security"
+        ),
+    }
 
 
 def _decode_cellular(cellular: vehicle_pb2.NetworkState.Cellular) -> dict[str, Any]:
-    """Decode NetworkState.cellular."""
-    result: dict[str, Any] = {}
-    if (v := _present(cellular, "carrier")) is not None:
-        result["cellularCarrier"] = v
-    if (v := _present(cellular, "mode")) is not None:
-        result["cellularMode"] = v
-    if (v := _present(cellular, "antenna_bars")) is not None:
-        result["cellularAntennaBars"] = _enum(
-            _CONNECTIVITY_LEVEL_MAP, v, what="cellular antenna bars"
-        )
-    if (v := _present(cellular, "signal_strength")) is not None:
-        result["cellularSignalStrength"] = v
-    return result
+    """Decode NetworkState.cellular; unset enums and strings are None."""
+    return {
+        "cellularCarrier": cellular.carrier or None,
+        "cellularMode": cellular.mode or None,
+        "cellularAntennaBars": _enum(
+            _CONNECTIVITY_LEVEL_MAP,
+            cellular.antenna_bars or None,
+            what="cellular antenna bars",
+        ),
+        "cellularSignalStrength": cellular.signal_strength,
+    }
 
 
 @RVMDecoder.register("vehicle.network.state", vehicle_pb2.NetworkState)

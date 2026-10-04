@@ -40,7 +40,7 @@ message DepartureSchedules {
   }
 
   message ComfortSettings {
-    optional float cabin_temperature = 1; // °C
+    float cabin_temperature = 1; // °C
     DefogDefrostLevel front_defog_defrost = 2;
     SurfaceHeatVentLevels surface_heat_vent_levels = 3;
   }

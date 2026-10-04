@@ -110,13 +110,10 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         and (v := _present(progress.install_progress, "field_2")) is not None
     ):
         result["otaInstallProgress"] = v
-    for field, key in (
-        ("time_remaining", "otaTimeRemaining"),
-        ("update_cycle_count", "otaUpdateCycleCount"),
-        ("field_9", "_otaProgressField9"),
-    ):
-        if (v := _present(progress, field)) is not None:
-            result[key] = v
+    result["otaTimeRemaining"] = progress.time_remaining
+    result["otaUpdateCycleCount"] = progress.update_cycle_count
+    if (v := _present(progress, "field_9")) is not None:
+        result["_otaProgressField9"] = v
     return result
 
 

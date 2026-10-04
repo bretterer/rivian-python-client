@@ -24,25 +24,25 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"rivian/parallax/proto/energy.proto\x12\x16rivian.parallax.energy\"\xde\x01\n\x16\x42\x61tteryCharacteristics\x12\x0f\n\x07\x66ield_1\x18\x01 \x01(\x05\x12?\n\tcell_type\x18\x02 \x01(\x0e\x32\'.rivian.parallax.energy.BatteryCellTypeH\x00\x88\x01\x01\x12\x0f\n\x07\x66ield_3\x18\x03 \x01(\x05\x12\x0f\n\x07\x66ield_4\x18\x04 \x01(\x05\x12\x18\n\x0bpack_energy\x18\x05 \x01(\x02H\x01\x88\x01\x01\x12\x18\n\x10pack_energy_copy\x18\x06 \x01(\x02\x42\x0c\n\n_cell_typeB\x0e\n\x0c_pack_energy\"\xbe\x03\n\x0c\x42\x61tteryState\x12\x46\n\x0c\x63harge_state\x18\x01 \x01(\x0b\x32\x30.rivian.parallax.energy.BatteryState.ChargeState\x12G\n\x0ctemperatures\x18\x02 \x01(\x0b\x32\x31.rivian.parallax.energy.BatteryState.Temperatures\x12\x0f\n\x07\x66ield_3\x18\x03 \x01(\t\x12\x0f\n\x07\x66ield_4\x18\x04 \x01(\x05\x12\x1a\n\rbms_state_raw\x18\x06 \x01(\x05H\x00\x88\x01\x01\x1ao\n\x0b\x43hargeState\x12\x10\n\x03soc\x18\x01 \x01(\x01H\x00\x88\x01\x01\x12\x18\n\x0bpack_energy\x18\x02 \x01(\x01H\x01\x88\x01\x01\x12\x12\n\x05range\x18\x03 \x01(\x02H\x02\x88\x01\x01\x42\x06\n\x04_socB\x0e\n\x0c_pack_energyB\x08\n\x06_range\x1a\\\n\x0cTemperatures\x12\x10\n\x03mid\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x10\n\x03max\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x10\n\x03min\x18\x03 \x01(\x02H\x02\x88\x01\x01\x42\x06\n\x04_midB\x06\n\x04_maxB\x06\n\x04_minB\x10\n\x0e_bms_state_raw\"b\n\x16LowVoltageBatteryState\x12=\n\x06health\x18\x01 \x01(\x0e\x32(.rivian.parallax.energy.LowVoltageHealthH\x00\x88\x01\x01\x42\t\n\x07_health*\x91\x01\n\x0f\x42\x61tteryCellType\x12!\n\x1d\x42\x41TTERY_CELL_TYPE_UNSPECIFIED\x10\x00\x12\x14\n\x10\x42\x41TTERY_CELL_50G\x10\x01\x12\x14\n\x10\x42\x41TTERY_CELL_53G\x10\x02\x12\x15\n\x11\x42\x41TTERY_CELL_G124\x10\x03\x12\x18\n\x14\x42\x41TTERY_CELL_LG_4695\x10\x04*c\n\x10LowVoltageHealth\x12\"\n\x1eLOW_VOLTAGE_HEALTH_UNSPECIFIED\x10\x00\x12\x16\n\x12LOW_VOLTAGE_NORMAL\x10\x01\x12\x13\n\x0fLOW_VOLTAGE_LOW\x10\x02\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"rivian/parallax/proto/energy.proto\x12\x16rivian.parallax.energy\"\xde\x01\n\x16\x42\x61tteryCharacteristics\x12\x0f\n\x07\x66ield_1\x18\x01 \x01(\x05\x12?\n\tcell_type\x18\x02 \x01(\x0e\x32\'.rivian.parallax.energy.BatteryCellTypeH\x00\x88\x01\x01\x12\x0f\n\x07\x66ield_3\x18\x03 \x01(\x05\x12\x0f\n\x07\x66ield_4\x18\x04 \x01(\x05\x12\x18\n\x0bpack_energy\x18\x05 \x01(\x02H\x01\x88\x01\x01\x12\x18\n\x10pack_energy_copy\x18\x06 \x01(\x02\x42\x0c\n\n_cell_typeB\x0e\n\x0c_pack_energy\"\xf5\x02\n\x0c\x42\x61tteryState\x12\x46\n\x0c\x63harge_state\x18\x01 \x01(\x0b\x32\x30.rivian.parallax.energy.BatteryState.ChargeState\x12G\n\x0ctemperatures\x18\x02 \x01(\x0b\x32\x31.rivian.parallax.energy.BatteryState.Temperatures\x12\x0f\n\x07\x66ield_3\x18\x03 \x01(\t\x12\x0f\n\x07\x66ield_4\x18\x04 \x01(\x05\x12\x1a\n\rbms_state_raw\x18\x06 \x01(\x05H\x00\x88\x01\x01\x1aM\n\x0b\x43hargeState\x12\x0b\n\x03soc\x18\x01 \x01(\x01\x12\x13\n\x0bpack_energy\x18\x02 \x01(\x01\x12\x12\n\x05range\x18\x03 \x01(\x02H\x00\x88\x01\x01\x42\x08\n\x06_range\x1a\x35\n\x0cTemperatures\x12\x0b\n\x03mid\x18\x01 \x01(\x02\x12\x0b\n\x03max\x18\x02 \x01(\x02\x12\x0b\n\x03min\x18\x03 \x01(\x02\x42\x10\n\x0e_bms_state_raw\"b\n\x16LowVoltageBatteryState\x12=\n\x06health\x18\x01 \x01(\x0e\x32(.rivian.parallax.energy.LowVoltageHealthH\x00\x88\x01\x01\x42\t\n\x07_health*\x91\x01\n\x0f\x42\x61tteryCellType\x12!\n\x1d\x42\x41TTERY_CELL_TYPE_UNSPECIFIED\x10\x00\x12\x14\n\x10\x42\x41TTERY_CELL_50G\x10\x01\x12\x14\n\x10\x42\x41TTERY_CELL_53G\x10\x02\x12\x15\n\x11\x42\x41TTERY_CELL_G124\x10\x03\x12\x18\n\x14\x42\x41TTERY_CELL_LG_4695\x10\x04*c\n\x10LowVoltageHealth\x12\"\n\x1eLOW_VOLTAGE_HEALTH_UNSPECIFIED\x10\x00\x12\x16\n\x12LOW_VOLTAGE_NORMAL\x10\x01\x12\x13\n\x0fLOW_VOLTAGE_LOW\x10\x02\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.energy_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_BATTERYCELLTYPE']._serialized_start=837
-  _globals['_BATTERYCELLTYPE']._serialized_end=982
-  _globals['_LOWVOLTAGEHEALTH']._serialized_start=984
-  _globals['_LOWVOLTAGEHEALTH']._serialized_end=1083
+  _globals['_BATTERYCELLTYPE']._serialized_start=764
+  _globals['_BATTERYCELLTYPE']._serialized_end=909
+  _globals['_LOWVOLTAGEHEALTH']._serialized_start=911
+  _globals['_LOWVOLTAGEHEALTH']._serialized_end=1010
   _globals['_BATTERYCHARACTERISTICS']._serialized_start=63
   _globals['_BATTERYCHARACTERISTICS']._serialized_end=285
   _globals['_BATTERYSTATE']._serialized_start=288
-  _globals['_BATTERYSTATE']._serialized_end=734
+  _globals['_BATTERYSTATE']._serialized_end=661
   _globals['_BATTERYSTATE_CHARGESTATE']._serialized_start=511
-  _globals['_BATTERYSTATE_CHARGESTATE']._serialized_end=622
-  _globals['_BATTERYSTATE_TEMPERATURES']._serialized_start=624
-  _globals['_BATTERYSTATE_TEMPERATURES']._serialized_end=716
-  _globals['_LOWVOLTAGEBATTERYSTATE']._serialized_start=736
-  _globals['_LOWVOLTAGEBATTERYSTATE']._serialized_end=834
+  _globals['_BATTERYSTATE_CHARGESTATE']._serialized_end=588
+  _globals['_BATTERYSTATE_TEMPERATURES']._serialized_start=590
+  _globals['_BATTERYSTATE_TEMPERATURES']._serialized_end=643
+  _globals['_LOWVOLTAGEBATTERYSTATE']._serialized_start=663
+  _globals['_LOWVOLTAGEBATTERYSTATE']._serialized_end=761
 # @@protoc_insertion_point(module_scope)
