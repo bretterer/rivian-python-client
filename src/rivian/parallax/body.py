@@ -196,7 +196,7 @@ def decode_wiper_fluid_level(m: body_pb2.WiperFluidLevel) -> dict[str, Any]:
     """body.wipers.fluid_level — washer fluid level.
 
     Fields:
-        _wiperFluidLevel: int — raw (1 so far, presumably normal)
+        _wiperFluidLevel: int — raw
     """
     if (v := _present(m, "field_2")) is None:
         return {}

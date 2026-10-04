@@ -72,7 +72,7 @@ def decode_halloween_celebration_settings(
 ) -> dict[str, Any]:
     """holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings.
 
-    Names come from the app; most fields have only been sent empty.
+    Names come from the app.
 
     Fields (each only when set):
         halloweenCostumeTheme: str

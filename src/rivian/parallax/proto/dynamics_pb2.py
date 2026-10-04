@@ -24,49 +24,49 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/dynamics.proto\x12\x18rivian.parallax.dynamics\"\x89\x01\n\tDriveMode\x12;\n\x04mode\x18\x01 \x01(\x0e\x32(.rivian.parallax.dynamics.DriveModeValueH\x00\x88\x01\x01\x12\x1a\n\x12limited_accel_cold\x18\x08 \x01(\x05\x12\x1a\n\x12limited_regen_cold\x18\t \x01(\x05\x42\x07\n\x05_mode\"9\n\x04Gear\x12\x31\n\x04gear\x18\x01 \x01(\x0e\x32#.rivian.parallax.dynamics.GearValue\"\x86\x02\n\x04Gnss\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\x12\x10\n\x08\x61ltitude\x18\x03 \x01(\x01\x12\x14\n\x07\x66ield_4\x18\x04 \x01(\x02H\x00\x88\x01\x01\x12\x0f\n\x07\x62\x65\x61ring\x18\x05 \x01(\x02\x12\x14\n\x07\x66ield_6\x18\x06 \x01(\x02H\x01\x88\x01\x01\x12\x14\n\x07\x66ield_7\x18\x07 \x01(\x02H\x02\x88\x01\x01\x12\x14\n\x07\x66ield_8\x18\x08 \x01(\x02H\x03\x88\x01\x01\x12\x14\n\x07\x66ield_9\x18\t \x01(\x02H\x04\x88\x01\x01\x12\x0c\n\x04time\x18\n \x01(\x03\x42\n\n\x08_field_4B\n\n\x08_field_6B\n\n\x08_field_7B\n\n\x08_field_8B\n\n\x08_field_9\"a\n\rKnownLocation\x12\x43\n\x08location\x18\x01 \x01(\x0e\x32,.rivian.parallax.dynamics.KnownLocationValueH\x00\x88\x01\x01\x42\x0b\n\t_location\".\n\x08Odometer\x12\x15\n\x08\x64istance\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\x0b\n\t_distance\"\xd7\x01\n\x05Range\x12\x19\n\x11\x64istance_to_empty\x18\x01 \x01(\x05\x12@\n\tthreshold\x18\x02 \x01(\x0e\x32(.rivian.parallax.dynamics.RangeThresholdH\x00\x88\x01\x01\x12L\n\x12temperature_impact\x18\x03 \x01(\x0e\x32+.rivian.parallax.dynamics.TemperatureImpactH\x01\x88\x01\x01\x42\x0c\n\n_thresholdB\x15\n\x13_temperature_impact\"\xaa\x02\n\nTiresState\x12\x0f\n\x07\x66ield_1\x18\x01 \x01(\x05\x12\x37\n\x04tire\x18\x02 \x03(\x0b\x32).rivian.parallax.dynamics.TiresState.Tire\x1a\xd1\x01\n\x04Tire\x12\x33\n\x03pos\x18\x01 \x01(\x0e\x32&.rivian.parallax.dynamics.TirePosition\x12\x41\n\x06status\x18\x02 \x01(\x0e\x32,.rivian.parallax.dynamics.TirePressureStatusH\x00\x88\x01\x01\x12\x15\n\x08pressure\x18\x03 \x01(\x01H\x01\x88\x01\x01\x12\x0f\n\x07invalid\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x42\t\n\x07_statusB\x0b\n\t_pressure\"\xbe\x01\n\nEfficiency\x12\x17\n\nefficiency\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x14\n\x07\x66ield_2\x18\x02 \x01(\x05H\x01\x88\x01\x01\x12=\n\x07history\x18\x03 \x03(\x0b\x32,.rivian.parallax.dynamics.Efficiency.History\x1a\'\n\x07History\x12\r\n\x05index\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x05\x42\r\n\x0b_efficiencyB\n\n\x08_field_2\"*\n\x0cMassEstimate\x12\x11\n\x04mass\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\x07\n\x05_mass\"3\n\x0f\x42rakeFluidLevel\x12\x14\n\x07\x66ield_1\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\n\n\x08_field_1*\xcd\x03\n\x0e\x44riveModeValue\x12\x1a\n\x16\x44RIVE_MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0f\x44RIVE_MODE_INIT\x10\x01\x12\x17\n\x13\x44RIVE_MODE_EVERYDAY\x10\x02\x12 \n\x1c\x44RIVE_MODE_OFF_ROAD_SNOW_ICE\x10\x03\x12\"\n\x1e\x44RIVE_MODE_OFF_ROAD_SPORT_AUTO\x10\x04\x12#\n\x1f\x44RIVE_MODE_OFF_ROAD_SPORT_DRIFT\x10\x05\x12\x1b\n\x17\x44RIVE_MODE_SPORT_LAUNCH\x10\x06\x12\x14\n\x10\x44RIVE_MODE_FAULT\x10\x07\x12\x14\n\x10\x44RIVE_MODE_SPORT\x10\x08\x12\x17\n\x13\x44RIVE_MODE_DISTANCE\x10\t\x12\x15\n\x11\x44RIVE_MODE_TOWING\x10\n\x12\x1c\n\x18\x44RIVE_MODE_OFF_ROAD_AUTO\x10\x0b\x12\x1c\n\x18\x44RIVE_MODE_OFF_ROAD_SAND\x10\x0c\x12\x1d\n\x19\x44RIVE_MODE_OFF_ROAD_ROCKS\x10\r\x12\x1b\n\x17\x44RIVE_MODE_OFF_ROAD_MUD\x10\x0e\x12\x15\n\x11\x44RIVE_MODE_WINTER\x10\x0f*d\n\tGearValue\x12\x14\n\x10GEAR_NOT_DEFINED\x10\x00\x12\r\n\tGEAR_PARK\x10\x01\x12\x10\n\x0cGEAR_REVERSE\x10\x02\x12\x10\n\x0cGEAR_NEUTRAL\x10\x03\x12\x0e\n\nGEAR_DRIVE\x10\x04*\x82\x01\n\x12KnownLocationValue\x12\x1e\n\x1aKNOWN_LOCATION_UNSPECIFIED\x10\x00\x12\x1a\n\x16KNOWN_LOCATION_UNKNOWN\x10\x01\x12\x17\n\x13KNOWN_LOCATION_HOME\x10\x02\x12\x17\n\x13KNOWN_LOCATION_WORK\x10\x03*{\n\x0eRangeThreshold\x12\x1f\n\x1bRANGE_THRESHOLD_UNSPECIFIED\x10\x00\x12\x10\n\x0cRANGE_NORMAL\x10\x01\x12\r\n\tRANGE_LOW\x10\x02\x12\r\n\tRANGE_RED\x10\x03\x12\x18\n\x14RANGE_CRITICALLY_LOW\x10\x04*\x93\x01\n\x11TemperatureImpact\x12\"\n\x1eTEMPERATURE_IMPACT_UNSPECIFIED\x10\x00\x12\x1c\n\x18TEMPERATURE_NORMAL_RANGE\x10\x01\x12\x1f\n\x1bTEMPERATURE_COLD_MAY_IMPACT\x10\x02\x12\x1b\n\x17TEMPERATURE_COLD_IMPACT\x10\x03*\x81\x01\n\x0cTirePosition\x12\x1d\n\x19TIRE_POSITION_UNSPECIFIED\x10\x00\x12\x13\n\x0fTIRE_FRONT_LEFT\x10\x01\x12\x14\n\x10TIRE_FRONT_RIGHT\x10\x02\x12\x12\n\x0eTIRE_REAR_LEFT\x10\x03\x12\x13\n\x0fTIRE_REAR_RIGHT\x10\x04*k\n\x12TirePressureStatus\x12$\n TIRE_PRESSURE_STATUS_UNSPECIFIED\x10\x00\x12\x14\n\x10TIRE_PRESSURE_OK\x10\x01\x12\x19\n\x15TIRE_PRESSURE_WARNING\x10\x02\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/dynamics.proto\x12\x18rivian.parallax.dynamics\"\x89\x01\n\tDriveMode\x12;\n\x04mode\x18\x01 \x01(\x0e\x32(.rivian.parallax.dynamics.DriveModeValueH\x00\x88\x01\x01\x12\x1a\n\x12limited_accel_cold\x18\x08 \x01(\x05\x12\x1a\n\x12limited_regen_cold\x18\t \x01(\x05\x42\x07\n\x05_mode\"9\n\x04Gear\x12\x31\n\x04gear\x18\x01 \x01(\x0e\x32#.rivian.parallax.dynamics.GearValue\"\xdb\x01\n\x04Gnss\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\x12\x10\n\x08\x61ltitude\x18\x03 \x01(\x01\x12\r\n\x05speed\x18\x04 \x01(\x02\x12\x0f\n\x07\x62\x65\x61ring\x18\x05 \x01(\x02\x12!\n\x19position_horizontal_error\x18\x06 \x01(\x02\x12\x1f\n\x17position_vertical_error\x18\x07 \x01(\x02\x12\x13\n\x0bspeed_error\x18\x08 \x01(\x02\x12\x15\n\rbearing_error\x18\t \x01(\x02\x12\x0c\n\x04time\x18\n \x01(\x03\"a\n\rKnownLocation\x12\x43\n\x08location\x18\x01 \x01(\x0e\x32,.rivian.parallax.dynamics.KnownLocationValueH\x00\x88\x01\x01\x42\x0b\n\t_location\".\n\x08Odometer\x12\x15\n\x08\x64istance\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\x0b\n\t_distance\"\xd7\x01\n\x05Range\x12\x19\n\x11\x64istance_to_empty\x18\x01 \x01(\x05\x12@\n\tthreshold\x18\x02 \x01(\x0e\x32(.rivian.parallax.dynamics.RangeThresholdH\x00\x88\x01\x01\x12L\n\x12temperature_impact\x18\x03 \x01(\x0e\x32+.rivian.parallax.dynamics.TemperatureImpactH\x01\x88\x01\x01\x42\x0c\n\n_thresholdB\x15\n\x13_temperature_impact\"\xaa\x02\n\nTiresState\x12\x0f\n\x07\x66ield_1\x18\x01 \x01(\x05\x12\x37\n\x04tire\x18\x02 \x03(\x0b\x32).rivian.parallax.dynamics.TiresState.Tire\x1a\xd1\x01\n\x04Tire\x12\x33\n\x03pos\x18\x01 \x01(\x0e\x32&.rivian.parallax.dynamics.TirePosition\x12\x41\n\x06status\x18\x02 \x01(\x0e\x32,.rivian.parallax.dynamics.TirePressureStatusH\x00\x88\x01\x01\x12\x15\n\x08pressure\x18\x03 \x01(\x01H\x01\x88\x01\x01\x12\x0f\n\x07invalid\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x42\t\n\x07_statusB\x0b\n\t_pressure\"\xbe\x01\n\nEfficiency\x12\x17\n\nefficiency\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x14\n\x07\x66ield_2\x18\x02 \x01(\x05H\x01\x88\x01\x01\x12=\n\x07history\x18\x03 \x03(\x0b\x32,.rivian.parallax.dynamics.Efficiency.History\x1a\'\n\x07History\x12\r\n\x05index\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x05\x42\r\n\x0b_efficiencyB\n\n\x08_field_2\"*\n\x0cMassEstimate\x12\x11\n\x04mass\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\x07\n\x05_mass\"3\n\x0f\x42rakeFluidLevel\x12\x14\n\x07\x66ield_1\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\n\n\x08_field_1*\xcd\x03\n\x0e\x44riveModeValue\x12\x1a\n\x16\x44RIVE_MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0f\x44RIVE_MODE_INIT\x10\x01\x12\x17\n\x13\x44RIVE_MODE_EVERYDAY\x10\x02\x12 \n\x1c\x44RIVE_MODE_OFF_ROAD_SNOW_ICE\x10\x03\x12\"\n\x1e\x44RIVE_MODE_OFF_ROAD_SPORT_AUTO\x10\x04\x12#\n\x1f\x44RIVE_MODE_OFF_ROAD_SPORT_DRIFT\x10\x05\x12\x1b\n\x17\x44RIVE_MODE_SPORT_LAUNCH\x10\x06\x12\x14\n\x10\x44RIVE_MODE_FAULT\x10\x07\x12\x14\n\x10\x44RIVE_MODE_SPORT\x10\x08\x12\x17\n\x13\x44RIVE_MODE_DISTANCE\x10\t\x12\x15\n\x11\x44RIVE_MODE_TOWING\x10\n\x12\x1c\n\x18\x44RIVE_MODE_OFF_ROAD_AUTO\x10\x0b\x12\x1c\n\x18\x44RIVE_MODE_OFF_ROAD_SAND\x10\x0c\x12\x1d\n\x19\x44RIVE_MODE_OFF_ROAD_ROCKS\x10\r\x12\x1b\n\x17\x44RIVE_MODE_OFF_ROAD_MUD\x10\x0e\x12\x15\n\x11\x44RIVE_MODE_WINTER\x10\x0f*d\n\tGearValue\x12\x14\n\x10GEAR_NOT_DEFINED\x10\x00\x12\r\n\tGEAR_PARK\x10\x01\x12\x10\n\x0cGEAR_REVERSE\x10\x02\x12\x10\n\x0cGEAR_NEUTRAL\x10\x03\x12\x0e\n\nGEAR_DRIVE\x10\x04*\x82\x01\n\x12KnownLocationValue\x12\x1e\n\x1aKNOWN_LOCATION_UNSPECIFIED\x10\x00\x12\x1a\n\x16KNOWN_LOCATION_UNKNOWN\x10\x01\x12\x17\n\x13KNOWN_LOCATION_HOME\x10\x02\x12\x17\n\x13KNOWN_LOCATION_WORK\x10\x03*{\n\x0eRangeThreshold\x12\x1f\n\x1bRANGE_THRESHOLD_UNSPECIFIED\x10\x00\x12\x10\n\x0cRANGE_NORMAL\x10\x01\x12\r\n\tRANGE_LOW\x10\x02\x12\r\n\tRANGE_RED\x10\x03\x12\x18\n\x14RANGE_CRITICALLY_LOW\x10\x04*\x93\x01\n\x11TemperatureImpact\x12\"\n\x1eTEMPERATURE_IMPACT_UNSPECIFIED\x10\x00\x12\x1c\n\x18TEMPERATURE_NORMAL_RANGE\x10\x01\x12\x1f\n\x1bTEMPERATURE_COLD_MAY_IMPACT\x10\x02\x12\x1b\n\x17TEMPERATURE_COLD_IMPACT\x10\x03*\x81\x01\n\x0cTirePosition\x12\x1d\n\x19TIRE_POSITION_UNSPECIFIED\x10\x00\x12\x13\n\x0fTIRE_FRONT_LEFT\x10\x01\x12\x14\n\x10TIRE_FRONT_RIGHT\x10\x02\x12\x12\n\x0eTIRE_REAR_LEFT\x10\x03\x12\x13\n\x0fTIRE_REAR_RIGHT\x10\x04*k\n\x12TirePressureStatus\x12$\n TIRE_PRESSURE_STATUS_UNSPECIFIED\x10\x00\x12\x14\n\x10TIRE_PRESSURE_OK\x10\x01\x12\x19\n\x15TIRE_PRESSURE_WARNING\x10\x02\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.dynamics_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_DRIVEMODEVALUE']._serialized_start=1487
-  _globals['_DRIVEMODEVALUE']._serialized_end=1948
-  _globals['_GEARVALUE']._serialized_start=1950
-  _globals['_GEARVALUE']._serialized_end=2050
-  _globals['_KNOWNLOCATIONVALUE']._serialized_start=2053
-  _globals['_KNOWNLOCATIONVALUE']._serialized_end=2183
-  _globals['_RANGETHRESHOLD']._serialized_start=2185
-  _globals['_RANGETHRESHOLD']._serialized_end=2308
-  _globals['_TEMPERATUREIMPACT']._serialized_start=2311
-  _globals['_TEMPERATUREIMPACT']._serialized_end=2458
-  _globals['_TIREPOSITION']._serialized_start=2461
-  _globals['_TIREPOSITION']._serialized_end=2590
-  _globals['_TIREPRESSURESTATUS']._serialized_start=2592
-  _globals['_TIREPRESSURESTATUS']._serialized_end=2699
+  _globals['_DRIVEMODEVALUE']._serialized_start=1444
+  _globals['_DRIVEMODEVALUE']._serialized_end=1905
+  _globals['_GEARVALUE']._serialized_start=1907
+  _globals['_GEARVALUE']._serialized_end=2007
+  _globals['_KNOWNLOCATIONVALUE']._serialized_start=2010
+  _globals['_KNOWNLOCATIONVALUE']._serialized_end=2140
+  _globals['_RANGETHRESHOLD']._serialized_start=2142
+  _globals['_RANGETHRESHOLD']._serialized_end=2265
+  _globals['_TEMPERATUREIMPACT']._serialized_start=2268
+  _globals['_TEMPERATUREIMPACT']._serialized_end=2415
+  _globals['_TIREPOSITION']._serialized_start=2418
+  _globals['_TIREPOSITION']._serialized_end=2547
+  _globals['_TIREPRESSURESTATUS']._serialized_start=2549
+  _globals['_TIREPRESSURESTATUS']._serialized_end=2656
   _globals['_DRIVEMODE']._serialized_start=67
   _globals['_DRIVEMODE']._serialized_end=204
   _globals['_GEAR']._serialized_start=206
   _globals['_GEAR']._serialized_end=263
   _globals['_GNSS']._serialized_start=266
-  _globals['_GNSS']._serialized_end=528
-  _globals['_KNOWNLOCATION']._serialized_start=530
-  _globals['_KNOWNLOCATION']._serialized_end=627
-  _globals['_ODOMETER']._serialized_start=629
-  _globals['_ODOMETER']._serialized_end=675
-  _globals['_RANGE']._serialized_start=678
-  _globals['_RANGE']._serialized_end=893
-  _globals['_TIRESSTATE']._serialized_start=896
-  _globals['_TIRESSTATE']._serialized_end=1194
-  _globals['_TIRESSTATE_TIRE']._serialized_start=985
-  _globals['_TIRESSTATE_TIRE']._serialized_end=1194
-  _globals['_EFFICIENCY']._serialized_start=1197
-  _globals['_EFFICIENCY']._serialized_end=1387
-  _globals['_EFFICIENCY_HISTORY']._serialized_start=1321
-  _globals['_EFFICIENCY_HISTORY']._serialized_end=1360
-  _globals['_MASSESTIMATE']._serialized_start=1389
-  _globals['_MASSESTIMATE']._serialized_end=1431
-  _globals['_BRAKEFLUIDLEVEL']._serialized_start=1433
-  _globals['_BRAKEFLUIDLEVEL']._serialized_end=1484
+  _globals['_GNSS']._serialized_end=485
+  _globals['_KNOWNLOCATION']._serialized_start=487
+  _globals['_KNOWNLOCATION']._serialized_end=584
+  _globals['_ODOMETER']._serialized_start=586
+  _globals['_ODOMETER']._serialized_end=632
+  _globals['_RANGE']._serialized_start=635
+  _globals['_RANGE']._serialized_end=850
+  _globals['_TIRESSTATE']._serialized_start=853
+  _globals['_TIRESSTATE']._serialized_end=1151
+  _globals['_TIRESSTATE_TIRE']._serialized_start=942
+  _globals['_TIRESSTATE_TIRE']._serialized_end=1151
+  _globals['_EFFICIENCY']._serialized_start=1154
+  _globals['_EFFICIENCY']._serialized_end=1344
+  _globals['_EFFICIENCY_HISTORY']._serialized_start=1278
+  _globals['_EFFICIENCY_HISTORY']._serialized_end=1317
+  _globals['_MASSESTIMATE']._serialized_start=1346
+  _globals['_MASSESTIMATE']._serialized_end=1388
+  _globals['_BRAKEFLUIDLEVEL']._serialized_start=1390
+  _globals['_BRAKEFLUIDLEVEL']._serialized_end=1441
 # @@protoc_insertion_point(module_scope)

@@ -8,7 +8,7 @@ from .helpers import decode, epoch
 
 
 def test_gnss() -> None:
-    """The fix time applies to the whole message and is repeated on the location."""
+    """The fix time applies to the whole message, repeated on location and error."""
     ms = 1790553428211
     result = decode(
         "dynamics.vehicle.gnss",
@@ -17,6 +17,11 @@ def test_gnss() -> None:
             longitude=-80.1465,
             altitude=1630.12,
             bearing=254.1,
+            speed=22.84,
+            position_horizontal_error=1.5,
+            position_vertical_error=0.8,
+            speed_error=0.1,
+            bearing_error=0.6,
             time=ms,
         ),
     )
@@ -29,6 +34,14 @@ def test_gnss() -> None:
         },
         "gnssAltitude": 1630.1,
         "gnssBearing": 254.1,
+        "gnssSpeed": 22.84,
+        "gnssError": {
+            "timeStamp": epoch(ms),
+            "positionVertical": 0.8,
+            "positionHorizontal": 1.5,
+            "speed": 0.1,
+            "bearing": 0.6,
+        },
     }
 
 

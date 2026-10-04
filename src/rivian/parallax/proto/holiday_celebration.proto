@@ -5,7 +5,7 @@ package rivian.parallax.holiday_celebration;
 // Reverse-engineered `holiday_celebration.*` RVM payloads; see ../holiday_celebration.py.
 
 // holiday_celebration.car_costume.holiday_celebration_enabled
-// Unmapped; empty so far.
+// Unmapped.
 message HolidayCelebrationEnabled {}
 
 // holiday_celebration.car_costume.settings
@@ -31,7 +31,7 @@ message CarCostumeState {
 }
 
 // holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings
-// Names from the app; most fields have only been sent empty.
+// Names from the app.
 message HalloweenCelebrationSettings {
   CostumeTheme costume_theme = 1;
   Int32Value sound_volume = 2;

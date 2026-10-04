@@ -45,7 +45,7 @@ def decode_vas_keyper_devices(m: device_table_pb2.VasKeyperDevices) -> dict[str,
             deleted keys
         infoC: int — 1 while active, 2147483647 while inactive, else the
             pairing attempt number
-        infoA, infoB: int — unknown; always equal
+        infoA, infoB: int — unknown
         deviceId: str — hex; for a key card, the GraphQL `devices[].id`
         phoneId: str — the phone's UUID; phone keys
         credentialHex: str — hex; likely key material

@@ -129,28 +129,28 @@ class Gear(_message.Message):
     def __init__(self, gear: _Optional[_Union[GearValue, str]] = ...) -> None: ...
 
 class Gnss(_message.Message):
-    __slots__ = ("latitude", "longitude", "altitude", "field_4", "bearing", "field_6", "field_7", "field_8", "field_9", "time")
+    __slots__ = ("latitude", "longitude", "altitude", "speed", "bearing", "position_horizontal_error", "position_vertical_error", "speed_error", "bearing_error", "time")
     LATITUDE_FIELD_NUMBER: _ClassVar[int]
     LONGITUDE_FIELD_NUMBER: _ClassVar[int]
     ALTITUDE_FIELD_NUMBER: _ClassVar[int]
-    FIELD_4_FIELD_NUMBER: _ClassVar[int]
+    SPEED_FIELD_NUMBER: _ClassVar[int]
     BEARING_FIELD_NUMBER: _ClassVar[int]
-    FIELD_6_FIELD_NUMBER: _ClassVar[int]
-    FIELD_7_FIELD_NUMBER: _ClassVar[int]
-    FIELD_8_FIELD_NUMBER: _ClassVar[int]
-    FIELD_9_FIELD_NUMBER: _ClassVar[int]
+    POSITION_HORIZONTAL_ERROR_FIELD_NUMBER: _ClassVar[int]
+    POSITION_VERTICAL_ERROR_FIELD_NUMBER: _ClassVar[int]
+    SPEED_ERROR_FIELD_NUMBER: _ClassVar[int]
+    BEARING_ERROR_FIELD_NUMBER: _ClassVar[int]
     TIME_FIELD_NUMBER: _ClassVar[int]
     latitude: float
     longitude: float
     altitude: float
-    field_4: float
+    speed: float
     bearing: float
-    field_6: float
-    field_7: float
-    field_8: float
-    field_9: float
+    position_horizontal_error: float
+    position_vertical_error: float
+    speed_error: float
+    bearing_error: float
     time: int
-    def __init__(self, latitude: _Optional[float] = ..., longitude: _Optional[float] = ..., altitude: _Optional[float] = ..., field_4: _Optional[float] = ..., bearing: _Optional[float] = ..., field_6: _Optional[float] = ..., field_7: _Optional[float] = ..., field_8: _Optional[float] = ..., field_9: _Optional[float] = ..., time: _Optional[int] = ...) -> None: ...
+    def __init__(self, latitude: _Optional[float] = ..., longitude: _Optional[float] = ..., altitude: _Optional[float] = ..., speed: _Optional[float] = ..., bearing: _Optional[float] = ..., position_horizontal_error: _Optional[float] = ..., position_vertical_error: _Optional[float] = ..., speed_error: _Optional[float] = ..., bearing_error: _Optional[float] = ..., time: _Optional[int] = ...) -> None: ...
 
 class KnownLocation(_message.Message):
     __slots__ = ("location",)

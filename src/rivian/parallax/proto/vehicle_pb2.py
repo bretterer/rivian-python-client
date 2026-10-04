@@ -24,21 +24,23 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#rivian/parallax/proto/vehicle.proto\x12\x17rivian.parallax.vehicle\"S\n\x11\x41\x63tiveUserProfile\x12#\n\x16\x61\x63tive_user_profile_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x19\n\x17_active_user_profile_id\"V\n\x11VehiclePowerState\x12\x37\n\x05state\x18\x01 \x01(\x0e\x32#.rivian.parallax.vehicle.PowerStateH\x00\x88\x01\x01\x42\x08\n\x06_state\"\xc6\x03\n\rVehicleWheels\x12;\n\x05wheel\x18\x01 \x03(\x0b\x32,.rivian.parallax.vehicle.VehicleWheels.Wheel\x1a\xf7\x02\n\x05Wheel\x12\x15\n\rwheel_package\x18\x01 \x01(\x05\x12\x15\n\rtire_odometer\x18\x02 \x01(\x03\x12!\n\x19saved_tire_odometer_delta\x18\x03 \x01(\x03\x12!\n\x19odometer_at_last_rotation\x18\x04 \x01(\x03\x12-\n%saved_odometer_at_last_rotation_delta\x18\x05 \x01(\x03\x12\"\n\x1arotation_reminder_interval\x18\x06 \x01(\x03\x12\x14\n\x0cis_installed\x18\x07 \x01(\x08\x12J\n\nupdated_at\x18\x08 \x01(\x0b\x32\x36.rivian.parallax.vehicle.VehicleWheels.Wheel.UpdatedAt\x12\r\n\x05tires\x18\t \x01(\x05\x12\x18\n\x10\x63urrent_odometer\x18\n \x01(\x03\x1a\x1c\n\tUpdatedAt\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\"\x9b\x07\n\x0cNetworkState\x12\x0f\n\x07\x66ield_1\x18\x01 \x01(\x05\x12I\n\ninterfaces\x18\x02 \x03(\x0b\x32\x35.rivian.parallax.vehicle.NetworkState.InterfaceStatus\x12\x0f\n\x07\x66ield_3\x18\x03 \x01(\x05\x12\x38\n\x04wifi\x18\x04 \x01(\x0b\x32*.rivian.parallax.vehicle.NetworkState.Wifi\x12@\n\x08\x63\x65llular\x18\x05 \x01(\x0b\x32..rivian.parallax.vehicle.NetworkState.Cellular\x1a-\n\x0fInterfaceStatus\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x05\x1a\xc2\x03\n\x04Wifi\x12\x36\n\nwpa_status\x18\x01 \x01(\x0e\x32\".rivian.parallax.vehicle.WpaStatus\x12\x0f\n\x07\x66ield_2\x18\x02 \x01(\x05\x12\x0c\n\x04ssid\x18\x03 \x01(\t\x12\x12\n\x05\x62ssid\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0bmac_address\x18\x05 \x01(\tH\x01\x88\x01\x01\x12\x45\n\x0cip_addresses\x18\x06 \x03(\x0b\x32/.rivian.parallax.vehicle.NetworkState.IpAddress\x12@\n\x0c\x61ntenna_bars\x18\x07 \x01(\x0e\x32*.rivian.parallax.vehicle.ConnectivityLevel\x12\x0e\n\x06signal\x18\x08 \x01(\x05\x12\x12\n\nlink_speed\x18\t \x01(\x05\x12\x0c\n\x04\x66req\x18\n \x01(\x05\x12<\n\rsecure_status\x18\x0c \x01(\x0e\x32%.rivian.parallax.vehicle.WifiSecurity\x12\x10\n\x08\x66ield_13\x18\r \x01(\x05\x12\x10\n\x08\x66ield_14\x18\x0e \x01(\x05\x42\x08\n\x06_bssidB\x0e\n\x0c_mac_address\x1a\'\n\tIpAddress\x12\x0c\n\x04ipv4\x18\x01 \x01(\t\x12\x0c\n\x04ipv6\x18\x02 \x01(\t\x1a\x84\x01\n\x08\x43\x65llular\x12\x0f\n\x07\x63\x61rrier\x18\x01 \x01(\t\x12\x0c\n\x04mode\x18\x02 \x01(\t\x12@\n\x0c\x61ntenna_bars\x18\x03 \x01(\x0e\x32*.rivian.parallax.vehicle.ConnectivityLevel\x12\x17\n\x0fsignal_strength\x18\x04 \x01(\x05*l\n\nPowerState\x12\x1b\n\x17POWER_STATE_UNSPECIFIED\x10\x00\x12\x0f\n\x0bPOWER_SLEEP\x10\x01\x12\x11\n\rPOWER_STANDBY\x10\x02\x12\x0f\n\x0bPOWER_READY\x10\x03\x12\x0c\n\x08POWER_GO\x10\x04*\xb9\x01\n\x11\x43onnectivityLevel\x12\"\n\x1e\x43ONNECTIVITY_LEVEL_UNSPECIFIED\x10\x00\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_0\x10\x01\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_1\x10\x02\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_2\x10\x03\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_3\x10\x04\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_4\x10\x05*\x9e\x01\n\x0cWifiSecurity\x12\x1d\n\x19WIFI_SECURITY_UNSPECIFIED\x10\x00\x12\r\n\tWIFI_OPEN\x10\x01\x12\x15\n\x11WIFI_WPA_PERSONAL\x10\x02\x12\x17\n\x13WIFI_WPA_ENTERPRISE\x10\x03\x12\x16\n\x12WIFI_WPA2_PERSONAL\x10\x04\x12\x18\n\x14WIFI_WPA2_ENTERPRISE\x10\x05*\x8e\x01\n\tWpaStatus\x12\x1a\n\x16WPA_STATUS_UNSPECIFIED\x10\x00\x12\x15\n\x11WPA_NOT_CONNECTED\x10\x01\x12\x11\n\rWPA_CONNECTED\x10\x02\x12\x10\n\x0cWPA_SCANNING\x10\x03\x12\x12\n\x0eWPA_CONNECTING\x10\x04\x12\x15\n\x11WPA_DISCONNECTING\x10\x05\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#rivian/parallax/proto/vehicle.proto\x12\x17rivian.parallax.vehicle\"S\n\x11\x41\x63tiveUserProfile\x12#\n\x16\x61\x63tive_user_profile_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x19\n\x17_active_user_profile_id\"V\n\x11VehiclePowerState\x12\x37\n\x05state\x18\x01 \x01(\x0e\x32#.rivian.parallax.vehicle.PowerStateH\x00\x88\x01\x01\x42\x08\n\x06_state\"\xc6\x03\n\rVehicleWheels\x12;\n\x05wheel\x18\x01 \x03(\x0b\x32,.rivian.parallax.vehicle.VehicleWheels.Wheel\x1a\xf7\x02\n\x05Wheel\x12\x15\n\rwheel_package\x18\x01 \x01(\x05\x12\x15\n\rtire_odometer\x18\x02 \x01(\x03\x12!\n\x19saved_tire_odometer_delta\x18\x03 \x01(\x03\x12!\n\x19odometer_at_last_rotation\x18\x04 \x01(\x03\x12-\n%saved_odometer_at_last_rotation_delta\x18\x05 \x01(\x03\x12\"\n\x1arotation_reminder_interval\x18\x06 \x01(\x03\x12\x14\n\x0cis_installed\x18\x07 \x01(\x08\x12J\n\nupdated_at\x18\x08 \x01(\x0b\x32\x36.rivian.parallax.vehicle.VehicleWheels.Wheel.UpdatedAt\x12\r\n\x05tires\x18\t \x01(\x05\x12\x18\n\x10\x63urrent_odometer\x18\n \x01(\x03\x1a\x1c\n\tUpdatedAt\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\"\x85\x08\n\x0cNetworkState\x12\x42\n\x10\x61\x63tive_interface\x18\x01 \x01(\x0e\x32(.rivian.parallax.vehicle.ActiveInterface\x12I\n\ninterfaces\x18\x02 \x03(\x0b\x32\x35.rivian.parallax.vehicle.NetworkState.InterfaceStatus\x12\x46\n\x12\x63onnectivity_level\x18\x03 \x01(\x0e\x32*.rivian.parallax.vehicle.ConnectivityLevel\x12\x38\n\x04wifi\x18\x04 \x01(\x0b\x32*.rivian.parallax.vehicle.NetworkState.Wifi\x12@\n\x08\x63\x65llular\x18\x05 \x01(\x0b\x32..rivian.parallax.vehicle.NetworkState.Cellular\x1a-\n\x0fInterfaceStatus\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x05\x1a\xc2\x03\n\x04Wifi\x12\x36\n\nwpa_status\x18\x01 \x01(\x0e\x32\".rivian.parallax.vehicle.WpaStatus\x12\x0f\n\x07\x66ield_2\x18\x02 \x01(\x05\x12\x0c\n\x04ssid\x18\x03 \x01(\t\x12\x12\n\x05\x62ssid\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0bmac_address\x18\x05 \x01(\tH\x01\x88\x01\x01\x12\x45\n\x0cip_addresses\x18\x06 \x03(\x0b\x32/.rivian.parallax.vehicle.NetworkState.IpAddress\x12@\n\x0c\x61ntenna_bars\x18\x07 \x01(\x0e\x32*.rivian.parallax.vehicle.ConnectivityLevel\x12\x0e\n\x06signal\x18\x08 \x01(\x05\x12\x12\n\nlink_speed\x18\t \x01(\x05\x12\x0c\n\x04\x66req\x18\n \x01(\x05\x12<\n\rsecure_status\x18\x0c \x01(\x0e\x32%.rivian.parallax.vehicle.WifiSecurity\x12\x10\n\x08\x66ield_13\x18\r \x01(\x05\x12\x10\n\x08\x66ield_14\x18\x0e \x01(\x05\x42\x08\n\x06_bssidB\x0e\n\x0c_mac_address\x1a\'\n\tIpAddress\x12\x0c\n\x04ipv4\x18\x01 \x01(\t\x12\x0c\n\x04ipv6\x18\x02 \x01(\t\x1a\x84\x01\n\x08\x43\x65llular\x12\x0f\n\x07\x63\x61rrier\x18\x01 \x01(\t\x12\x0c\n\x04mode\x18\x02 \x01(\t\x12@\n\x0c\x61ntenna_bars\x18\x03 \x01(\x0e\x32*.rivian.parallax.vehicle.ConnectivityLevel\x12\x17\n\x0fsignal_strength\x18\x04 \x01(\x05*l\n\nPowerState\x12\x1b\n\x17POWER_STATE_UNSPECIFIED\x10\x00\x12\x0f\n\x0bPOWER_SLEEP\x10\x01\x12\x11\n\rPOWER_STANDBY\x10\x02\x12\x0f\n\x0bPOWER_READY\x10\x03\x12\x0c\n\x08POWER_GO\x10\x04*m\n\x0f\x41\x63tiveInterface\x12 \n\x1c\x41\x43TIVE_INTERFACE_UNSPECIFIED\x10\x00\x12\x19\n\x15\x41\x43TIVE_INTERFACE_WIFI\x10\x01\x12\x1d\n\x19\x41\x43TIVE_INTERFACE_CELLULAR\x10\x02*\xb9\x01\n\x11\x43onnectivityLevel\x12\"\n\x1e\x43ONNECTIVITY_LEVEL_UNSPECIFIED\x10\x00\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_0\x10\x01\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_1\x10\x02\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_2\x10\x03\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_3\x10\x04\x12\x18\n\x14\x43ONNECTIVITY_LEVEL_4\x10\x05*\x9e\x01\n\x0cWifiSecurity\x12\x1d\n\x19WIFI_SECURITY_UNSPECIFIED\x10\x00\x12\r\n\tWIFI_OPEN\x10\x01\x12\x15\n\x11WIFI_WPA_PERSONAL\x10\x02\x12\x17\n\x13WIFI_WPA_ENTERPRISE\x10\x03\x12\x16\n\x12WIFI_WPA2_PERSONAL\x10\x04\x12\x18\n\x14WIFI_WPA2_ENTERPRISE\x10\x05*\x8e\x01\n\tWpaStatus\x12\x1a\n\x16WPA_STATUS_UNSPECIFIED\x10\x00\x12\x15\n\x11WPA_NOT_CONNECTED\x10\x01\x12\x11\n\rWPA_CONNECTED\x10\x02\x12\x10\n\x0cWPA_SCANNING\x10\x03\x12\x12\n\x0eWPA_CONNECTING\x10\x04\x12\x15\n\x11WPA_DISCONNECTING\x10\x05\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.vehicle_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_POWERSTATE']._serialized_start=1620
-  _globals['_POWERSTATE']._serialized_end=1728
-  _globals['_CONNECTIVITYLEVEL']._serialized_start=1731
-  _globals['_CONNECTIVITYLEVEL']._serialized_end=1916
-  _globals['_WIFISECURITY']._serialized_start=1919
-  _globals['_WIFISECURITY']._serialized_end=2077
-  _globals['_WPASTATUS']._serialized_start=2080
-  _globals['_WPASTATUS']._serialized_end=2222
+  _globals['_POWERSTATE']._serialized_start=1726
+  _globals['_POWERSTATE']._serialized_end=1834
+  _globals['_ACTIVEINTERFACE']._serialized_start=1836
+  _globals['_ACTIVEINTERFACE']._serialized_end=1945
+  _globals['_CONNECTIVITYLEVEL']._serialized_start=1948
+  _globals['_CONNECTIVITYLEVEL']._serialized_end=2133
+  _globals['_WIFISECURITY']._serialized_start=2136
+  _globals['_WIFISECURITY']._serialized_end=2294
+  _globals['_WPASTATUS']._serialized_start=2297
+  _globals['_WPASTATUS']._serialized_end=2439
   _globals['_ACTIVEUSERPROFILE']._serialized_start=64
   _globals['_ACTIVEUSERPROFILE']._serialized_end=147
   _globals['_VEHICLEPOWERSTATE']._serialized_start=149
@@ -50,13 +52,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_VEHICLEWHEELS_WHEEL_UPDATEDAT']._serialized_start=664
   _globals['_VEHICLEWHEELS_WHEEL_UPDATEDAT']._serialized_end=692
   _globals['_NETWORKSTATE']._serialized_start=695
-  _globals['_NETWORKSTATE']._serialized_end=1618
-  _globals['_NETWORKSTATE_INTERFACESTATUS']._serialized_start=944
-  _globals['_NETWORKSTATE_INTERFACESTATUS']._serialized_end=989
-  _globals['_NETWORKSTATE_WIFI']._serialized_start=992
-  _globals['_NETWORKSTATE_WIFI']._serialized_end=1442
-  _globals['_NETWORKSTATE_IPADDRESS']._serialized_start=1444
-  _globals['_NETWORKSTATE_IPADDRESS']._serialized_end=1483
-  _globals['_NETWORKSTATE_CELLULAR']._serialized_start=1486
-  _globals['_NETWORKSTATE_CELLULAR']._serialized_end=1618
+  _globals['_NETWORKSTATE']._serialized_end=1724
+  _globals['_NETWORKSTATE_INTERFACESTATUS']._serialized_start=1050
+  _globals['_NETWORKSTATE_INTERFACESTATUS']._serialized_end=1095
+  _globals['_NETWORKSTATE_WIFI']._serialized_start=1098
+  _globals['_NETWORKSTATE_WIFI']._serialized_end=1548
+  _globals['_NETWORKSTATE_IPADDRESS']._serialized_start=1550
+  _globals['_NETWORKSTATE_IPADDRESS']._serialized_end=1589
+  _globals['_NETWORKSTATE_CELLULAR']._serialized_start=1592
+  _globals['_NETWORKSTATE_CELLULAR']._serialized_end=1724
 # @@protoc_insertion_point(module_scope)

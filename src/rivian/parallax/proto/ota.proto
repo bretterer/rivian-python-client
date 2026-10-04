@@ -27,7 +27,7 @@ message DeploymentState {
     Version target_version = 2; // version being installed
     optional int32 active_flag = 3; // set while an update is active
     Progress progress = 5;
-    optional int32 timeout_budget = 7; // constant while active; unit unknown
+    optional int32 timeout_budget = 7; // unit unknown
     optional int32 late_stage_flag = 11; // 1 from SCHEDULED_TO_INSTALL until done
   }
 
@@ -39,7 +39,7 @@ message DeploymentState {
     Progress100 download_progress = 3;
     Progress100 install_progress = 4;
 
-    optional string field_5 = 5; // always empty
+    optional string field_5 = 5; // unknown
     // Seconds; counts down during INSTALL_COUNTDOWN, a static default otherwise.
     int32 time_remaining = 6;
     optional int32 field_7 = 7; // unknown

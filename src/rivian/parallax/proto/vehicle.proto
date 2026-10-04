@@ -48,9 +48,10 @@ message VehicleWheels {
 // vehicle.network.state and vehicle.setting.network (same shape).
 // Signals are dBm; -255 means no reading.
 message NetworkState {
-  int32 field_1 = 1; // 1 on wifi, 2 while it's down; likely the active interface
+  ActiveInterface active_interface = 1; // inferred
   repeated InterfaceStatus interfaces = 2;
-  int32 field_3 = 3; // 4-5 on wifi, 3 while it's down; likely a ConnectivityLevel
+  // Inferred: the active connection's level (wifi bars, else cellular).
+  ConnectivityLevel connectivity_level = 3;
   Wifi wifi = 4;
   Cellular cellular = 5;
 
@@ -72,7 +73,7 @@ message NetworkState {
     int32 freq = 10;
     WifiSecurity secure_status = 12;
     int32 field_13 = 13; // unknown; 2 connected, 1 not
-    int32 field_14 = 14; // unknown; constant
+    int32 field_14 = 14; // unknown
   }
 
   message IpAddress {
@@ -86,6 +87,12 @@ message NetworkState {
     ConnectivityLevel antenna_bars = 3;
     int32 signal_strength = 4; // dBm
   }
+}
+
+enum ActiveInterface {
+  ACTIVE_INTERFACE_UNSPECIFIED = 0;
+  ACTIVE_INTERFACE_WIFI = 1;
+  ACTIVE_INTERFACE_CELLULAR = 2;
 }
 
 enum ConnectivityLevel {

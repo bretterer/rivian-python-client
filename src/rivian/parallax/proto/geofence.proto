@@ -9,7 +9,7 @@ message FavoriteGeofences {
   repeated Geofence geofence = 1;
 
   message Geofence {
-    optional GeofenceType type = 1; // absent on plain addresses so far
+    optional GeofenceType type = 1;
     optional string name = 2;       // a name or street address
   }
 }

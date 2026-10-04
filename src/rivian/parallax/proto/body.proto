@@ -100,7 +100,7 @@ enum LockFault {
 // body.trailer.state
 message TrailerState {
   optional TrailerPresence presence = 1;
-  int32 field_2 = 2; // unknown; constant
+  int32 field_2 = 2; // unknown
 }
 
 enum ClosureFault {
@@ -218,5 +218,5 @@ enum WindowsNextAction {
 
 // body.wipers.fluid_level
 message WiperFluidLevel {
-  optional int32 field_2 = 2; // unknown; 1 so far
+  optional int32 field_2 = 2; // unknown
 }

@@ -28,7 +28,7 @@ enum BatteryCellType {
 message BatteryState {
   ChargeState charge_state = 1;
   Temperatures temperatures = 2;
-  string field_3 = 3; // always empty
+  string field_3 = 3; // unknown
   int32 field_4 = 4;
   optional int32 bms_state_raw = 6; // 4 idle, 5 discharging, 6 charging, others unnamed
 
