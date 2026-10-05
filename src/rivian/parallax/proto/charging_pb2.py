@@ -24,23 +24,31 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/charging.proto\x12\x18rivian.parallax.charging\"\xe8\x04\n\x12ScheduleTimeWindow\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\x12\x43\n\x06window\x18\x02 \x01(\x0b\x32\x33.rivian.parallax.charging.ScheduleTimeWindow.Window\x1a\xbe\x02\n\x06Window\x12\x12\n\nstart_time\x18\x01 \x01(\x05\x12\x10\n\x08\x65nd_time\x18\x02 \x01(\x05\x12\x10\n\x08\x64uration\x18\x03 \x01(\x05\x12\x11\n\x04\x61mps\x18\x04 \x01(\x05H\x00\x88\x01\x01\x12L\n\x08location\x18\x05 \x01(\x0b\x32:.rivian.parallax.charging.ScheduleTimeWindow.GeoCoordinate\x12I\n\tstart_day\x18\x06 \x01(\x0e\x32\x36.rivian.parallax.charging.ScheduleTimeWindow.DayOfWeek\x12G\n\x07\x65nd_day\x18\x07 \x01(\x0e\x32\x36.rivian.parallax.charging.ScheduleTimeWindow.DayOfWeekB\x07\n\x05_amps\x1a\x34\n\rGeoCoordinate\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\"\x84\x01\n\tDayOfWeek\x12\x1b\n\x17\x44\x41Y_OF_WEEK_UNSPECIFIED\x10\x00\x12\n\n\x06SUNDAY\x10\x01\x12\n\n\x06MONDAY\x10\x02\x12\x0b\n\x07TUESDAY\x10\x03\x12\r\n\tWEDNESDAY\x10\x04\x12\x0c\n\x08THURSDAY\x10\x05\x12\n\n\x06\x46RIDAY\x10\x06\x12\x0c\n\x08SATURDAY\x10\x07\"5\n\x13SessionNotification\x12\x13\n\x06\x66ield1\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\t\n\x07_field1\"a\n\x14SessionRemoteCommand\x12=\n\x07\x63ommand\x18\x01 \x01(\x0e\x32\'.rivian.parallax.charging.RemoteCommandH\x00\x88\x01\x01\x42\n\n\x08_command\"1\n\tSocSlider\x12\x16\n\tsoc_limit\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\x0c\n\n_soc_limit\",\n\nTripTarget\x12\x13\n\x06\x66ield2\x18\x02 \x01(\x05H\x00\x88\x01\x01\x42\t\n\x07_field2\"\x17\n\x15SmartChargingSettings\"\x13\n\x11SmartChargingInfo\"\x1a\n\x18WeightedChargingForecast\"\xda\x01\n\rSessionStatus\x12H\n\x10\x63onnection_state\x18\x01 \x01(\x0e\x32).rivian.parallax.charging.ConnectionStateH\x00\x88\x01\x01\x12\x44\n\x0e\x63harging_state\x18\x02 \x01(\x0e\x32\'.rivian.parallax.charging.ChargingStateH\x01\x88\x01\x01\x12\x11\n\tis_active\x18\x03 \x01(\x08\x42\x13\n\x11_connection_stateB\x11\n\x0f_charging_state\"2\n\x0eTimeEstimation\x12 \n\x18\x65stimated_time_remaining\x18\x02 \x01(\x05\"\xa0\x02\n\x0b\x45nergyState\x12?\n\x0e\x63harging_state\x18\x01 \x01(\x0e\x32\'.rivian.parallax.charging.ChargingState\x12\x44\n\x0e\x63harger_status\x18\x02 \x01(\x0e\x32\'.rivian.parallax.charging.ChargerStatusH\x00\x88\x01\x01\x12\x14\n\x07\x66ield_3\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12\x10\n\x08\x66ield_10\x18\n \x01(\t\x12\x43\n\x10\x63onnection_state\x18\x0b \x01(\x0e\x32).rivian.parallax.charging.ConnectionStateB\x11\n\x0f_charger_statusB\n\n\x08_field_3\"\x1d\n\x0cSessionPower\x12\r\n\x05power\x18\x01 \x01(\x02*b\n\rRemoteCommand\x12\x1e\n\x1aREMOTE_COMMAND_UNSPECIFIED\x10\x00\x12\x18\n\x14REMOTE_COMMAND_START\x10\x01\x12\x17\n\x13REMOTE_COMMAND_STOP\x10\x02*v\n\x0f\x43onnectionState\x12 \n\x1c\x43ONNECTION_STATE_UNSPECIFIED\x10\x00\x12!\n\x1d\x43ONNECTION_STATE_DISCONNECTED\x10\x01\x12\x1e\n\x1a\x43ONNECTION_STATE_CONNECTED\x10\x02*\xc4\x06\n\rChargingState\x12\x1e\n\x1a\x43HARGING_STATE_UNSPECIFIED\x10\x00\x12\x12\n\x0e\x43HARGING_READY\x10\x01\x12\x17\n\x13\x43HARGING_CONNECTING\x10\x02\x12\x13\n\x0f\x43HARGING_ACTIVE\x10\x03\x12\x15\n\x11\x43HARGING_COMPLETE\x10\x04\x12\x16\n\x12\x43HARGING_SCHEDULED\x10\x05\x12\x1a\n\x16\x43HARGING_VEHICLE_ERROR\x10\x06\x12\x1a\n\x16\x43HARGING_STATION_ERROR\x10\x07\x12\x19\n\x15\x43HARGING_USER_STOPPED\x10\x08\x12\x1c\n\x18\x43HARGING_STATION_STOPPED\x10\t\x12\x1a\n\x16\x43HARGING_PAYMENT_ERROR\x10\n\x12\x17\n\x13\x43HARGING_CERT_ERROR\x10\x0b\x12\x16\n\x12\x43HARGING_TLS_ERROR\x10\x0c\x12(\n$CHARGING_ERROR_AC_ADAPTER_USED_ON_DC\x10\r\x12(\n$CHARGING_ERROR_DC_ADAPTER_USED_ON_AC\x10\x0e\x12\'\n#CHARGING_ERROR_INCOMPATIBLE_CHARGER\x10\x0f\x12\x1c\n\x18\x43HARGING_SD_COMPENSATION\x10\x10\x12\x16\n\x12WAITING_ON_CHARGER\x10\x11\x12%\n!CHARGER_NOT_READY_OR_INCOMPATIBLE\x10\x12\x12\x1c\n\x18\x43HARGING_VEHICLE_STOPPED\x10\x13\x12+\n\'CHARGING_PAYMENT_ERROR_START_RIVIAN_APP\x10\x14\x12&\n\"CHARGING_TLS_ERROR_UNKNOWN_CHARGER\x10\x15\x12&\n\"CHARGING_TLS_ERROR_UNEXPECTED_FAIL\x10\x16\x12\'\n#CHARGING_TLS_ERROR_START_RIVIAN_APP\x10\x17\x12\"\n\x1e\x43HARGING_SMART_CHARGING_PAUSED\x10\x18\x12\"\n\x1e\x43HARGING_SMART_CHARGING_ACTIVE\x10\x19*\xb2\x05\n\x13\x43hargerDerateStatus\x12\x16\n\x12\x44\x45RATE_STATUS_NONE\x10\x00\x12\x1e\n\x1a\x44\x45RATE_STATUS_WARM_ADAPTER\x10\x01\x12\x1e\n\x1a\x44\x45RATE_STATUS_DC_WARM_PLUG\x10\x02\x12\x1e\n\x1a\x44\x45RATE_STATUS_AC_WARM_PLUG\x10\x03\x12\x1f\n\x1b\x44\x45RATE_STATUS_EVSE_DERATING\x10\x04\x12\x1d\n\x19\x44\x45RATE_STATUS_NEARING_TOC\x10\x05\x12/\n+DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING\x10\x06\x12\"\n\x1e\x44\x45RATE_STATUS_HVAC_PRIORITIZED\x10\x07\x12!\n\x1d\x44\x45RATE_STATUS_BATTERY_HEATING\x10\x08\x12!\n\x1d\x44\x45RATE_STATUS_BATTERY_COOLING\x10\t\x12\x32\n.DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT\x10\n\x12\x31\n-DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT\x10\x0b\x12\'\n#DERATE_STATUS_CELL_THERMAL_LIM_COLD\x10\x0c\x12&\n\"DERATE_STATUS_CELL_THERMAL_LIM_HOT\x10\r\x12+\n\'DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM\x10\x0e\x12 \n\x1c\x44\x45RATE_STATUS_HIGH_SOC_SIGMA\x10\x0f\x12\"\n\x1e\x44\x45RATE_STATUS_HV_BATTERY_FAULT\x10\x10\x12\x1d\n\x19\x44\x45RATE_STATUS_DCAC_EXPORT\x10\x11*\xa0\x01\n\rChargerStatus\x12\x1e\n\x1a\x43HARGER_STATUS_UNSPECIFIED\x10\x00\x12 \n\x1c\x43HARGER_STATUS_NOT_CONNECTED\x10\x01\x12&\n\"CHARGER_STATUS_CONNECTED_NO_CHARGE\x10\x02\x12%\n!CHARGER_STATUS_CONNECTED_CHARGING\x10\x03\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/charging.proto\x12\x18rivian.parallax.charging\"\xe8\x04\n\x12ScheduleTimeWindow\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\x12\x43\n\x06window\x18\x02 \x01(\x0b\x32\x33.rivian.parallax.charging.ScheduleTimeWindow.Window\x1a\xbe\x02\n\x06Window\x12\x12\n\nstart_time\x18\x01 \x01(\x05\x12\x10\n\x08\x65nd_time\x18\x02 \x01(\x05\x12\x10\n\x08\x64uration\x18\x03 \x01(\x05\x12\x11\n\x04\x61mps\x18\x04 \x01(\x05H\x00\x88\x01\x01\x12L\n\x08location\x18\x05 \x01(\x0b\x32:.rivian.parallax.charging.ScheduleTimeWindow.GeoCoordinate\x12I\n\tstart_day\x18\x06 \x01(\x0e\x32\x36.rivian.parallax.charging.ScheduleTimeWindow.DayOfWeek\x12G\n\x07\x65nd_day\x18\x07 \x01(\x0e\x32\x36.rivian.parallax.charging.ScheduleTimeWindow.DayOfWeekB\x07\n\x05_amps\x1a\x34\n\rGeoCoordinate\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\"\x84\x01\n\tDayOfWeek\x12\x1b\n\x17\x44\x41Y_OF_WEEK_UNSPECIFIED\x10\x00\x12\n\n\x06SUNDAY\x10\x01\x12\n\n\x06MONDAY\x10\x02\x12\x0b\n\x07TUESDAY\x10\x03\x12\r\n\tWEDNESDAY\x10\x04\x12\x0c\n\x08THURSDAY\x10\x05\x12\n\n\x06\x46RIDAY\x10\x06\x12\x0c\n\x08SATURDAY\x10\x07\"\xb6\x01\n\x13SessionNotification\x12\x1e\n\x16unexpected_stop_reason\x18\x01 \x01(\x05\x12\x44\n\rderate_status\x18\x02 \x01(\x0e\x32-.rivian.parallax.charging.ChargerDerateStatus\x12\x39\n\x0b\x66\x61ult_chime\x18\x03 \x01(\x0e\x32$.rivian.parallax.charging.FaultChime\"\\\n\x14SessionRemoteCommand\x12\x44\n\x0fstart_available\x18\x01 \x01(\x0e\x32+.rivian.parallax.charging.StartAvailability\"1\n\tSocSlider\x12\x16\n\tsoc_limit\x18\x01 \x01(\x05H\x00\x88\x01\x01\x42\x0c\n\n_soc_limit\"\x1f\n\nTripTarget\x12\x11\n\tsoc_limit\x18\x02 \x01(\x05\"\xf3\x01\n\x15SmartChargingSettings\x12S\n\x0eready_by_times\x18\x01 \x03(\x0b\x32;.rivian.parallax.charging.SmartChargingSettings.ReadyByTime\x12\x1c\n\x14\x63lean_energy_enabled\x18\x02 \x01(\x08\x1ag\n\x0bReadyByTime\x12\r\n\x05hours\x18\x01 \x01(\x05\x12\x0f\n\x07minutes\x18\x02 \x01(\x05\x12\x38\n\x04\x64\x61ys\x18\x03 \x03(\x0e\x32*.rivian.parallax.charging.SmartChargingDay\"\xf0\x01\n\x11SmartChargingInfo\x12K\n\x0bresume_time\x18\x01 \x01(\x0b\x32\x36.rivian.parallax.charging.SmartChargingInfo.ResumeTime\x12I\n\x0cnotification\x18\x02 \x01(\x0e\x32\x33.rivian.parallax.charging.SmartChargingNotification\x12\x15\n\rschedule_type\x18\x03 \x01(\x05\x1a,\n\nResumeTime\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\"\x1a\n\x18WeightedChargingForecast\"\xda\x01\n\rSessionStatus\x12H\n\x10\x63onnection_state\x18\x01 \x01(\x0e\x32).rivian.parallax.charging.ConnectionStateH\x00\x88\x01\x01\x12\x44\n\x0e\x63harging_state\x18\x02 \x01(\x0e\x32\'.rivian.parallax.charging.ChargingStateH\x01\x88\x01\x01\x12\x11\n\tevse_type\x18\x03 \x01(\x05\x42\x13\n\x11_connection_stateB\x11\n\x0f_charging_state\"v\n\x0eTimeEstimation\x12\x42\n\x08validity\x18\x01 \x01(\x0e\x32\x30.rivian.parallax.charging.TimeEstimationValidity\x12 \n\x18\x65stimated_time_remaining\x18\x02 \x01(\x05\"\xa0\x02\n\x0b\x45nergyState\x12?\n\x0e\x63harging_state\x18\x01 \x01(\x0e\x32\'.rivian.parallax.charging.ChargingState\x12\x44\n\x0e\x63harger_status\x18\x02 \x01(\x0e\x32\'.rivian.parallax.charging.ChargerStatusH\x00\x88\x01\x01\x12\x14\n\x07\x66ield_3\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12\x10\n\x08\x66ield_10\x18\n \x01(\t\x12\x43\n\x10\x63onnection_state\x18\x0b \x01(\x0e\x32).rivian.parallax.charging.ConnectionStateB\x11\n\x0f_charger_statusB\n\n\x08_field_3\"\x1d\n\x0cSessionPower\x12\r\n\x05power\x18\x01 \x01(\x02*\xb2\x05\n\x13\x43hargerDerateStatus\x12\x16\n\x12\x44\x45RATE_STATUS_NONE\x10\x00\x12\x1e\n\x1a\x44\x45RATE_STATUS_WARM_ADAPTER\x10\x01\x12\x1e\n\x1a\x44\x45RATE_STATUS_DC_WARM_PLUG\x10\x02\x12\x1e\n\x1a\x44\x45RATE_STATUS_AC_WARM_PLUG\x10\x03\x12\x1f\n\x1b\x44\x45RATE_STATUS_EVSE_DERATING\x10\x04\x12\x1d\n\x19\x44\x45RATE_STATUS_NEARING_TOC\x10\x05\x12/\n+DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING\x10\x06\x12\"\n\x1e\x44\x45RATE_STATUS_HVAC_PRIORITIZED\x10\x07\x12!\n\x1d\x44\x45RATE_STATUS_BATTERY_HEATING\x10\x08\x12!\n\x1d\x44\x45RATE_STATUS_BATTERY_COOLING\x10\t\x12\x32\n.DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT\x10\n\x12\x31\n-DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT\x10\x0b\x12\'\n#DERATE_STATUS_CELL_THERMAL_LIM_COLD\x10\x0c\x12&\n\"DERATE_STATUS_CELL_THERMAL_LIM_HOT\x10\r\x12+\n\'DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM\x10\x0e\x12 \n\x1c\x44\x45RATE_STATUS_HIGH_SOC_SIGMA\x10\x0f\x12\"\n\x1e\x44\x45RATE_STATUS_HV_BATTERY_FAULT\x10\x10\x12\x1d\n\x19\x44\x45RATE_STATUS_DCAC_EXPORT\x10\x11*\xdb\x03\n\nFaultChime\x12\x14\n\x10\x46\x41ULT_CHIME_NONE\x10\x00\x12%\n!FAULT_CHIME_CHARGING_DISABLED_ALL\x10\x01\x12$\n FAULT_CHIME_CHARGING_DISABLED_DC\x10\x02\x12-\n)FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_DC\x10\x03\x12\x36\n2FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_GRADIENT_DC\x10\x04\x12$\n FAULT_CHIME_CHARGING_DEGRADED_DC\x10\x05\x12$\n FAULT_CHIME_CHARGING_DISABLED_AC\x10\x06\x12-\n)FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_AC\x10\x07\x12$\n FAULT_CHIME_CHARGING_DEGRADED_AC\x10\x08\x12\x34\n0FAULT_CHIME_CHARGING_DISABLED_PARTIAL_CONNECTION\x10\t\x12,\n(FAULT_CHIME_CHARGING_DISABLED_NOT_PARKED\x10\n*j\n\x11StartAvailability\x12\x1a\n\x16START_AVAILABILITY_SNA\x10\x00\x12\x1c\n\x18START_AVAILABILITY_FALSE\x10\x01\x12\x1b\n\x17START_AVAILABILITY_TRUE\x10\x02*\x97\x02\n\x10SmartChargingDay\x12\"\n\x1eSMART_CHARGING_DAY_UNSPECIFIED\x10\x00\x12\x1d\n\x19SMART_CHARGING_DAY_MONDAY\x10\x01\x12\x1e\n\x1aSMART_CHARGING_DAY_TUESDAY\x10\x02\x12 \n\x1cSMART_CHARGING_DAY_WEDNESDAY\x10\x03\x12\x1f\n\x1bSMART_CHARGING_DAY_THURSDAY\x10\x04\x12\x1d\n\x19SMART_CHARGING_DAY_FRIDAY\x10\x05\x12\x1f\n\x1bSMART_CHARGING_DAY_SATURDAY\x10\x06\x12\x1d\n\x19SMART_CHARGING_DAY_SUNDAY\x10\x07*\xbc\x02\n\x19SmartChargingNotification\x12#\n\x1fSMART_CHARGING_NOTIFICATION_SNA\x10\x00\x12:\n6SMART_CHARGING_NOTIFICATION_CHARGING_WITH_CLEAN_ENERGY\x10\x01\x12/\n+SMART_CHARGING_NOTIFICATION_CHARGING_PAUSED\x10\x02\x12<\n8SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_NOT_ENOUGH_TIME\x10\x03\x12O\nKSMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_FORECAST_UNAVAILABLE_OR_INCOMPLETE\x10\x04*\xaf\x01\n\x0f\x43onnectionState\x12\x19\n\x15\x43ONNECTION_STATE_INIT\x10\x00\x12!\n\x1d\x43ONNECTION_STATE_DISCONNECTED\x10\x01\x12\x1e\n\x1a\x43ONNECTION_STATE_CONNECTED\x10\x02\x12\x1a\n\x16\x43ONNECTION_STATE_ERROR\x10\x03\x12\"\n\x1e\x43ONNECTION_STATE_V2L_CONNECTED\x10\x04*\xc4\x06\n\rChargingState\x12\x1e\n\x1a\x43HARGING_STATE_UNSPECIFIED\x10\x00\x12\x12\n\x0e\x43HARGING_READY\x10\x01\x12\x17\n\x13\x43HARGING_CONNECTING\x10\x02\x12\x13\n\x0f\x43HARGING_ACTIVE\x10\x03\x12\x15\n\x11\x43HARGING_COMPLETE\x10\x04\x12\x16\n\x12\x43HARGING_SCHEDULED\x10\x05\x12\x1a\n\x16\x43HARGING_VEHICLE_ERROR\x10\x06\x12\x1a\n\x16\x43HARGING_STATION_ERROR\x10\x07\x12\x19\n\x15\x43HARGING_USER_STOPPED\x10\x08\x12\x1c\n\x18\x43HARGING_STATION_STOPPED\x10\t\x12\x1a\n\x16\x43HARGING_PAYMENT_ERROR\x10\n\x12\x17\n\x13\x43HARGING_CERT_ERROR\x10\x0b\x12\x16\n\x12\x43HARGING_TLS_ERROR\x10\x0c\x12(\n$CHARGING_ERROR_AC_ADAPTER_USED_ON_DC\x10\r\x12(\n$CHARGING_ERROR_DC_ADAPTER_USED_ON_AC\x10\x0e\x12\'\n#CHARGING_ERROR_INCOMPATIBLE_CHARGER\x10\x0f\x12\x1c\n\x18\x43HARGING_SD_COMPENSATION\x10\x10\x12\x16\n\x12WAITING_ON_CHARGER\x10\x11\x12%\n!CHARGER_NOT_READY_OR_INCOMPATIBLE\x10\x12\x12\x1c\n\x18\x43HARGING_VEHICLE_STOPPED\x10\x13\x12+\n\'CHARGING_PAYMENT_ERROR_START_RIVIAN_APP\x10\x14\x12&\n\"CHARGING_TLS_ERROR_UNKNOWN_CHARGER\x10\x15\x12&\n\"CHARGING_TLS_ERROR_UNEXPECTED_FAIL\x10\x16\x12\'\n#CHARGING_TLS_ERROR_START_RIVIAN_APP\x10\x17\x12\"\n\x1e\x43HARGING_SMART_CHARGING_PAUSED\x10\x18\x12\"\n\x1e\x43HARGING_SMART_CHARGING_ACTIVE\x10\x19*\xb4\x01\n\x16TimeEstimationValidity\x12!\n\x1dTIME_ESTIMATION_VALIDITY_NONE\x10\x00\x12\"\n\x1eTIME_ESTIMATION_VALIDITY_VALID\x10\x01\x12$\n TIME_ESTIMATION_VALIDITY_INVALID\x10\x02\x12-\n)TIME_ESTIMATION_VALIDITY_PACK_DISCHARGING\x10\x03*\xa0\x01\n\rChargerStatus\x12\x1e\n\x1a\x43HARGER_STATUS_UNSPECIFIED\x10\x00\x12 \n\x1c\x43HARGER_STATUS_NOT_CONNECTED\x10\x01\x12&\n\"CHARGER_STATUS_CONNECTED_NO_CHARGE\x10\x02\x12%\n!CHARGER_STATUS_CONNECTED_CHARGING\x10\x03\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.charging_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_REMOTECOMMAND']._serialized_start=1605
-  _globals['_REMOTECOMMAND']._serialized_end=1703
-  _globals['_CONNECTIONSTATE']._serialized_start=1705
-  _globals['_CONNECTIONSTATE']._serialized_end=1823
-  _globals['_CHARGINGSTATE']._serialized_start=1826
-  _globals['_CHARGINGSTATE']._serialized_end=2662
-  _globals['_CHARGERDERATESTATUS']._serialized_start=2665
-  _globals['_CHARGERDERATESTATUS']._serialized_end=3355
-  _globals['_CHARGERSTATUS']._serialized_start=3358
-  _globals['_CHARGERSTATUS']._serialized_end=3518
+  _globals['_CHARGERDERATESTATUS']._serialized_start=2229
+  _globals['_CHARGERDERATESTATUS']._serialized_end=2919
+  _globals['_FAULTCHIME']._serialized_start=2922
+  _globals['_FAULTCHIME']._serialized_end=3397
+  _globals['_STARTAVAILABILITY']._serialized_start=3399
+  _globals['_STARTAVAILABILITY']._serialized_end=3505
+  _globals['_SMARTCHARGINGDAY']._serialized_start=3508
+  _globals['_SMARTCHARGINGDAY']._serialized_end=3787
+  _globals['_SMARTCHARGINGNOTIFICATION']._serialized_start=3790
+  _globals['_SMARTCHARGINGNOTIFICATION']._serialized_end=4106
+  _globals['_CONNECTIONSTATE']._serialized_start=4109
+  _globals['_CONNECTIONSTATE']._serialized_end=4284
+  _globals['_CHARGINGSTATE']._serialized_start=4287
+  _globals['_CHARGINGSTATE']._serialized_end=5123
+  _globals['_TIMEESTIMATIONVALIDITY']._serialized_start=5126
+  _globals['_TIMEESTIMATIONVALIDITY']._serialized_end=5306
+  _globals['_CHARGERSTATUS']._serialized_start=5309
+  _globals['_CHARGERSTATUS']._serialized_end=5469
   _globals['_SCHEDULETIMEWINDOW']._serialized_start=67
   _globals['_SCHEDULETIMEWINDOW']._serialized_end=683
   _globals['_SCHEDULETIMEWINDOW_WINDOW']._serialized_start=176
@@ -49,26 +57,30 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SCHEDULETIMEWINDOW_GEOCOORDINATE']._serialized_end=548
   _globals['_SCHEDULETIMEWINDOW_DAYOFWEEK']._serialized_start=551
   _globals['_SCHEDULETIMEWINDOW_DAYOFWEEK']._serialized_end=683
-  _globals['_SESSIONNOTIFICATION']._serialized_start=685
-  _globals['_SESSIONNOTIFICATION']._serialized_end=738
-  _globals['_SESSIONREMOTECOMMAND']._serialized_start=740
-  _globals['_SESSIONREMOTECOMMAND']._serialized_end=837
-  _globals['_SOCSLIDER']._serialized_start=839
-  _globals['_SOCSLIDER']._serialized_end=888
-  _globals['_TRIPTARGET']._serialized_start=890
-  _globals['_TRIPTARGET']._serialized_end=934
-  _globals['_SMARTCHARGINGSETTINGS']._serialized_start=936
-  _globals['_SMARTCHARGINGSETTINGS']._serialized_end=959
-  _globals['_SMARTCHARGINGINFO']._serialized_start=961
-  _globals['_SMARTCHARGINGINFO']._serialized_end=980
-  _globals['_WEIGHTEDCHARGINGFORECAST']._serialized_start=982
-  _globals['_WEIGHTEDCHARGINGFORECAST']._serialized_end=1008
-  _globals['_SESSIONSTATUS']._serialized_start=1011
-  _globals['_SESSIONSTATUS']._serialized_end=1229
-  _globals['_TIMEESTIMATION']._serialized_start=1231
-  _globals['_TIMEESTIMATION']._serialized_end=1281
-  _globals['_ENERGYSTATE']._serialized_start=1284
-  _globals['_ENERGYSTATE']._serialized_end=1572
-  _globals['_SESSIONPOWER']._serialized_start=1574
-  _globals['_SESSIONPOWER']._serialized_end=1603
+  _globals['_SESSIONNOTIFICATION']._serialized_start=686
+  _globals['_SESSIONNOTIFICATION']._serialized_end=868
+  _globals['_SESSIONREMOTECOMMAND']._serialized_start=870
+  _globals['_SESSIONREMOTECOMMAND']._serialized_end=962
+  _globals['_SOCSLIDER']._serialized_start=964
+  _globals['_SOCSLIDER']._serialized_end=1013
+  _globals['_TRIPTARGET']._serialized_start=1015
+  _globals['_TRIPTARGET']._serialized_end=1046
+  _globals['_SMARTCHARGINGSETTINGS']._serialized_start=1049
+  _globals['_SMARTCHARGINGSETTINGS']._serialized_end=1292
+  _globals['_SMARTCHARGINGSETTINGS_READYBYTIME']._serialized_start=1189
+  _globals['_SMARTCHARGINGSETTINGS_READYBYTIME']._serialized_end=1292
+  _globals['_SMARTCHARGINGINFO']._serialized_start=1295
+  _globals['_SMARTCHARGINGINFO']._serialized_end=1535
+  _globals['_SMARTCHARGINGINFO_RESUMETIME']._serialized_start=1491
+  _globals['_SMARTCHARGINGINFO_RESUMETIME']._serialized_end=1535
+  _globals['_WEIGHTEDCHARGINGFORECAST']._serialized_start=1537
+  _globals['_WEIGHTEDCHARGINGFORECAST']._serialized_end=1563
+  _globals['_SESSIONSTATUS']._serialized_start=1566
+  _globals['_SESSIONSTATUS']._serialized_end=1784
+  _globals['_TIMEESTIMATION']._serialized_start=1786
+  _globals['_TIMEESTIMATION']._serialized_end=1904
+  _globals['_ENERGYSTATE']._serialized_start=1907
+  _globals['_ENERGYSTATE']._serialized_end=2195
+  _globals['_SESSIONPOWER']._serialized_start=2197
+  _globals['_SESSIONPOWER']._serialized_end=2226
 # @@protoc_insertion_point(module_scope)

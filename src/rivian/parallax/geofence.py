@@ -23,14 +23,13 @@ def decode_favorite_geofences(m: geofence_pb2.FavoriteGeofences) -> dict[str, An
     Fields:
         favoriteGeofences: list[dict]:
             name: str — a name (e.g. "Home") or street address
-            type: str ("home" | "work" | "custom"), when sent
+            type: str ("home" | "work" | "custom")
     """
     places = []
     for geofence in m.geofence:
         place: dict[str, Any] = {}
         if (v := _present(geofence, "name")) is not None:
             place["name"] = v
-        if (v := _present(geofence, "type")) is not None:
-            place["type"] = _enum(_GEOFENCE_TYPE_MAP, v, what="geofence type")
+        place["type"] = _enum(_GEOFENCE_TYPE_MAP, geofence.type, what="geofence type")
         places.append(place)
     return {"favoriteGeofences": places}

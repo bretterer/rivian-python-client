@@ -118,12 +118,42 @@ def test_locks() -> None:
 
 
 def test_trailer_state() -> None:
-    """Trailer presence maps to its enum string."""
+    """Trailer presence and rear hitch status map to their enum strings."""
     result = decode(
         "body.trailer.state",
-        body.TrailerState(presence=body.TRAILER_PRESENT_WITH_BRAKES),
+        body.TrailerState(
+            presence=body.TRAILER_PRESENT_WITH_BRAKES,
+            rear_hitch_status=body.REAR_HITCH_STATUS_TRAILER1,
+        ),
     )
-    assert result == {"trailerStatus": "trailer_present_with_brakes"}
+    assert result == {
+        "trailerStatus": "trailer_present_with_brakes",
+        "rearHitchStatus": "trailer1",
+    }
+
+
+def test_window_calibration() -> None:
+    """Each window's calibration uses the GraphQL values."""
+    window = body.WindowsState.Window
+    result = decode(
+        "body.windows.states",
+        body.WindowsState(
+            window=[
+                window(
+                    instance=body.WINDOW_INSTANCE_FRONT_LEFT,
+                    calibration_status=body.CALIBRATION_STATUS_CALIBRATED,
+                ),
+                window(
+                    instance=body.WINDOW_INSTANCE_REAR,
+                    calibration_status=body.CALIBRATION_STATUS_NOT_CALIBRATED,
+                ),
+            ]
+        ),
+    )
+    assert result == {
+        "windowFrontLeftCalibrated": "Calibrated",
+        "windowRearCalibrated": "Not_Calibrated",
+    }
 
 
 def test_wiper_fluid_level() -> None:

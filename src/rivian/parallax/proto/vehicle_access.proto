@@ -4,9 +4,17 @@ package rivian.parallax.vehicle_access;
 
 // Reverse-engineered `vehicle_access.*` RVM payloads; see ../vehicle_access.py.
 
-// vehicle_access.passive_entry.passive_entry -- the passive entry setting;
-// unmapped.
-message PassiveEntrySetting {}
+// vehicle_access.passive_entry.passive_entry -- the passive entry setting.
+// Not seen yet; the app's likely schema.
+message PassiveEntrySetting {
+  CccPassiveSetting ccc_passive_permission = 1;
+}
+
+enum CccPassiveSetting {
+  CCC_PASSIVE_SETTING_UNAVAILABLE = 0;
+  CCC_PASSIVE_SETTING_DISABLED = 1;
+  CCC_PASSIVE_SETTING_ENABLED = 2;
+}
 
 // vehicle_access.state.passive_entry -- not seen yet; schema from the app.
 message PassiveEntryState {
@@ -16,8 +24,7 @@ message PassiveEntryState {
 
 // CCC: Car Connectivity Consortium digital key.
 enum CccPassivePermission {
-  CCC_PASSIVE_PERMISSION_UNSPECIFIED = 0;
-  CCC_PASSIVE_PERMISSION_SNA = 1;
+  CCC_PASSIVE_PERMISSION_SNA = 0;
+  CCC_PASSIVE_PERMISSION_DISABLED = 1;
   CCC_PASSIVE_PERMISSION_ENABLED = 2;
-  CCC_PASSIVE_PERMISSION_DISABLED = 3;
 }

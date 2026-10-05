@@ -26,6 +26,28 @@ _OTA_STATUS_MAP: Final[dict[int, str]] = {
 }
 
 
+_Deployment = ota_pb2.DeploymentState
+# The app's GraphQL-style strings.
+_CURRENT_STATUS_MAP: Final[dict[int, str]] = {
+    _Deployment.CURRENT_STATUS_INSTALL_SUCCESS: "Install_Success",
+    _Deployment.CURRENT_STATUS_INSTALL_FAILED: "Install_Failed",
+    _Deployment.CURRENT_STATUS_INSTALL_UNABLE_TO_START: "Install_Unable_To_Start",
+}
+
+_DEPLOYMENT_INTENT_MAP: Final[dict[int, str]] = {
+    _Deployment.DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE: "Performance_Upgrade",
+    _Deployment.DEPLOYMENT_INTENT_BUG_FIX: "Bug_Fix",
+    _Deployment.DEPLOYMENT_INTENT_SECURITY_UPDATE: "Security_Update",
+    _Deployment.DEPLOYMENT_INTENT_FEATURE_ADDITION: "Feature_Addition",
+}
+
+_SOFTWARE_CATEGORY_MAP: Final[dict[int, str]] = {
+    _Deployment.SOFTWARE_CATEGORY_FIRMWARE: "Firmware",
+    _Deployment.SOFTWARE_CATEGORY_HD_MAPS: "HD_Maps",
+    _Deployment.SOFTWARE_CATEGORY_VEHICLE_CONFIG: "Vehicle_Config",
+}
+
+
 def _decode_version(
     version: ota_pb2.DeploymentState.Version, prefix: str
 ) -> dict[str, Any]:
@@ -58,7 +80,7 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         otaCurrentVersionYear, otaCurrentVersionWeek,
             otaCurrentVersionNumber: int
         otaCurrentVersionGitHash: str
-        deploymentState: int — unknown
+        otaSoftwareCategory: str ("Firmware" | "HD_Maps" | "Vehicle_Config")
         otaUpdateInProgress: bool
         otaDeploymentId: str — UUID, only while an update is in flight
         otaAvailableVersion, otaAvailableVersionYear,
@@ -72,16 +94,34 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         otaDownloadProgress, otaInstallProgress: int (0-100)
         otaTimeRemaining: int (seconds; counts down during
             "install_countdown", a static default otherwise)
-        otaUpdateCycleCount: int — increments when an update completes
-        _otaProgressActiveFlag, _otaProgressTimeoutBudget,
-        _otaProgressLateStageFlag, _otaProgressField9: int — unknown
+        otaCurrentStatus: str | None ("Install_Success" | "Install_Failed" |
+            "Install_Unable_To_Start") — the last install's result
+        otaInstallReady: str ("ota_available" | "ota_not_available")
+        otaInstallDuration: int (minutes)
+        otaInstallTimeOfDay: int (minutes after local midnight), when set
+        otaDeploymentIntent: str | None ("Performance_Upgrade" | "Bug_Fix" |
+            "Security_Update" | "Feature_Addition")
+        otaSkipAllowed: bool, otaSkipCount: int
+        otaPendingReasons: list[str] — what's blocking an install, e.g.
+            "not_parked", "unplugged", "lv_batt"
+        _otaType, _otaIsActive, _otaStatusAcknowledge: raw
     """
     result: dict[str, Any] = {}
-    if not m.HasField("deployment"):
+    if not m.deployment:
         return result
-    deployment = m.deployment
-    if (v := _present(deployment, "state")) is not None:
-        result["deploymentState"] = v
+    # Like the app, report the firmware deployment.
+    deployment = next(
+        (
+            d
+            for d in m.deployment
+            if d.software_category == _Deployment.SOFTWARE_CATEGORY_FIRMWARE
+        ),
+        m.deployment[0],
+    )
+    if (v := _present(deployment, "software_category")) is not None:
+        result["otaSoftwareCategory"] = _enum(
+            _SOFTWARE_CATEGORY_MAP, v, what="OTA software category"
+        )
     if deployment.HasField("version"):
         result.update(_decode_version(deployment.version, "otaCurrent"))
 
@@ -95,11 +135,16 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         result["otaDeploymentId"] = deployment_id
     if wrapper.HasField("target_version"):
         result.update(_decode_version(wrapper.target_version, "otaAvailable"))
-    for field, key in (
-        ("active_flag", "_otaProgressActiveFlag"),
-        ("timeout_budget", "_otaProgressTimeoutBudget"),
-        ("late_stage_flag", "_otaProgressLateStageFlag"),
-    ):
+    if (v := _present(wrapper, "install_tod")) is not None:
+        result["otaInstallTimeOfDay"] = v
+    result["otaDeploymentIntent"] = _enum(
+        _DEPLOYMENT_INTENT_MAP,
+        wrapper.deployment_intent or None,
+        what="OTA deployment intent",
+    )
+    result["otaSkipAllowed"] = wrapper.skip_allowed
+    result["otaSkipCount"] = wrapper.skip_count
+    for field, key in (("ota_type", "_otaType"), ("is_active", "_otaIsActive")):
         if (v := _present(wrapper, field)) is not None:
             result[key] = v
 
@@ -108,20 +153,29 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
     progress = wrapper.progress
     if (v := _present(progress, "phase")) is not None:
         result["otaStatus"] = _enum(_OTA_STATUS_MAP, v, what="OTA status")
-    if (
-        progress.HasField("download_progress")
-        and (v := _present(progress.download_progress, "field_2")) is not None
+    result["otaCurrentStatus"] = _enum(
+        _CURRENT_STATUS_MAP, progress.current_status or None, what="OTA current status"
+    )
+    for field, key in (
+        ("download_progress", "otaDownloadProgress"),
+        ("install_progress", "otaInstallProgress"),
     ):
-        result["otaDownloadProgress"] = v
-    if (
-        progress.HasField("install_progress")
-        and (v := _present(progress.install_progress, "field_2")) is not None
-    ):
-        result["otaInstallProgress"] = v
+        if (
+            progress.HasField(field)
+            and (v := _present(getattr(progress, field), "progress_percent"))
+            is not None
+        ):
+            result[key] = v
     result["otaTimeRemaining"] = progress.time_remaining
-    result["otaUpdateCycleCount"] = progress.update_cycle_count
-    if (v := _present(progress, "field_9")) is not None:
-        result["_otaProgressField9"] = v
+    result["otaInstallReady"] = (
+        "ota_available" if progress.install_ready else "ota_not_available"
+    )
+    result["otaInstallDuration"] = progress.install_duration
+    reasons = progress.pending_reasons
+    result["otaPendingReasons"] = [
+        field.name for field, value in reasons.ListFields() if value
+    ]
+    result["_otaStatusAcknowledge"] = progress.status_acknowledge
     return result
 
 

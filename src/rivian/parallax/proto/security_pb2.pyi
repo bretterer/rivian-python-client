@@ -16,6 +16,12 @@ class ImmobilizerStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     IMMOBILIZER_NOT_AUTHORIZED: _ClassVar[ImmobilizerStatus]
     IMMOBILIZER_AUTHORIZED_TO_DRIVE: _ClassVar[ImmobilizerStatus]
 
+class LockFailNotification(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    LOCK_FAIL_NOTIFICATION_SNA: _ClassVar[LockFailNotification]
+    LOCK_FAIL_NOTIFICATION_TRUE: _ClassVar[LockFailNotification]
+    LOCK_FAIL_NOTIFICATION_FALSE: _ClassVar[LockFailNotification]
+
 class PassiveEntryFailReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     PASSIVE_ENTRY_FAIL_UNSPECIFIED: _ClassVar[PassiveEntryFailReason]
@@ -80,6 +86,9 @@ HARDWARE_FAILURE_SET: HardwareFailure
 IMMOBILIZER_NOT_ASSIGNED: ImmobilizerStatus
 IMMOBILIZER_NOT_AUTHORIZED: ImmobilizerStatus
 IMMOBILIZER_AUTHORIZED_TO_DRIVE: ImmobilizerStatus
+LOCK_FAIL_NOTIFICATION_SNA: LockFailNotification
+LOCK_FAIL_NOTIFICATION_TRUE: LockFailNotification
+LOCK_FAIL_NOTIFICATION_FALSE: LockFailNotification
 PASSIVE_ENTRY_FAIL_UNSPECIFIED: PassiveEntryFailReason
 PASSIVE_ENTRY_NOT_IN_PARK: PassiveEntryFailReason
 PASSIVE_ENTRY_AT_HOME_DISABLE: PassiveEntryFailReason
@@ -125,20 +134,28 @@ class PassiveEntry(_message.Message):
     def __init__(self) -> None: ...
 
 class Btm(_message.Message):
-    __slots__ = ("ff", "ic", "lfd", "rf", "rfd", "oc")
+    __slots__ = ("ff", "ic", "lfd", "rf", "rfd", "oc", "ffr_error", "rfr_error", "ffl_error", "rfl_error")
     FF_FIELD_NUMBER: _ClassVar[int]
     IC_FIELD_NUMBER: _ClassVar[int]
     LFD_FIELD_NUMBER: _ClassVar[int]
     RF_FIELD_NUMBER: _ClassVar[int]
     RFD_FIELD_NUMBER: _ClassVar[int]
     OC_FIELD_NUMBER: _ClassVar[int]
+    FFR_ERROR_FIELD_NUMBER: _ClassVar[int]
+    RFR_ERROR_FIELD_NUMBER: _ClassVar[int]
+    FFL_ERROR_FIELD_NUMBER: _ClassVar[int]
+    RFL_ERROR_FIELD_NUMBER: _ClassVar[int]
     ff: HardwareFailure
     ic: HardwareFailure
     lfd: HardwareFailure
     rf: HardwareFailure
     rfd: HardwareFailure
     oc: HardwareFailure
-    def __init__(self, ff: _Optional[_Union[HardwareFailure, str]] = ..., ic: _Optional[_Union[HardwareFailure, str]] = ..., lfd: _Optional[_Union[HardwareFailure, str]] = ..., rf: _Optional[_Union[HardwareFailure, str]] = ..., rfd: _Optional[_Union[HardwareFailure, str]] = ..., oc: _Optional[_Union[HardwareFailure, str]] = ...) -> None: ...
+    ffr_error: int
+    rfr_error: int
+    ffl_error: int
+    rfl_error: int
+    def __init__(self, ff: _Optional[_Union[HardwareFailure, str]] = ..., ic: _Optional[_Union[HardwareFailure, str]] = ..., lfd: _Optional[_Union[HardwareFailure, str]] = ..., rf: _Optional[_Union[HardwareFailure, str]] = ..., rfd: _Optional[_Union[HardwareFailure, str]] = ..., oc: _Optional[_Union[HardwareFailure, str]] = ..., ffr_error: _Optional[int] = ..., rfr_error: _Optional[int] = ..., ffl_error: _Optional[int] = ..., rfl_error: _Optional[int] = ...) -> None: ...
 
 class ImmobilizerState(_message.Message):
     __slots__ = ("status",)
@@ -147,10 +164,12 @@ class ImmobilizerState(_message.Message):
     def __init__(self, status: _Optional[_Union[ImmobilizerStatus, str]] = ...) -> None: ...
 
 class PassiveEntryDebug(_message.Message):
-    __slots__ = ("reason",)
+    __slots__ = ("reason", "send_lock_fail_notification")
     REASON_FIELD_NUMBER: _ClassVar[int]
+    SEND_LOCK_FAIL_NOTIFICATION_FIELD_NUMBER: _ClassVar[int]
     reason: PassiveEntryFailReason
-    def __init__(self, reason: _Optional[_Union[PassiveEntryFailReason, str]] = ...) -> None: ...
+    send_lock_fail_notification: LockFailNotification
+    def __init__(self, reason: _Optional[_Union[PassiveEntryFailReason, str]] = ..., send_lock_fail_notification: _Optional[_Union[LockFailNotification, str]] = ...) -> None: ...
 
 class VasFault(_message.Message):
     __slots__ = ("secure_element", "access_can")
@@ -161,12 +180,12 @@ class VasFault(_message.Message):
     def __init__(self, secure_element: _Optional[_Union[SecureElementFaulted, str]] = ..., access_can: _Optional[_Union[AccessCanFaulted, str]] = ...) -> None: ...
 
 class AlarmState(_message.Message):
-    __slots__ = ("consecutive_alarm_disabled_notification", "sound_status")
+    __slots__ = ("sound_alarm", "consecutive_alarm_disabled_notification")
+    SOUND_ALARM_FIELD_NUMBER: _ClassVar[int]
     CONSECUTIVE_ALARM_DISABLED_NOTIFICATION_FIELD_NUMBER: _ClassVar[int]
-    SOUND_STATUS_FIELD_NUMBER: _ClassVar[int]
-    consecutive_alarm_disabled_notification: int
-    sound_status: AlarmSound
-    def __init__(self, consecutive_alarm_disabled_notification: _Optional[int] = ..., sound_status: _Optional[_Union[AlarmSound, str]] = ...) -> None: ...
+    sound_alarm: AlarmSound
+    consecutive_alarm_disabled_notification: bool
+    def __init__(self, sound_alarm: _Optional[_Union[AlarmSound, str]] = ..., consecutive_alarm_disabled_notification: bool = ...) -> None: ...
 
 class VideoMonitoringState(_message.Message):
     __slots__ = ("status", "mode", "terms_accepted")

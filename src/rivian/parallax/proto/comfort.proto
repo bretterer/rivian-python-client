@@ -12,40 +12,61 @@ message HvacSettingsStatus {
 
 // comfort.user_modes.state
 message UserModesState {
+  bool in_service = 1;
   bool car_wash_mode = 2;
-  optional int32 field4 = 4; // unknown
-  optional int32 field7 = 7; // unknown
+  // Enum types unknown.
+  int32 pet_mode = 3;
+  int32 camp_mode = 4;
+  int32 transport_mode = 5;
+  int32 climate_keep = 6;
+  int32 factory_mode = 7;
 }
 
 // comfort.cabin.cabin_preconditioning_status
 message CabinPreconditioningStatus {
   PreconditioningStatus status = 1;
-  // Unmapped; 1 when started from the app, absent for pet comfort. Possibly
-  // cabinPreconditioningType (1 = user selected).
-  int32 field_2 = 2;
+  PreconditioningType type = 2;
 }
 
 enum PreconditioningStatus {
-  PRECONDITIONING_OFF = 0;
-  PRECONDITIONING_INITIATE_1 = 1;
-  PRECONDITIONING_INITIATE_2 = 2;
-  PRECONDITIONING_ACTIVE = 4;
-  PRECONDITIONING_PET_COMFORT = 8;
+  PRECONDITIONING_STATUS_UNSPECIFIED = 0;
+  PRECONDITIONING_INITIATE = 1;
+  PRECONDITIONING_ACTIVE = 2;
+  PRECONDITIONING_ACTIVE_WARNING = 3;
+  PRECONDITIONING_COMPLETE_MAINTAIN = 4;
+  PRECONDITIONING_TIMEOUT_TEMP_NOT_ACHIEVED = 5;
+  PRECONDITIONING_ERROR_SOC_LOW = 6;
+  PRECONDITIONING_ERROR_SYSTEM_FAULT = 7;
+  PRECONDITIONING_UNAVAILABLE = 8;
+  PRECONDITIONING_TIMEOUT_COMPLETE = 9;
+}
+
+enum PreconditioningType {
+  PRECONDITIONING_TYPE_UNSPECIFIED = 0;
+  PRECONDITIONING_TYPE_USER_SELECTED = 1;
+  PRECONDITIONING_TYPE_SCREEN_PROTECTION = 2;
+  PRECONDITIONING_TYPE_SCHEDULED = 3;
+  PRECONDITIONING_TYPE_AUTO_CABIN_VENTILATION = 4;
 }
 
 // comfort.cabin.cabin_temperatures
 message CabinTemperatures {
+  repeated ZoneTemperature temperatures = 1;
+  optional float exterior_temperature = 2; // °C
   float interior_temperature = 3; // °C
-  float driver_set_point = 4; // °C; same as HvacSettingsStatus's target
+  // The app's interior display temperature: the set point, same as
+  // HvacSettingsStatus's target.
+  float driver_set_point = 4; // °C
+
+  message ZoneTemperature {
+    int32 seat = 1;
+    float temperature = 2; // °C
+  }
 }
 
 // comfort.cabin.cabin_ventilation_setting
 message CabinVentilationSetting {
-  bool enabled = 1;
-  string mode = 2; // "AUTO" | "MANUAL" | "OFF"
-  int32 windows_position = 3; // percent open
-  int32 sunroof_position = 4; // percent open
-  int32 duration = 5; // minutes
+  bool auto_cabin_ventilation_enabled = 1;
 }
 
 // comfort.cabin.climate_hold_setting
@@ -84,6 +105,7 @@ enum ClimateHoldUnavailabilityReason {
   CLIMATE_HOLD_UNAVAILABILITY_UNSPECIFIED = 0;
   CLIMATE_HOLD_UNAVAILABILITY_UNKNOWN = 1;
   CLIMATE_HOLD_UNAVAILABILITY_LOW_SOC = 2;
+  CLIMATE_HOLD_UNAVAILABILITY_FAULT = 3;
 }
 
 // comfort.cabin.defrost_defog_status
@@ -93,7 +115,9 @@ message DefrostDefogStatus {
 
 enum DefrostStatus {
   DEFROST_STATUS_UNSPECIFIED = 0;
+  DEFROST_DEFOG = 1;
   DEFROST_ACTIVE = 2;
+  DEFROST_DEFOG_DEFROST = 3;
   DEFROST_OFF = 4;
 }
 
@@ -101,6 +125,13 @@ enum DefrostStatus {
 message PetModeStatus {
   PetModeState status = 1;
   PetModeTemperatureStatus temperature_status = 2;
+  PetModeCabinClimate cabin_climate = 3;
+}
+
+enum PetModeCabinClimate {
+  PET_MODE_CABIN_CLIMATE_COMFORTABLE = 0;
+  PET_MODE_CABIN_CLIMATE_COLD = 1;
+  PET_MODE_CABIN_CLIMATE_HOT = 2;
 }
 
 enum PetModeState {

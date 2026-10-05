@@ -122,9 +122,9 @@ class DriveMode(_message.Message):
     LIMITED_ACCEL_COLD_FIELD_NUMBER: _ClassVar[int]
     LIMITED_REGEN_COLD_FIELD_NUMBER: _ClassVar[int]
     mode: DriveModeValue
-    limited_accel_cold: int
-    limited_regen_cold: int
-    def __init__(self, mode: _Optional[_Union[DriveModeValue, str]] = ..., limited_accel_cold: _Optional[int] = ..., limited_regen_cold: _Optional[int] = ...) -> None: ...
+    limited_accel_cold: bool
+    limited_regen_cold: bool
+    def __init__(self, mode: _Optional[_Union[DriveModeValue, str]] = ..., limited_accel_cold: bool = ..., limited_regen_cold: bool = ...) -> None: ...
 
 class Gear(_message.Message):
     __slots__ = ("gear",)
@@ -179,7 +179,7 @@ class Range(_message.Message):
     def __init__(self, distance_to_empty: _Optional[int] = ..., threshold: _Optional[_Union[RangeThreshold, str]] = ..., temperature_impact: _Optional[_Union[TemperatureImpact, str]] = ...) -> None: ...
 
 class TiresState(_message.Message):
-    __slots__ = ("field_1", "tire")
+    __slots__ = ("tpms_monitor_status", "tire")
     class Tire(_message.Message):
         __slots__ = ("pos", "status", "pressure", "invalid", "timestamp")
         POS_FIELD_NUMBER: _ClassVar[int]
@@ -193,11 +193,11 @@ class TiresState(_message.Message):
         invalid: bool
         timestamp: int
         def __init__(self, pos: _Optional[_Union[TirePosition, str]] = ..., status: _Optional[_Union[TirePressureStatus, str]] = ..., pressure: _Optional[float] = ..., invalid: bool = ..., timestamp: _Optional[int] = ...) -> None: ...
-    FIELD_1_FIELD_NUMBER: _ClassVar[int]
+    TPMS_MONITOR_STATUS_FIELD_NUMBER: _ClassVar[int]
     TIRE_FIELD_NUMBER: _ClassVar[int]
-    field_1: int
+    tpms_monitor_status: int
     tire: _containers.RepeatedCompositeFieldContainer[TiresState.Tire]
-    def __init__(self, field_1: _Optional[int] = ..., tire: _Optional[_Iterable[_Union[TiresState.Tire, _Mapping]]] = ...) -> None: ...
+    def __init__(self, tpms_monitor_status: _Optional[int] = ..., tire: _Optional[_Iterable[_Union[TiresState.Tire, _Mapping]]] = ...) -> None: ...
 
 class Efficiency(_message.Message):
     __slots__ = ("efficiency", "field_2", "history")

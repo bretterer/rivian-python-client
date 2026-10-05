@@ -25,15 +25,19 @@ def decode_user_modes_state(m: comfort_pb2.UserModesState) -> dict[str, Any]:
     """comfort.user_modes.state — user modes.
 
     Fields:
-        carWashMode: str ("on" | "off")
-        _field4, _field7: int — raw
+        serviceMode, carWashMode: str ("on" | "off")
+        _petMode, _campMode, _transportMode, _climateKeep, _factoryMode:
+            int — raw; enum types unknown
     """
-    result: dict[str, Any] = {"carWashMode": "on" if m.car_wash_mode else "off"}
-    if (v := _present(m, "field4")) is not None:
-        result["_field4"] = v
-    if (v := _present(m, "field7")) is not None:
-        result["_field7"] = v
-    return result
+    return {
+        "serviceMode": "on" if m.in_service else "off",
+        "carWashMode": "on" if m.car_wash_mode else "off",
+        "_petMode": m.pet_mode,
+        "_campMode": m.camp_mode,
+        "_transportMode": m.transport_mode,
+        "_climateKeep": m.climate_keep,
+        "_factoryMode": m.factory_mode,
+    }
 
 
 _CLIMATE_HOLD_AVAILABILITY_MAP: Final[dict[int, str]] = {
@@ -55,6 +59,43 @@ _CLIMATE_HOLD_UNAVAILABILITY_REASON_MAP: Final[dict[int, str]] = {
     comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_UNSPECIFIED: "unspecified",
     comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_UNKNOWN: "unknown",
     comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_LOW_SOC: "low_soc",
+    comfort_pb2.CLIMATE_HOLD_UNAVAILABILITY_FAULT: "fault",
+}
+
+_DEFROST_MAP: Final[dict[int, str]] = {
+    comfort_pb2.DEFROST_DEFOG: "Defog",
+    comfort_pb2.DEFROST_ACTIVE: "Defrost",
+    comfort_pb2.DEFROST_DEFOG_DEFROST: "Defog_Defrost",
+    comfort_pb2.DEFROST_OFF: "Off",
+}
+
+# GraphQL's cabinPreconditioningStatus / cabinPreconditioningType values.
+_PRECONDITIONING_STATUS_MAP: Final[dict[int, str]] = {
+    comfort_pb2.PRECONDITIONING_STATUS_UNSPECIFIED: "undefined",
+    comfort_pb2.PRECONDITIONING_INITIATE: "initiate",
+    comfort_pb2.PRECONDITIONING_ACTIVE: "active",
+    comfort_pb2.PRECONDITIONING_ACTIVE_WARNING: "active_warning",
+    comfort_pb2.PRECONDITIONING_COMPLETE_MAINTAIN: "complete_maintain",
+    comfort_pb2.PRECONDITIONING_TIMEOUT_TEMP_NOT_ACHIEVED: (
+        "timeout_temperature_not_achieved"
+    ),
+    comfort_pb2.PRECONDITIONING_ERROR_SOC_LOW: "error_soc_low",
+    comfort_pb2.PRECONDITIONING_ERROR_SYSTEM_FAULT: "error_system_fault",
+    comfort_pb2.PRECONDITIONING_UNAVAILABLE: "unavailable",
+    comfort_pb2.PRECONDITIONING_TIMEOUT_COMPLETE: "timeout_complete",
+}
+
+_PRECONDITIONING_TYPE_MAP: Final[dict[int, str]] = {
+    comfort_pb2.PRECONDITIONING_TYPE_USER_SELECTED: "user_selected",
+    comfort_pb2.PRECONDITIONING_TYPE_SCREEN_PROTECTION: "screen_protection",
+    comfort_pb2.PRECONDITIONING_TYPE_SCHEDULED: "scheduled",
+    comfort_pb2.PRECONDITIONING_TYPE_AUTO_CABIN_VENTILATION: "auto_cabin_ventilation",
+}
+
+_PET_MODE_CABIN_CLIMATE_MAP: Final[dict[int, str]] = {
+    comfort_pb2.PET_MODE_CABIN_CLIMATE_COMFORTABLE: "comfortable",
+    comfort_pb2.PET_MODE_CABIN_CLIMATE_COLD: "cold",
+    comfort_pb2.PET_MODE_CABIN_CLIMATE_HOT: "hot",
 }
 
 _PET_MODE_STATE_MAP: Final[dict[int, str]] = {
@@ -110,20 +151,20 @@ def decode_preconditioning(m: comfort_pb2.CabinPreconditioningStatus) -> dict[st
     """comfort.cabin.cabin_preconditioning_status — cabin preconditioning state.
 
     Fields:
-        cabinPreconditioningStatus: str ("active" | "initiate" | "off");
-            pet comfort counts as "active"
+        cabinPreconditioningStatus: str ("undefined" | "initiate" | "active" |
+            "complete_maintain" | "unavailable" | ...); "unavailable" while
+            driving or in pet comfort
+        cabinPreconditioningType: str | None ("user_selected" |
+            "screen_protection" | "scheduled" | "auto_cabin_ventilation")
     """
-    if m.status in (
-        comfort_pb2.PRECONDITIONING_ACTIVE,
-        comfort_pb2.PRECONDITIONING_PET_COMFORT,
-    ):
-        return {"cabinPreconditioningStatus": "active"}
-    if m.status in (
-        comfort_pb2.PRECONDITIONING_INITIATE_1,
-        comfort_pb2.PRECONDITIONING_INITIATE_2,
-    ):
-        return {"cabinPreconditioningStatus": "initiate"}
-    return {"cabinPreconditioningStatus": "off"}
+    return {
+        "cabinPreconditioningStatus": _enum(
+            _PRECONDITIONING_STATUS_MAP, m.status, what="preconditioning status"
+        ),
+        "cabinPreconditioningType": _enum(
+            _PRECONDITIONING_TYPE_MAP, m.type or None, what="preconditioning type"
+        ),
+    }
 
 
 @RVMDecoder.register("comfort.cabin.cabin_temperatures", comfort_pb2.CabinTemperatures)
@@ -134,33 +175,27 @@ def decode_cabin_temperatures(m: comfort_pb2.CabinTemperatures) -> dict[str, Any
         cabinClimateInteriorTemperature: float (°C)
         cabinClimateDriverTemperature: float (°C) — set point, same as
             `hvacTargetTemperature`
+        cabinClimateExteriorTemperature: float (°C), when sent
     """
-    return {
+    result: dict[str, Any] = {
         "cabinClimateInteriorTemperature": round(m.interior_temperature, 1),
         "cabinClimateDriverTemperature": round(m.driver_set_point, 1),
     }
+    if (v := _present(m, "exterior_temperature")) is not None:
+        result["cabinClimateExteriorTemperature"] = round(v, 1)
+    return result
 
 
 @RVMDecoder.register(
     "comfort.cabin.cabin_ventilation_setting", comfort_pb2.CabinVentilationSetting
 )
 def decode_cabin_ventilation(m: comfort_pb2.CabinVentilationSetting) -> dict[str, Any]:
-    """comfort.cabin.cabin_ventilation_setting — passive ventilation settings.
+    """comfort.cabin.cabin_ventilation_setting — auto cabin ventilation.
 
     Fields:
         cabinVentilationEnabled: bool
-        cabinVentilationMode: str | None ("AUTO" | "MANUAL" | "OFF")
-        cabinVentilationWindowsPosition: int (percent open)
-        cabinVentilationSunroofPosition: int (percent open)
-        cabinVentilationDuration: int (minutes)
     """
-    return {
-        "cabinVentilationEnabled": m.enabled,
-        "cabinVentilationMode": m.mode or None,
-        "cabinVentilationWindowsPosition": m.windows_position,
-        "cabinVentilationSunroofPosition": m.sunroof_position,
-        "cabinVentilationDuration": m.duration,
-    }
+    return {"cabinVentilationEnabled": m.auto_cabin_ventilation_enabled}
 
 
 @RVMDecoder.register(
@@ -211,10 +246,14 @@ def decode_defrost_status(m: comfort_pb2.DefrostDefogStatus) -> dict[str, Any]:
     """comfort.cabin.defrost_defog_status — windshield defrost state.
 
     Fields:
-        defrostDefogStatus: str ("Defrost" | "Off")
+        defrostDefogStatus: str | None ("Defog" | "Defrost" | "Defog_Defrost"
+            | "Off")
     """
-    active = m.status == comfort_pb2.DEFROST_ACTIVE
-    return {"defrostDefogStatus": "Defrost" if active else "Off"}
+    return {
+        "defrostDefogStatus": _enum(
+            _DEFROST_MAP, m.status or None, what="defrost defog status"
+        )
+    }
 
 
 @RVMDecoder.register("comfort.cabin.pet_mode_status", comfort_pb2.PetModeStatus)
@@ -225,8 +264,9 @@ def decode_pet_mode_status(m: comfort_pb2.PetModeStatus) -> dict[str, Any]:
         petModeStatus: str — "disabled" while cabin climate is off, "off"
             while it runs without pet mode
         petModeTemperatureStatus: str
+        petModeCabinClimate: str ("comfortable" | "cold" | "hot")
 
-    Absent fields are their zero values ("off" / "default").
+    Absent fields are their zero values ("off" / "default" / "comfortable").
     """
     return {
         "petModeStatus": _enum(_PET_MODE_STATE_MAP, m.status, what="pet mode status"),
@@ -234,6 +274,9 @@ def decode_pet_mode_status(m: comfort_pb2.PetModeStatus) -> dict[str, Any]:
             _PET_MODE_TEMPERATURE_MAP,
             m.temperature_status,
             what="pet mode temperature status",
+        ),
+        "petModeCabinClimate": _enum(
+            _PET_MODE_CABIN_CLIMATE_MAP, m.cabin_climate, what="pet mode cabin climate"
         ),
     }
 

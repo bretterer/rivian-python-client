@@ -6,7 +6,7 @@ from typing import Any, Final
 
 from ..utils import from_epoch
 from .charging import _CHARGING_STATE_MAP
-from .core import RVMDecoder, _enum, _present
+from .core import RVMDecoder, _enum
 from .proto import charging_pb2, energy_edge_compute_pb2
 
 
@@ -17,14 +17,18 @@ from .proto import charging_pb2, energy_edge_compute_pb2
 def decode_cold_weather_soc(
     m: energy_edge_compute_pb2.ColdWeatherSoc,
 ) -> dict[str, Any]:
-    """energy_edge_compute.graphs.cold_weather_soc — a cold-weather drain graph point.
+    """energy_edge_compute.graphs.cold_weather_soc — the app's cold-weather graph.
 
     Fields:
-        coldWeatherSoc: int (percent, 0-100)
+        coldWeatherSoc: int (percent; the graph's green value)
+        coldWeatherSocBlue: int (percent; the graph's blue value)
+        coldRangeImpact: int (km)
     """
-    if (v := _present(m, "soc")) is None:
-        return {}
-    return {"coldWeatherSoc": v}
+    return {
+        "coldWeatherSoc": m.soc_perc_green,
+        "coldWeatherSocBlue": m.soc_perc_blue,
+        "coldRangeImpact": m.cold_range_impact,
+    }
 
 
 # EnergyDistribution field -> result key.

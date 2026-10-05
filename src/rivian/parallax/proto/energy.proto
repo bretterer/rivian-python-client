@@ -5,14 +5,42 @@ package rivian.parallax.energy;
 // Reverse-engineered `energy.*` RVM payloads; see ../energy.py.
 
 // energy.high_voltage.battery_characteristics
-// Fields 1, 3 and 4 are unmapped.
 message BatteryCharacteristics {
-  int32 field_1 = 1;
+  BatteryCellChemistry chemistry = 1;
   optional BatteryCellType cell_type = 2;
-  int32 field_3 = 3;
-  int32 field_4 = 4;
-  optional float pack_energy = 5; // kWh
-  float pack_energy_copy = 6; // kWh; duplicates field 5
+  BatteryModuleType module_type = 3;
+  BatteryPackCapacity pack_capacity = 4;
+  optional float user_total_kwh = 5;
+  float user_max_kwh = 6;
+}
+
+enum BatteryCellChemistry {
+  BATTERY_CELL_CHEMISTRY_UNSPECIFIED = 0;
+  BATTERY_CELL_CHEMISTRY_NCA = 1;
+  BATTERY_CELL_CHEMISTRY_LFP = 2;
+  BATTERY_CELL_CHEMISTRY_NMC = 3;
+}
+
+enum BatteryModuleType {
+  BATTERY_MODULE_TYPE_UNSPECIFIED = 0;
+  BATTERY_MODULE_TYPE_9M = 1;
+  BATTERY_MODULE_TYPE_1M = 2;
+  BATTERY_MODULE_TYPE_8M = 3;
+  BATTERY_MODULE_TYPE_6M = 4;
+  BATTERY_MODULE_TYPE_11M = 5;
+  BATTERY_MODULE_TYPE_7M = 6;
+  BATTERY_MODULE_TYPE_3M = 7;
+  BATTERY_MODULE_TYPE_10M = 8;
+}
+
+enum BatteryPackCapacity {
+  BATTERY_PACK_CAPACITY_UNSPECIFIED = 0;
+  BATTERY_PACK_CAPACITY_135KWH = 1;
+  BATTERY_PACK_CAPACITY_150KWH = 2;
+  BATTERY_PACK_CAPACITY_100KWH = 3;
+  BATTERY_PACK_CAPACITY_116KWH = 4;
+  BATTERY_PACK_CAPACITY_108KWH = 5;
+  BATTERY_PACK_CAPACITY_88KWH = 6;
 }
 
 enum BatteryCellType {
@@ -24,26 +52,37 @@ enum BatteryCellType {
 }
 
 // energy.high_voltage.battery_state
-// Fields 3 and 4 are unmapped.
 message BatteryState {
   ChargeState charge_state = 1;
   Temperatures temperatures = 2;
-  string field_3 = 3; // unknown
-  int32 field_4 = 4;
-  optional int32 bms_state_raw = 6; // 4 idle, 5 discharging, 6 charging, others unnamed
+  ThermalEvent thermal_event = 3;
+  PowerOutputStatus power_output = 4;
+  bool requires_calibration = 5;
+  // Not in the app's schema: 4 idle, 5 discharging, 6 charging, others unnamed.
+  optional int32 bms_state_raw = 6;
 
   // The doubles carry float32 precision.
   message ChargeState {
     double soc = 1; // percent
     double pack_energy = 2; // kWh
-    optional float range = 3; // km; often absent
   }
 
   message Temperatures {
-    float mid = 1; // °C
+    float mid = 1; // °C; the cell average
     float max = 2; // °C
     float min = 3; // °C
   }
+
+  message ThermalEvent {
+    bool high_voltage_battery_thermal_event = 1;
+    bool high_voltage_battery_thermal_event_propagation = 2;
+  }
+}
+
+enum PowerOutputStatus {
+  POWER_OUTPUT_STATUS_UNSPECIFIED = 0;
+  POWER_OUTPUT_STATUS_NOMINAL = 1;
+  POWER_OUTPUT_STATUS_COLD = 2;
 }
 
 // energy.low_voltage.battery_state

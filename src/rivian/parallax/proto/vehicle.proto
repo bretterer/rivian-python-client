@@ -21,6 +21,9 @@ enum PowerState {
   POWER_STANDBY = 2;
   POWER_READY = 3;
   POWER_GO = 4;
+  POWER_VEHICLE_RESET = 5;
+  POWER_OTA_UPDATE = 6;
+  POWER_SHUTDOWN = 7;
 }
 
 // vehicle.wheels.vehicle_wheels
@@ -48,21 +51,34 @@ message VehicleWheels {
 // vehicle.network.state and vehicle.setting.network (same shape).
 // Signals are dBm; -255 means no reading.
 message NetworkState {
-  ActiveInterface active_interface = 1; // inferred
-  repeated InterfaceStatus interfaces = 2;
-  // Inferred: the active connection's level (wifi bars, else cellular).
-  ConnectivityLevel connectivity_level = 3;
+  ActiveInterface active_interface = 1; // the default link
+  repeated InterfaceStatus interfaces = 2; // network routes
+  ConnectivityLevel connectivity_level = 3; // the default link's quality
   Wifi wifi = 4;
   Cellular cellular = 5;
 
   message InterfaceStatus {
-    int32 id = 1;     // 1-4; 1 goes down with wifi
-    int32 status = 2; // 2 up, 1 down (inferred)
+    Route id = 1;
+    RouteState status = 2;
+  }
+
+  enum Route {
+    ROUTE_UNSPECIFIED = 0;
+    ROUTE_WIFI = 1;
+    ROUTE_CELLULAR_CORE = 2;
+    ROUTE_CELLULAR_MEDIA = 3;
+    ROUTE_CELLULAR_HOTSPOT = 4;
+  }
+
+  enum RouteState {
+    ROUTE_STATE_UNSPECIFIED = 0;
+    ROUTE_STATE_DOWN = 1;
+    ROUTE_STATE_UP = 2;
   }
 
   message Wifi {
     WpaStatus wpa_status = 1;
-    int32 field_2 = 2; // unknown; 2 connected, else 1 or absent
+    ConnStatus conn_status = 2;
     string ssid = 3;
     optional string bssid = 4;       // access point MAC address
     optional string mac_address = 5; // the vehicle's MAC address
@@ -71,9 +87,29 @@ message NetworkState {
     int32 signal = 8; // dBm
     int32 link_speed = 9;
     int32 freq = 10;
+    int32 bandwidth = 11;
     WifiSecurity secure_status = 12;
-    int32 field_13 = 13; // unknown; 2 connected, 1 not
-    int32 field_14 = 14; // unknown
+    Ternary secured = 13;
+    Ternary user_enabled = 14;
+  }
+
+  enum ConnStatus {
+    CONN_STATUS_UNSPECIFIED = 0;
+    CONN_STATUS_CHECKING = 1;
+    CONN_STATUS_SUCCESS = 2;
+    CONN_STATUS_UNSTABLE = 3;
+    CONN_STATUS_NO_NETWORK = 4;
+    CONN_STATUS_OUT_OF_SERVICE = 5;
+    CONN_STATUS_CAPTIVE_PORTAL = 6;
+    CONN_STATUS_DNS_ERROR = 7;
+    CONN_STATUS_DHCP_ERROR = 8;
+    CONN_STATUS_UNREACHABLE_UNKNOWN = 12;
+  }
+
+  enum Ternary {
+    TERNARY_UNSPECIFIED = 0;
+    TERNARY_FALSE = 1;
+    TERNARY_TRUE = 2;
   }
 
   message IpAddress {
@@ -111,6 +147,9 @@ enum WifiSecurity {
   WIFI_WPA_ENTERPRISE = 3;
   WIFI_WPA2_PERSONAL = 4;
   WIFI_WPA2_ENTERPRISE = 5;
+  WIFI_WPA3_PERSONAL = 6;
+  WIFI_WPA3_ENTERPRISE = 7;
+  WIFI_ENHANCED_OPEN = 8;
 }
 
 enum WpaStatus {
@@ -120,4 +159,7 @@ enum WpaStatus {
   WPA_SCANNING = 3;
   WPA_CONNECTING = 4;
   WPA_DISCONNECTING = 5;
+  WPA_CONNECTION_FAILED = 6;
+  WPA_DISABLED = 7;
+  WPA_SCAN_FAILURE = 8;
 }

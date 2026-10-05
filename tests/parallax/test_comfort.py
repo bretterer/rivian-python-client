@@ -24,30 +24,45 @@ def test_cabin_temperatures() -> None:
 @pytest.mark.parametrize(
     ("status", "expected"),
     [
+        (comfort.PRECONDITIONING_INITIATE, "initiate"),
         (comfort.PRECONDITIONING_ACTIVE, "active"),
-        (comfort.PRECONDITIONING_PET_COMFORT, "active"),
-        (comfort.PRECONDITIONING_INITIATE_1, "initiate"),
-        (comfort.PRECONDITIONING_INITIATE_2, "initiate"),
-        (comfort.PRECONDITIONING_OFF, "off"),
+        (comfort.PRECONDITIONING_COMPLETE_MAINTAIN, "complete_maintain"),
+        (comfort.PRECONDITIONING_UNAVAILABLE, "unavailable"),
+        (comfort.PRECONDITIONING_STATUS_UNSPECIFIED, "undefined"),
     ],
 )
 def test_preconditioning(status: int, expected: str) -> None:
-    """Active, initiate, or off."""
+    """Statuses use the GraphQL values; the type is None when unset."""
     result = decode(
         "comfort.cabin.cabin_preconditioning_status",
         comfort.CabinPreconditioningStatus(status=status),  # type: ignore[arg-type]
     )
-    assert result == {"cabinPreconditioningStatus": expected}
+    assert result == {
+        "cabinPreconditioningStatus": expected,
+        "cabinPreconditioningType": None,
+    }
+
+
+def test_preconditioning_type() -> None:
+    """The preconditioning type maps to its GraphQL value."""
+    result = decode(
+        "comfort.cabin.cabin_preconditioning_status",
+        comfort.CabinPreconditioningStatus(
+            status=comfort.PRECONDITIONING_ACTIVE,
+            type=comfort.PRECONDITIONING_TYPE_USER_SELECTED,
+        ),
+    )
+    assert result["cabinPreconditioningType"] == "user_selected"
 
 
 def test_defrost() -> None:
-    """Active is Defrost; the off value (and an empty payload) is Off."""
+    """Defrost and Off by value; an empty payload is unknown."""
     rvm = "comfort.cabin.defrost_defog_status"
     active = comfort.DefrostDefogStatus(status=comfort.DEFROST_ACTIVE)
     off = comfort.DefrostDefogStatus(status=comfort.DEFROST_OFF)
     assert decode(rvm, active) == {"defrostDefogStatus": "Defrost"}
     assert decode(rvm, off) == {"defrostDefogStatus": "Off"}
-    assert decode(rvm) == {"defrostDefogStatus": "Off"}
+    assert decode(rvm) == {"defrostDefogStatus": None}
 
 
 def test_climate_hold_status() -> None:
@@ -74,6 +89,7 @@ def test_pet_mode_status_defaults() -> None:
     assert decode("comfort.cabin.pet_mode_status") == {
         "petModeStatus": "off",
         "petModeTemperatureStatus": "default",
+        "petModeCabinClimate": "comfortable",
     }
 
 
@@ -115,6 +131,8 @@ def test_seat_conditioning() -> None:
 def test_user_modes_car_wash() -> None:
     """Car wash mode is on when set and off when left out."""
     rvm = "comfort.user_modes.state"
-    on = decode(rvm, comfort.UserModesState(car_wash_mode=True, field4=2))
-    assert on == {"carWashMode": "on", "_field4": 2}
-    assert decode(rvm) == {"carWashMode": "off"}
+    on = decode(rvm, comfort.UserModesState(car_wash_mode=True, camp_mode=2))
+    assert on["carWashMode"] == "on"
+    assert on["serviceMode"] == "off"
+    assert on["_campMode"] == 2
+    assert decode(rvm)["carWashMode"] == "off"

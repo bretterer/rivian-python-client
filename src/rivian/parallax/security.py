@@ -36,6 +36,12 @@ _IMMOBILIZER_MAP: Final[dict[int, str]] = {
     security_pb2.IMMOBILIZER_AUTHORIZED_TO_DRIVE: "authorized_to_drive",
 }
 
+_LOCK_FAIL_NOTIFICATION_MAP: Final[dict[int, str]] = {
+    security_pb2.LOCK_FAIL_NOTIFICATION_SNA: "signal_not_available",
+    security_pb2.LOCK_FAIL_NOTIFICATION_TRUE: "true",
+    security_pb2.LOCK_FAIL_NOTIFICATION_FALSE: "false",
+}
+
 _PASSIVE_ENTRY_FAIL_MAP: Final[dict[int, str]] = {
     security_pb2.PASSIVE_ENTRY_NOT_IN_PARK: "not_in_park",
     security_pb2.PASSIVE_ENTRY_AT_HOME_DISABLE: "at_home_disable",
@@ -131,14 +137,21 @@ def decode_passive_entry_debug(m: security_pb2.PassiveEntryDebug) -> dict[str, A
     """security.access.passive_entry_debug — why the last passive unlock failed.
 
     Fields:
-        passiveEntryUnlockFailReason: str
+        passiveEntryUnlockFailReason: str | None — None when unspecified
+        passiveEntrySendLockFailNotification: str ("true" | "false" |
+            "signal_not_available")
     """
     return {
         "passiveEntryUnlockFailReason": _enum(
             _PASSIVE_ENTRY_FAIL_MAP,
             _present(m, "reason"),
             what="passive entry unlock fail reason",
-        )
+        ),
+        "passiveEntrySendLockFailNotification": _enum(
+            _LOCK_FAIL_NOTIFICATION_MAP,
+            m.send_lock_fail_notification,
+            what="lock fail notification",
+        ),
     }
 
 
@@ -170,11 +183,11 @@ def decode_alarm_state(m: security_pb2.AlarmState) -> dict[str, Any]:
 
     Fields:
         alarmSoundStatus: str ("true" | "false" | "signal_not_available")
-        consecutiveAlarmDisabledNotification: int — field mapping is a guess
+        consecutiveAlarmDisabledNotification: bool
     """
     return {
         "alarmSoundStatus": _enum(
-            _ALARM_SOUND_MAP, _present(m, "sound_status"), what="alarm sound status"
+            _ALARM_SOUND_MAP, _present(m, "sound_alarm"), what="alarm sound status"
         ),
         "consecutiveAlarmDisabledNotification": (
             m.consecutive_alarm_disabled_notification

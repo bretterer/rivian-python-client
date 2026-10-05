@@ -24,17 +24,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/geofence.proto\x12\x18rivian.parallax.geofence\"\xc7\x01\n\x11\x46\x61voriteGeofences\x12\x46\n\x08geofence\x18\x01 \x03(\x0b\x32\x34.rivian.parallax.geofence.FavoriteGeofences.Geofence\x1aj\n\x08Geofence\x12\x39\n\x04type\x18\x01 \x01(\x0e\x32&.rivian.parallax.geofence.GeofenceTypeH\x00\x88\x01\x01\x12\x11\n\x04name\x18\x02 \x01(\tH\x01\x88\x01\x01\x42\x07\n\x05_typeB\x07\n\x05_name*w\n\x0cGeofenceType\x12\x1d\n\x19GEOFENCE_TYPE_UNSPECIFIED\x10\x00\x12\x16\n\x12GEOFENCE_TYPE_HOME\x10\x01\x12\x16\n\x12GEOFENCE_TYPE_WORK\x10\x02\x12\x18\n\x14GEOFENCE_TYPE_CUSTOM\x10\x03\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$rivian/parallax/proto/geofence.proto\x12\x18rivian.parallax.geofence\"\xb9\x01\n\x11\x46\x61voriteGeofences\x12\x46\n\x08geofence\x18\x01 \x03(\x0b\x32\x34.rivian.parallax.geofence.FavoriteGeofences.Geofence\x1a\\\n\x08Geofence\x12\x34\n\x04type\x18\x01 \x01(\x0e\x32&.rivian.parallax.geofence.GeofenceType\x12\x11\n\x04name\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_name*X\n\x0cGeofenceType\x12\x18\n\x14GEOFENCE_TYPE_CUSTOM\x10\x00\x12\x16\n\x12GEOFENCE_TYPE_HOME\x10\x01\x12\x16\n\x12GEOFENCE_TYPE_WORK\x10\x02\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.geofence_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_GEOFENCETYPE']._serialized_start=268
-  _globals['_GEOFENCETYPE']._serialized_end=387
+  _globals['_GEOFENCETYPE']._serialized_start=254
+  _globals['_GEOFENCETYPE']._serialized_end=342
   _globals['_FAVORITEGEOFENCES']._serialized_start=67
-  _globals['_FAVORITEGEOFENCES']._serialized_end=266
+  _globals['_FAVORITEGEOFENCES']._serialized_end=252
   _globals['_FAVORITEGEOFENCES_GEOFENCE']._serialized_start=160
-  _globals['_FAVORITEGEOFENCES_GEOFENCE']._serialized_end=266
+  _globals['_FAVORITEGEOFENCES_GEOFENCE']._serialized_end=252
 # @@protoc_insertion_point(module_scope)

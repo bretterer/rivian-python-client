@@ -14,6 +14,9 @@ class PowerState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     POWER_STANDBY: _ClassVar[PowerState]
     POWER_READY: _ClassVar[PowerState]
     POWER_GO: _ClassVar[PowerState]
+    POWER_VEHICLE_RESET: _ClassVar[PowerState]
+    POWER_OTA_UPDATE: _ClassVar[PowerState]
+    POWER_SHUTDOWN: _ClassVar[PowerState]
 
 class ActiveInterface(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -38,6 +41,9 @@ class WifiSecurity(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     WIFI_WPA_ENTERPRISE: _ClassVar[WifiSecurity]
     WIFI_WPA2_PERSONAL: _ClassVar[WifiSecurity]
     WIFI_WPA2_ENTERPRISE: _ClassVar[WifiSecurity]
+    WIFI_WPA3_PERSONAL: _ClassVar[WifiSecurity]
+    WIFI_WPA3_ENTERPRISE: _ClassVar[WifiSecurity]
+    WIFI_ENHANCED_OPEN: _ClassVar[WifiSecurity]
 
 class WpaStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -47,11 +53,17 @@ class WpaStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     WPA_SCANNING: _ClassVar[WpaStatus]
     WPA_CONNECTING: _ClassVar[WpaStatus]
     WPA_DISCONNECTING: _ClassVar[WpaStatus]
+    WPA_CONNECTION_FAILED: _ClassVar[WpaStatus]
+    WPA_DISABLED: _ClassVar[WpaStatus]
+    WPA_SCAN_FAILURE: _ClassVar[WpaStatus]
 POWER_STATE_UNSPECIFIED: PowerState
 POWER_SLEEP: PowerState
 POWER_STANDBY: PowerState
 POWER_READY: PowerState
 POWER_GO: PowerState
+POWER_VEHICLE_RESET: PowerState
+POWER_OTA_UPDATE: PowerState
+POWER_SHUTDOWN: PowerState
 ACTIVE_INTERFACE_UNSPECIFIED: ActiveInterface
 ACTIVE_INTERFACE_WIFI: ActiveInterface
 ACTIVE_INTERFACE_CELLULAR: ActiveInterface
@@ -67,12 +79,18 @@ WIFI_WPA_PERSONAL: WifiSecurity
 WIFI_WPA_ENTERPRISE: WifiSecurity
 WIFI_WPA2_PERSONAL: WifiSecurity
 WIFI_WPA2_ENTERPRISE: WifiSecurity
+WIFI_WPA3_PERSONAL: WifiSecurity
+WIFI_WPA3_ENTERPRISE: WifiSecurity
+WIFI_ENHANCED_OPEN: WifiSecurity
 WPA_STATUS_UNSPECIFIED: WpaStatus
 WPA_NOT_CONNECTED: WpaStatus
 WPA_CONNECTED: WpaStatus
 WPA_SCANNING: WpaStatus
 WPA_CONNECTING: WpaStatus
 WPA_DISCONNECTING: WpaStatus
+WPA_CONNECTION_FAILED: WpaStatus
+WPA_DISABLED: WpaStatus
+WPA_SCAN_FAILURE: WpaStatus
 
 class ActiveUserProfile(_message.Message):
     __slots__ = ("active_user_profile_id",)
@@ -122,17 +140,67 @@ class VehicleWheels(_message.Message):
 
 class NetworkState(_message.Message):
     __slots__ = ("active_interface", "interfaces", "connectivity_level", "wifi", "cellular")
+    class Route(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        ROUTE_UNSPECIFIED: _ClassVar[NetworkState.Route]
+        ROUTE_WIFI: _ClassVar[NetworkState.Route]
+        ROUTE_CELLULAR_CORE: _ClassVar[NetworkState.Route]
+        ROUTE_CELLULAR_MEDIA: _ClassVar[NetworkState.Route]
+        ROUTE_CELLULAR_HOTSPOT: _ClassVar[NetworkState.Route]
+    ROUTE_UNSPECIFIED: NetworkState.Route
+    ROUTE_WIFI: NetworkState.Route
+    ROUTE_CELLULAR_CORE: NetworkState.Route
+    ROUTE_CELLULAR_MEDIA: NetworkState.Route
+    ROUTE_CELLULAR_HOTSPOT: NetworkState.Route
+    class RouteState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        ROUTE_STATE_UNSPECIFIED: _ClassVar[NetworkState.RouteState]
+        ROUTE_STATE_DOWN: _ClassVar[NetworkState.RouteState]
+        ROUTE_STATE_UP: _ClassVar[NetworkState.RouteState]
+    ROUTE_STATE_UNSPECIFIED: NetworkState.RouteState
+    ROUTE_STATE_DOWN: NetworkState.RouteState
+    ROUTE_STATE_UP: NetworkState.RouteState
+    class ConnStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        CONN_STATUS_UNSPECIFIED: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_CHECKING: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_SUCCESS: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_UNSTABLE: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_NO_NETWORK: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_OUT_OF_SERVICE: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_CAPTIVE_PORTAL: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_DNS_ERROR: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_DHCP_ERROR: _ClassVar[NetworkState.ConnStatus]
+        CONN_STATUS_UNREACHABLE_UNKNOWN: _ClassVar[NetworkState.ConnStatus]
+    CONN_STATUS_UNSPECIFIED: NetworkState.ConnStatus
+    CONN_STATUS_CHECKING: NetworkState.ConnStatus
+    CONN_STATUS_SUCCESS: NetworkState.ConnStatus
+    CONN_STATUS_UNSTABLE: NetworkState.ConnStatus
+    CONN_STATUS_NO_NETWORK: NetworkState.ConnStatus
+    CONN_STATUS_OUT_OF_SERVICE: NetworkState.ConnStatus
+    CONN_STATUS_CAPTIVE_PORTAL: NetworkState.ConnStatus
+    CONN_STATUS_DNS_ERROR: NetworkState.ConnStatus
+    CONN_STATUS_DHCP_ERROR: NetworkState.ConnStatus
+    CONN_STATUS_UNREACHABLE_UNKNOWN: NetworkState.ConnStatus
+    class Ternary(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        TERNARY_UNSPECIFIED: _ClassVar[NetworkState.Ternary]
+        TERNARY_FALSE: _ClassVar[NetworkState.Ternary]
+        TERNARY_TRUE: _ClassVar[NetworkState.Ternary]
+    TERNARY_UNSPECIFIED: NetworkState.Ternary
+    TERNARY_FALSE: NetworkState.Ternary
+    TERNARY_TRUE: NetworkState.Ternary
     class InterfaceStatus(_message.Message):
         __slots__ = ("id", "status")
         ID_FIELD_NUMBER: _ClassVar[int]
         STATUS_FIELD_NUMBER: _ClassVar[int]
-        id: int
-        status: int
-        def __init__(self, id: _Optional[int] = ..., status: _Optional[int] = ...) -> None: ...
+        id: NetworkState.Route
+        status: NetworkState.RouteState
+        def __init__(self, id: _Optional[_Union[NetworkState.Route, str]] = ..., status: _Optional[_Union[NetworkState.RouteState, str]] = ...) -> None: ...
     class Wifi(_message.Message):
-        __slots__ = ("wpa_status", "field_2", "ssid", "bssid", "mac_address", "ip_addresses", "antenna_bars", "signal", "link_speed", "freq", "secure_status", "field_13", "field_14")
+        __slots__ = ("wpa_status", "conn_status", "ssid", "bssid", "mac_address", "ip_addresses", "antenna_bars", "signal", "link_speed", "freq", "bandwidth", "secure_status", "secured", "user_enabled")
         WPA_STATUS_FIELD_NUMBER: _ClassVar[int]
-        FIELD_2_FIELD_NUMBER: _ClassVar[int]
+        CONN_STATUS_FIELD_NUMBER: _ClassVar[int]
         SSID_FIELD_NUMBER: _ClassVar[int]
         BSSID_FIELD_NUMBER: _ClassVar[int]
         MAC_ADDRESS_FIELD_NUMBER: _ClassVar[int]
@@ -141,11 +209,12 @@ class NetworkState(_message.Message):
         SIGNAL_FIELD_NUMBER: _ClassVar[int]
         LINK_SPEED_FIELD_NUMBER: _ClassVar[int]
         FREQ_FIELD_NUMBER: _ClassVar[int]
+        BANDWIDTH_FIELD_NUMBER: _ClassVar[int]
         SECURE_STATUS_FIELD_NUMBER: _ClassVar[int]
-        FIELD_13_FIELD_NUMBER: _ClassVar[int]
-        FIELD_14_FIELD_NUMBER: _ClassVar[int]
+        SECURED_FIELD_NUMBER: _ClassVar[int]
+        USER_ENABLED_FIELD_NUMBER: _ClassVar[int]
         wpa_status: WpaStatus
-        field_2: int
+        conn_status: NetworkState.ConnStatus
         ssid: str
         bssid: str
         mac_address: str
@@ -154,10 +223,11 @@ class NetworkState(_message.Message):
         signal: int
         link_speed: int
         freq: int
+        bandwidth: int
         secure_status: WifiSecurity
-        field_13: int
-        field_14: int
-        def __init__(self, wpa_status: _Optional[_Union[WpaStatus, str]] = ..., field_2: _Optional[int] = ..., ssid: _Optional[str] = ..., bssid: _Optional[str] = ..., mac_address: _Optional[str] = ..., ip_addresses: _Optional[_Iterable[_Union[NetworkState.IpAddress, _Mapping]]] = ..., antenna_bars: _Optional[_Union[ConnectivityLevel, str]] = ..., signal: _Optional[int] = ..., link_speed: _Optional[int] = ..., freq: _Optional[int] = ..., secure_status: _Optional[_Union[WifiSecurity, str]] = ..., field_13: _Optional[int] = ..., field_14: _Optional[int] = ...) -> None: ...
+        secured: NetworkState.Ternary
+        user_enabled: NetworkState.Ternary
+        def __init__(self, wpa_status: _Optional[_Union[WpaStatus, str]] = ..., conn_status: _Optional[_Union[NetworkState.ConnStatus, str]] = ..., ssid: _Optional[str] = ..., bssid: _Optional[str] = ..., mac_address: _Optional[str] = ..., ip_addresses: _Optional[_Iterable[_Union[NetworkState.IpAddress, _Mapping]]] = ..., antenna_bars: _Optional[_Union[ConnectivityLevel, str]] = ..., signal: _Optional[int] = ..., link_speed: _Optional[int] = ..., freq: _Optional[int] = ..., bandwidth: _Optional[int] = ..., secure_status: _Optional[_Union[WifiSecurity, str]] = ..., secured: _Optional[_Union[NetworkState.Ternary, str]] = ..., user_enabled: _Optional[_Union[NetworkState.Ternary, str]] = ...) -> None: ...
     class IpAddress(_message.Message):
         __slots__ = ("ipv4", "ipv6")
         IPV4_FIELD_NUMBER: _ClassVar[int]

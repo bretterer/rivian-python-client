@@ -4,51 +4,103 @@ package rivian.parallax.ota;
 
 // Reverse-engineered `ota.*` RVM payloads; see ../ota.py.
 
-// ota.deployment.state
+// ota.deployment.state -- one deployment per software category.
 message DeploymentState {
-  Deployment deployment = 1;
+  repeated Deployment deployment = 1;
 
   message Deployment {
-    optional int32 state = 1; // unknown
+    optional SoftwareCategory software_category = 1;
     Version version = 2; // installed version
-    ProgressWrapper progress_wrapper = 4;
+    optional string deployment_id = 3;
+    ProgressWrapper progress_wrapper = 4; // the available OTA
+  }
+
+  enum SoftwareCategory {
+    SOFTWARE_CATEGORY_UNSPECIFIED = 0;
+    SOFTWARE_CATEGORY_FIRMWARE = 1;
+    SOFTWARE_CATEGORY_HD_MAPS = 2;
+    SOFTWARE_CATEGORY_VEHICLE_CONFIG = 3;
   }
 
   message Version {
     optional string version_string = 1; // year.week.number
+    optional string software_version_id = 2;
     optional int32 version_year = 3;
     optional int32 version_build = 4; // week
+    optional int32 version_number = 5;
     optional string build_id = 6; // 8-char git hash
   }
 
-  // Always present; deployment_id is absent at rest.
+  // The available OTA. Always present; deployment_id is absent at rest.
   message ProgressWrapper {
     optional string deployment_id = 1; // UUID; only while an update is in flight
     Version target_version = 2; // version being installed
-    optional int32 active_flag = 3; // set while an update is active
+    optional int32 ota_type = 3; // enum type unknown
+    DeploymentContext deployment_context = 4;
     Progress progress = 5;
-    optional int32 timeout_budget = 7; // unit unknown
-    optional int32 late_stage_flag = 11;
+    int64 install_time = 6; // epoch seconds
+    optional int32 install_tod = 7; // install time of day, minutes after midnight
+    int32 skip_count = 8;
+    bool skip_allowed = 9;
+    DeploymentIntent deployment_intent = 10;
+    optional bool is_active = 11;
+
+    message DeploymentContext {
+      int32 download_policy = 1;
+    }
+  }
+
+  enum DeploymentIntent {
+    DEPLOYMENT_INTENT_UNSPECIFIED = 0;
+    DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE = 1;
+    DEPLOYMENT_INTENT_BUG_FIX = 2;
+    DEPLOYMENT_INTENT_SECURITY_UPDATE = 3;
+    DEPLOYMENT_INTENT_FEATURE_ADDITION = 4;
   }
 
   message Progress {
     optional OtaPhase phase = 1;
-    optional int32 field_2 = 2; // unknown
+    CurrentStatus current_status = 2; // the last install's result
 
-    // Percentages; each moves only during its phase.
     Progress100 download_progress = 3;
     Progress100 install_progress = 4;
 
-    optional string field_5 = 5; // unknown
+    PendingReasons pending_reasons = 5; // what's blocking an install
     // Seconds; counts down during INSTALL_COUNTDOWN, a static default otherwise.
     int32 time_remaining = 6;
-    optional int32 field_7 = 7; // unknown
-    int32 update_cycle_count = 8; // increments when an update completes
-    optional int32 field_9 = 9; // unknown
+    bool install_ready = 7;
+    int32 status_acknowledge = 8;
+    int32 install_duration = 9; // minutes
 
     message Progress100 {
-      optional int32 field_2 = 2; // 0-100
+      Timestamp started_at = 1;
+      optional int32 progress_percent = 2; // 0-100
     }
+
+    message Timestamp {
+      int64 seconds = 1;
+      int32 nanos = 2;
+    }
+
+    message PendingReasons {
+      bool active_mode = 1;
+      bool fast_charging = 2;
+      bool hv_batt_low = 3;
+      bool lv_batt = 4;
+      bool lv_temp_low = 5;
+      bool not_parked = 6;
+      bool other = 7;
+      bool transport = 8;
+      bool unplugged = 9;
+      bool camp_mode = 10;
+    }
+  }
+
+  enum CurrentStatus {
+    CURRENT_STATUS_UNSPECIFIED = 0;
+    CURRENT_STATUS_INSTALL_SUCCESS = 1;
+    CURRENT_STATUS_INSTALL_FAILED = 2;
+    CURRENT_STATUS_INSTALL_UNABLE_TO_START = 3;
   }
 
   enum OtaPhase {

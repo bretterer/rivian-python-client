@@ -38,18 +38,20 @@ class VasKeyperDevices(_message.Message):
         key_type: VasKeyperDevices.KeyType
         def __init__(self, name: _Optional[str] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ...) -> None: ...
     class Device(_message.Message):
-        __slots__ = ("mapped_identity_id", "hrid", "profile_id", "public_key", "revision")
+        __slots__ = ("mapped_identity_id", "hrid", "profile_id", "public_key", "revision", "vehicle_response_required")
         MAPPED_IDENTITY_ID_FIELD_NUMBER: _ClassVar[int]
         HRID_FIELD_NUMBER: _ClassVar[int]
         PROFILE_ID_FIELD_NUMBER: _ClassVar[int]
         PUBLIC_KEY_FIELD_NUMBER: _ClassVar[int]
         REVISION_FIELD_NUMBER: _ClassVar[int]
+        VEHICLE_RESPONSE_REQUIRED_FIELD_NUMBER: _ClassVar[int]
         mapped_identity_id: str
         hrid: str
         profile_id: str
         public_key: str
         revision: int
-        def __init__(self, mapped_identity_id: _Optional[str] = ..., hrid: _Optional[str] = ..., profile_id: _Optional[str] = ..., public_key: _Optional[str] = ..., revision: _Optional[int] = ...) -> None: ...
+        vehicle_response_required: bool
+        def __init__(self, mapped_identity_id: _Optional[str] = ..., hrid: _Optional[str] = ..., profile_id: _Optional[str] = ..., public_key: _Optional[str] = ..., revision: _Optional[int] = ..., vehicle_response_required: bool = ...) -> None: ...
     class Credentials(_message.Message):
         __slots__ = ("info", "card", "fob", "phone", "key_type", "active")
         class Info(_message.Message):

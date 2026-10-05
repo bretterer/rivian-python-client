@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Final
 
 from google.protobuf.message import Message
 
 from ..utils import from_epoch
-from .core import RVMDecoder, _present
+from .core import RVMDecoder, _enum, _present
 from .proto import navigation_pb2
 
 
@@ -23,6 +23,31 @@ def _parse_route_switches(raw: list[str]) -> dict[str, bool]:
 
 
 TripInfo = navigation_pb2.TripInfo
+
+_STOP_STATUS_MAP: Final[dict[int, str]] = {
+    navigation_pb2.STOP_STATUS_STOPPING: "stopping",
+    navigation_pb2.STOP_STATUS_ARRIVED: "arrived",
+    navigation_pb2.STOP_STATUS_NEXT_STOP: "next_stop",
+    navigation_pb2.STOP_STATUS_FUTURE: "future",
+}
+
+_CHARGE_DATA_ACCURACY_MAP: Final[dict[int, str]] = {
+    TripInfo.CHARGE_DATA_ACCURACY_OK: "ok",
+    TripInfo.CHARGE_DATA_ACCURACY_CONSUMPTION_FAILED: "consumption_failed",
+    TripInfo.CHARGE_DATA_ACCURACY_CHARGETIME_FAILED: "chargetime_failed",
+    TripInfo.CHARGE_DATA_ACCURACY_BOTH_FAILED: "both_failed",
+}
+
+_INCIDENT_MAP: Final[dict[int, str]] = {
+    TripInfo.Leg.INCIDENT_UNKNOWN: "unknown",
+    TripInfo.Leg.INCIDENT_NONE: "none",
+    TripInfo.Leg.INCIDENT_CLOSURE: "closure",
+    TripInfo.Leg.INCIDENT_CRASH: "crash",
+    TripInfo.Leg.INCIDENT_CONSTRUCTION: "construction",
+    TripInfo.Leg.INCIDENT_JAM: "jam",
+    TripInfo.Leg.INCIDENT_POLICE_PRESENCE: "police_presence",
+    TripInfo.Leg.INCIDENT_FIXED_SPEED_CAMERA: "fixed_speed_camera",
+}
 
 
 def _copy_present(
@@ -55,7 +80,7 @@ def _decode_timestamp(wrapper: Message | None) -> datetime | None:
     return from_epoch(seconds + nanos / 1e9)
 
 
-def _decode_origin(origin: TripInfo.Origin) -> dict[str, Any]:
+def _decode_origin(origin: navigation_pb2.GpsFix) -> dict[str, Any]:
     """Decode trip_info's origin submessage."""
     result = _decode_geocoordinate(
         _present(origin, "location"), "originLatitude", "originLongitude"
@@ -85,16 +110,9 @@ def _decode_place(place: TripInfo.Place) -> dict[str, Any]:
         if snapped_key in snapped
     ):
         entry.update(snapped)
-    entry.update(
-        _copy_present(
-            place,
-            (
-                ("place_type", "placeType"),
-                ("name", "name"),
-                ("place_id", "placeId"),
-            ),
-        )
-    )
+    entry["status"] = _enum(_STOP_STATUS_MAP, place.status, what="stop status")
+    entry.update(_copy_present(place, (("name", "name"), ("place_id", "placeId"))))
+    entry["stopDuration"] = place.stop_duration
     entry["stateOfCharge"] = place.soc
     entry["rangeRemaining"] = place.range
     if (arrival := _decode_timestamp(_present(place, "arrival"))) is not None:
@@ -129,6 +147,14 @@ def _decode_charging_stop(charge: TripInfo.ChargingStop) -> dict[str, Any]:
     arrival = _decode_timestamp(_present(charge, "arrival_time"))
     if arrival is not None:
         entry["arrivalTime"] = arrival
+    entry["chargeDataAccuracy"] = _enum(
+        _CHARGE_DATA_ACCURACY_MAP, charge.charge_data_accuracy, what="charge data"
+    )
+    entry["isSystemAdded"] = charge.is_system_added
+    entry["compatible"] = charge.compatible
+    entry["adapterRequired"] = charge.adapter_required
+    entry["stopDuration"] = charge.stop_duration
+    entry["status"] = _enum(_STOP_STATUS_MAP, charge.status, what="stop status")
     return entry
 
 
@@ -143,28 +169,30 @@ def _decode_waypoints(trip: TripInfo.Trip) -> list[dict[str, Any]]:
     return waypoints
 
 
-def _decode_index_ranges(leg: TripInfo.Leg) -> list[dict[str, Any]]:
-    """Decode a leg's `indexRangeSegments`."""
+def _decode_traffic_blocks(leg: TripInfo.Leg) -> list[dict[str, Any]]:
+    """Decode a leg's traffic blocks."""
     return [
         {
-            **_copy_present(seg, (("start", "start"), ("end", "end"))),
-            "startFraction": round(seg.start_fraction, 4),
-            "endFraction": round(seg.end_fraction, 4),
-            "flagged": seg.HasField("flag"),
+            "firstIndex": block.first_index,
+            "firstIndexFraction": round(block.first_index_fraction, 4),
+            "lastIndex": block.last_index,
+            "lastIndexFraction": round(block.last_index_fraction, 4),
+            "priority": block.priority,
         }
-        for seg in leg.index_range_segment
+        for block in leg.traffic_blocks
     ]
 
 
-def _decode_categorized_ranges(leg: TripInfo.Leg) -> list[dict[str, Any]]:
-    """Decode a leg's `categorizedIndexRanges`."""
-    ranges = (
-        _copy_present(
-            seg, (("start", "start"), ("end", "end"), ("category", "category"))
-        )
-        for seg in leg.categorized_range_segment
-    )
-    return [entry for entry in ranges if entry]
+def _decode_incidents(leg: TripInfo.Leg) -> list[dict[str, Any]]:
+    """Decode a leg's traffic incidents."""
+    return [
+        {
+            "firstIndex": incident.polyline_first_index,
+            "lastIndex": incident.polyline_last_index,
+            "type": _enum(_INCIDENT_MAP, incident.type, what="traffic incident"),
+        }
+        for incident in leg.incidents
+    ]
 
 
 def _decode_leg(leg: TripInfo.Leg) -> dict[str, Any]:
@@ -174,12 +202,19 @@ def _decode_leg(leg: TripInfo.Leg) -> dict[str, Any]:
         _copy_present(leg, (("road_label", "roadLabel"), ("polyline", "polyline")))
     )
     if leg.HasField("energy"):
-        entry["energyUsed"] = leg.energy.kwh
-    # flagged/unflagged_ranges_packed duplicate the index ranges.
-    if index_ranges := _decode_index_ranges(leg):
-        entry["indexRangeSegments"] = index_ranges
-    if categorized_ranges := _decode_categorized_ranges(leg):
-        entry["categorizedIndexRanges"] = categorized_ranges
+        energy = leg.energy
+        entry["energyConsumption"] = {
+            "total": energy.total,
+            "thermal": energy.thermal,
+            "lv": energy.lv,
+            "hvac": energy.hvac,
+            "elevation": energy.elevation,
+        }
+    # traffic_slow/jam/severe repeat the traffic blocks as index pairs.
+    if traffic_blocks := _decode_traffic_blocks(leg):
+        entry["trafficBlocks"] = traffic_blocks
+    if incidents := _decode_incidents(leg):
+        entry["incidents"] = incidents
     return entry
 
 
@@ -206,13 +241,29 @@ def _decode_trip(trip: TripInfo.Trip) -> dict[str, Any]:
             ),
         )
     )
+    result["socIsBelowLimit"] = trip.soc_is_below_limit
+    if trip.HasField("battery_empty_location"):
+        result.update(
+            _decode_geocoordinate(
+                trip.battery_empty_location,
+                "batteryEmptyLatitude",
+                "batteryEmptyLongitude",
+            )
+        )
+        result["batteryEmptyToDestinationDistance"] = (
+            trip.battery_empty_to_destination_distance
+        )
     return result
 
 
 def _decode_route_preferences(prefs: TripInfo.RoutePreferences) -> dict[str, Any]:
     """Decode trip_info's route preferences."""
     result = _copy_present(
-        prefs, (("weight_a", "routeWeightA"), ("weight_b", "routeWeightB"))
+        prefs,
+        (
+            ("current_arrival_soc", "currentArrivalSoc"),
+            ("default_arrival_soc", "defaultArrivalSoc"),
+        ),
     )
     for field, key in (
         ("road_avoidance", "roadAvoidance"),
@@ -240,27 +291,34 @@ def decode_trip_info(m: navigation_pb2.TripInfo) -> dict[str, Any]:
             `waypoints[i]`. Each has `type` ("place" | "chargingStop"),
             latitude, longitude and arrivalTime. A charger the user chose
             is a place.
-            place: placeType (2 for the next stop, 3 after), name,
-                placeId (Google Place ID or Rivian charger ID),
+            Both types also have status ("stopping" | "arrived" |
+                "next_stop" | "future") and stopDuration (seconds).
+            place: name, placeId (Google Place ID or Rivian charger ID),
                 stateOfCharge and rangeRemaining on arrival (percent,
                 meters), and snappedLatitude/snappedLongitude when the
                 road-snapped location differs
             chargingStop: stationId, label (address with the network in
-                brackets), chargeDuration (seconds; the stop runs a few
-                minutes longer), arrival/departure StateOfCharge and
-                RangeRemaining (percent, meters), departureTime
+                brackets), chargeDuration (seconds), arrival/departure
+                StateOfCharge and RangeRemaining (percent, meters),
+                departureTime, chargeDataAccuracy, isSystemAdded,
+                compatible, adapterRequired
         legs: list[dict] — distance, duration (meters, seconds),
-            roadLabel, polyline (Google-encoded), energyUsed (kWh;
-            unverified), indexRangeSegments ({start, startFraction, end,
-            endFraction, flagged}; fractions are 0-1 positions past those
-            points) and categorizedIndexRanges ({start, end, category}),
-            index ranges into the polyline whose meaning is unknown
+            roadLabel, polyline (Google-encoded), energyConsumption
+            ({total, thermal, lv, hvac, elevation}, kWh), trafficBlocks
+            ({firstIndex, firstIndexFraction, lastIndex, lastIndexFraction,
+            priority}; polyline index ranges, fractions 0-1 past a point)
+            and incidents ({firstIndex, lastIndex, type})
         overviewPolyline: str — Google-encoded, whole trip
         nextWaypointDepartureTime: datetime — the next stop's departure if
             it's a charging stop, else its arrival
         finalStateOfCharge, finalRangeRemaining: float — the last
             waypoint's (percent, meters)
-        routeWeightA, routeWeightB: float — unknown
+        socIsBelowLimit: bool
+        batteryEmptyLatitude, batteryEmptyLongitude: float, and
+            batteryEmptyToDestinationDistance: float (meters) — when the
+            route runs out of charge
+        currentArrivalSoc, defaultArrivalSoc: float (fraction, 0-1)
+        fasterRouteTimeSaved: float (seconds), when a faster route exists
         roadAvoidance, chargingNetworkFilters: dict[str, bool] — app
             toggles, e.g. "switchExcludeMotorway", "switchRivianFilter"
     """
@@ -276,6 +334,8 @@ def decode_trip_info(m: navigation_pb2.TripInfo) -> dict[str, Any]:
         result["originStateOfCharge"] = v
     if m.HasField("route_preferences"):
         result.update(_decode_route_preferences(m.route_preferences))
+    if m.HasField("faster_route"):
+        result["fasterRouteTimeSaved"] = m.faster_route.time_saved
     return result
 
 
@@ -289,6 +349,7 @@ def decode_trip_progress(m: navigation_pb2.TripProgress) -> dict[str, Any]:
         nextWaypointArrivalTime: datetime — live ETA
         finalDestinationArrivalTime: datetime — live ETA for the last
             waypoint; missing for one message after the waypoints change
+        nextStopIndex: int
         distanceRemaining, durationRemaining: float — to the next waypoint
             (meters, seconds)
         latitude, longitude: float
@@ -301,6 +362,7 @@ def decode_trip_progress(m: navigation_pb2.TripProgress) -> dict[str, Any]:
         result["nextWaypointArrivalTime"] = eta
     if (eta := _decode_timestamp(_present(m, "final_destination"))) is not None:
         result["finalDestinationArrivalTime"] = eta
+    result["nextStopIndex"] = m.next_stop_index
     result["distanceRemaining"] = m.distance_remaining
     result["durationRemaining"] = m.duration_remaining
     if m.HasField("location_fix"):

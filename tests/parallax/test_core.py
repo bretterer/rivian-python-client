@@ -144,7 +144,7 @@ def test_unknown_fields_and_enum_values_logged(
         result = decode_parallax_message(
             "charging.session.status", base64.b64encode(payload).decode()
         )
-    assert result == {"chargerState": 30, "isActive": False}
+    assert result == {"chargerState": 30, "_evseType": 0}
     assert "SessionStatus: unknown field 15 (wire type 0) = 5" in caplog.text
     assert "SessionStatus.charging_state: unknown ChargingState value 30" in caplog.text
 
