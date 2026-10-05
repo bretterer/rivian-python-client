@@ -44,6 +44,29 @@ class ChargingState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CHARGING_TLS_ERROR_UNKNOWN_CHARGER: _ClassVar[ChargingState]
     CHARGING_TLS_ERROR_UNEXPECTED_FAIL: _ClassVar[ChargingState]
     CHARGING_TLS_ERROR_START_RIVIAN_APP: _ClassVar[ChargingState]
+    CHARGING_SMART_CHARGING_PAUSED: _ClassVar[ChargingState]
+    CHARGING_SMART_CHARGING_ACTIVE: _ClassVar[ChargingState]
+
+class ChargerDerateStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    DERATE_STATUS_NONE: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_WARM_ADAPTER: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_DC_WARM_PLUG: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_AC_WARM_PLUG: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_EVSE_DERATING: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_NEARING_TOC: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_HVAC_PRIORITIZED: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_BATTERY_HEATING: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_BATTERY_COOLING: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_CELL_THERMAL_LIM_COLD: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_CELL_THERMAL_LIM_HOT: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_HIGH_SOC_SIGMA: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_HV_BATTERY_FAULT: _ClassVar[ChargerDerateStatus]
+    DERATE_STATUS_DCAC_EXPORT: _ClassVar[ChargerDerateStatus]
 
 class ChargerStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -81,6 +104,26 @@ CHARGING_PAYMENT_ERROR_START_RIVIAN_APP: ChargingState
 CHARGING_TLS_ERROR_UNKNOWN_CHARGER: ChargingState
 CHARGING_TLS_ERROR_UNEXPECTED_FAIL: ChargingState
 CHARGING_TLS_ERROR_START_RIVIAN_APP: ChargingState
+CHARGING_SMART_CHARGING_PAUSED: ChargingState
+CHARGING_SMART_CHARGING_ACTIVE: ChargingState
+DERATE_STATUS_NONE: ChargerDerateStatus
+DERATE_STATUS_WARM_ADAPTER: ChargerDerateStatus
+DERATE_STATUS_DC_WARM_PLUG: ChargerDerateStatus
+DERATE_STATUS_AC_WARM_PLUG: ChargerDerateStatus
+DERATE_STATUS_EVSE_DERATING: ChargerDerateStatus
+DERATE_STATUS_NEARING_TOC: ChargerDerateStatus
+DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING: ChargerDerateStatus
+DERATE_STATUS_HVAC_PRIORITIZED: ChargerDerateStatus
+DERATE_STATUS_BATTERY_HEATING: ChargerDerateStatus
+DERATE_STATUS_BATTERY_COOLING: ChargerDerateStatus
+DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT: ChargerDerateStatus
+DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT: ChargerDerateStatus
+DERATE_STATUS_CELL_THERMAL_LIM_COLD: ChargerDerateStatus
+DERATE_STATUS_CELL_THERMAL_LIM_HOT: ChargerDerateStatus
+DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM: ChargerDerateStatus
+DERATE_STATUS_HIGH_SOC_SIGMA: ChargerDerateStatus
+DERATE_STATUS_HV_BATTERY_FAULT: ChargerDerateStatus
+DERATE_STATUS_DCAC_EXPORT: ChargerDerateStatus
 CHARGER_STATUS_UNSPECIFIED: ChargerStatus
 CHARGER_STATUS_NOT_CONNECTED: ChargerStatus
 CHARGER_STATUS_CONNECTED_NO_CHARGE: ChargerStatus

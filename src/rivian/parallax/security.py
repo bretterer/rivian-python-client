@@ -76,6 +76,7 @@ _VIDEO_MONITORING_STATUS_MAP: Final[dict[int, str]] = {
     security_pb2.VIDEO_MONITORING_DISABLED: "disabled",
     security_pb2.VIDEO_MONITORING_ENABLED: "enabled",
     security_pb2.VIDEO_MONITORING_ACTIVE: "active",
+    security_pb2.VIDEO_MONITORING_FAULTED: "faulted",
 }
 
 
@@ -188,7 +189,7 @@ def decode_video_monitoring(m: security_pb2.VideoMonitoringState) -> dict[str, A
     """security.video_monitoring.state — GearGuard video monitoring status.
 
     Fields:
-        gearGuardVideoStatus: str ("disabled" | "enabled" | "active");
+        gearGuardVideoStatus: str ("disabled" | "enabled" | "active" | "faulted");
             "active" while the vehicle is locked
         gearGuardVideoMode: str
         gearGuardVideoTermsAccepted: str

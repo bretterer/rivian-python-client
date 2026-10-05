@@ -354,6 +354,10 @@ class LocksState(_message.Message):
     lock: _containers.RepeatedCompositeFieldContainer[LocksState.Lock]
     def __init__(self, lock: _Optional[_Iterable[_Union[LocksState.Lock, _Mapping]]] = ...) -> None: ...
 
+class WindowsState(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class TrailerState(_message.Message):
     __slots__ = ("presence", "field_2")
     PRESENCE_FIELD_NUMBER: _ClassVar[int]

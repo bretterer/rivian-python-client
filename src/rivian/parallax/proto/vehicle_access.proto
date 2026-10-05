@@ -4,6 +4,10 @@ package rivian.parallax.vehicle_access;
 
 // Reverse-engineered `vehicle_access.*` RVM payloads; see ../vehicle_access.py.
 
+// vehicle_access.passive_entry.passive_entry -- the passive entry setting;
+// unmapped.
+message PassiveEntrySetting {}
+
 // vehicle_access.state.passive_entry -- not seen yet; schema from the app.
 message PassiveEntryState {
   optional bool allow_bluetooth_while_in_ccc = 1;

@@ -62,6 +62,7 @@ class VideoMonitoringStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     VIDEO_MONITORING_DISABLED: _ClassVar[VideoMonitoringStatus]
     VIDEO_MONITORING_ENABLED: _ClassVar[VideoMonitoringStatus]
     VIDEO_MONITORING_ACTIVE: _ClassVar[VideoMonitoringStatus]
+    VIDEO_MONITORING_FAULTED: _ClassVar[VideoMonitoringStatus]
 
 class VideoMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -111,6 +112,7 @@ VIDEO_MONITORING_STATUS_UNSPECIFIED: VideoMonitoringStatus
 VIDEO_MONITORING_DISABLED: VideoMonitoringStatus
 VIDEO_MONITORING_ENABLED: VideoMonitoringStatus
 VIDEO_MONITORING_ACTIVE: VideoMonitoringStatus
+VIDEO_MONITORING_FAULTED: VideoMonitoringStatus
 VIDEO_MODE_NONE: VideoMode
 VIDEO_MODE_EVERYWHERE: VideoMode
 VIDEO_MODE_AWAY_FROM_HOME: VideoMode

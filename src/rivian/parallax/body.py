@@ -175,6 +175,12 @@ def decode_locks(m: body_pb2.LocksState) -> dict[str, Any]:
     return result
 
 
+@RVMDecoder.register("body.windows.states", body_pb2.WindowsState)
+def decode_windows(_m: body_pb2.WindowsState) -> dict[str, Any]:
+    """body.windows.states — unmapped."""
+    return {}
+
+
 @RVMDecoder.register("body.trailer.state", body_pb2.TrailerState)
 def decode_trailer_state(m: body_pb2.TrailerState) -> dict[str, Any]:
     """body.trailer.state — trailer presence, with or without brakes.

@@ -104,6 +104,7 @@ enum VideoMonitoringStatus {
   VIDEO_MONITORING_DISABLED = 1;
   VIDEO_MONITORING_ENABLED = 2;
   VIDEO_MONITORING_ACTIVE = 3; // while the vehicle is locked
+  VIDEO_MONITORING_FAULTED = 4;
 }
 
 enum VideoMode {

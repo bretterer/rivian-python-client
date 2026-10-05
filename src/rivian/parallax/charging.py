@@ -172,6 +172,8 @@ _CHARGING_STATE_MAP: Final[dict[int, str]] = {
     charging_pb2.CHARGING_TLS_ERROR_UNKNOWN_CHARGER: "charging_tls_error_unknown_charger",
     charging_pb2.CHARGING_TLS_ERROR_UNEXPECTED_FAIL: "charging_tls_error_unexpected_fail",
     charging_pb2.CHARGING_TLS_ERROR_START_RIVIAN_APP: "charging_tls_error_start_rivian_app",
+    charging_pb2.CHARGING_SMART_CHARGING_PAUSED: "smart_charging_paused",
+    charging_pb2.CHARGING_SMART_CHARGING_ACTIVE: "smart_charging_active",
 }
 
 
