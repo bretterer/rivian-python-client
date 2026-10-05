@@ -179,7 +179,7 @@ class CabinVentilationSetting(_message.Message):
     windows_position: int
     sunroof_position: int
     duration: int
-    def __init__(self, enabled: _Optional[bool] = ..., mode: _Optional[str] = ..., windows_position: _Optional[int] = ..., sunroof_position: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
+    def __init__(self, enabled: bool = ..., mode: _Optional[str] = ..., windows_position: _Optional[int] = ..., sunroof_position: _Optional[int] = ..., duration: _Optional[int] = ...) -> None: ...
 
 class ClimateHoldSetting(_message.Message):
     __slots__ = ("duration",)

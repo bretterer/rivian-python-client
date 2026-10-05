@@ -23,6 +23,6 @@ repos:
         entry: bash -c 'python -m grpc_tools.protoc --proto_path=src --python_out=src --pyi_out=src src/rivian/parallax/proto/*.proto'
         language: python
         # Keep in sync with the dev dependency in pyproject.toml.
-        additional_dependencies: [grpcio-tools==1.84.0]
+        additional_dependencies: [grpcio-tools==1.80.0]
         files: ^src/rivian/parallax/proto/.*\.(proto|py|pyi)$
         pass_filenames: false

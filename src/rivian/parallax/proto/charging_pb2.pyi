@@ -134,7 +134,7 @@ class ScheduleTimeWindow(_message.Message):
     WINDOW_FIELD_NUMBER: _ClassVar[int]
     enabled: bool
     window: ScheduleTimeWindow.Window
-    def __init__(self, enabled: _Optional[bool] = ..., window: _Optional[_Union[ScheduleTimeWindow.Window, _Mapping]] = ...) -> None: ...
+    def __init__(self, enabled: bool = ..., window: _Optional[_Union[ScheduleTimeWindow.Window, _Mapping]] = ...) -> None: ...
 
 class SessionNotification(_message.Message):
     __slots__ = ("field1",)
@@ -180,7 +180,7 @@ class SessionStatus(_message.Message):
     connection_state: ConnectionState
     charging_state: ChargingState
     is_active: bool
-    def __init__(self, connection_state: _Optional[_Union[ConnectionState, str]] = ..., charging_state: _Optional[_Union[ChargingState, str]] = ..., is_active: _Optional[bool] = ...) -> None: ...
+    def __init__(self, connection_state: _Optional[_Union[ConnectionState, str]] = ..., charging_state: _Optional[_Union[ChargingState, str]] = ..., is_active: bool = ...) -> None: ...
 
 class TimeEstimation(_message.Message):
     __slots__ = ("estimated_time_remaining",)

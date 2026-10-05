@@ -47,7 +47,7 @@ class DepartureSchedules(_message.Message):
         is_enabled: bool
         occurrence: DepartureSchedules.Occurrence
         departure_settings: DepartureSchedules.DepartureSettings
-        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., is_enabled: _Optional[bool] = ..., occurrence: _Optional[_Union[DepartureSchedules.Occurrence, _Mapping]] = ..., departure_settings: _Optional[_Union[DepartureSchedules.DepartureSettings, _Mapping]] = ...) -> None: ...
+        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., is_enabled: bool = ..., occurrence: _Optional[_Union[DepartureSchedules.Occurrence, _Mapping]] = ..., departure_settings: _Optional[_Union[DepartureSchedules.DepartureSettings, _Mapping]] = ...) -> None: ...
     class Occurrence(_message.Message):
         __slots__ = ("days", "starts_at")
         DAYS_FIELD_NUMBER: _ClassVar[int]
@@ -71,14 +71,14 @@ class DepartureSchedules(_message.Message):
         friday: bool
         saturday: bool
         sunday: bool
-        def __init__(self, monday: _Optional[bool] = ..., tuesday: _Optional[bool] = ..., wednesday: _Optional[bool] = ..., thursday: _Optional[bool] = ..., friday: _Optional[bool] = ..., saturday: _Optional[bool] = ..., sunday: _Optional[bool] = ...) -> None: ...
+        def __init__(self, monday: bool = ..., tuesday: bool = ..., wednesday: bool = ..., thursday: bool = ..., friday: bool = ..., saturday: bool = ..., sunday: bool = ...) -> None: ...
     class DepartureSettings(_message.Message):
         __slots__ = ("comfort_settings", "should_override_charge_schedule")
         COMFORT_SETTINGS_FIELD_NUMBER: _ClassVar[int]
         SHOULD_OVERRIDE_CHARGE_SCHEDULE_FIELD_NUMBER: _ClassVar[int]
         comfort_settings: DepartureSchedules.ComfortSettings
         should_override_charge_schedule: bool
-        def __init__(self, comfort_settings: _Optional[_Union[DepartureSchedules.ComfortSettings, _Mapping]] = ..., should_override_charge_schedule: _Optional[bool] = ...) -> None: ...
+        def __init__(self, comfort_settings: _Optional[_Union[DepartureSchedules.ComfortSettings, _Mapping]] = ..., should_override_charge_schedule: bool = ...) -> None: ...
     class ComfortSettings(_message.Message):
         __slots__ = ("cabin_temperature", "front_defog_defrost", "surface_heat_vent_levels")
         CABIN_TEMPERATURE_FIELD_NUMBER: _ClassVar[int]
