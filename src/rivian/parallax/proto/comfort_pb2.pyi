@@ -144,12 +144,14 @@ class HvacSettingsStatus(_message.Message):
     def __init__(self, target_temperature: _Optional[float] = ...) -> None: ...
 
 class UserModesState(_message.Message):
-    __slots__ = ("field4", "field7")
+    __slots__ = ("car_wash_mode", "field4", "field7")
+    CAR_WASH_MODE_FIELD_NUMBER: _ClassVar[int]
     FIELD4_FIELD_NUMBER: _ClassVar[int]
     FIELD7_FIELD_NUMBER: _ClassVar[int]
+    car_wash_mode: bool
     field4: int
     field7: int
-    def __init__(self, field4: _Optional[int] = ..., field7: _Optional[int] = ...) -> None: ...
+    def __init__(self, car_wash_mode: bool = ..., field4: _Optional[int] = ..., field7: _Optional[int] = ...) -> None: ...
 
 class CabinPreconditioningStatus(_message.Message):
     __slots__ = ("status", "field_2")

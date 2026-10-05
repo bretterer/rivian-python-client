@@ -110,3 +110,11 @@ def test_seat_conditioning() -> None:
         "seatThirdRowRightHeat": "Level_3",
         "seatRearLeftHeat": "Off",
     }
+
+
+def test_user_modes_car_wash() -> None:
+    """Car wash mode is on when set and off when left out."""
+    rvm = "comfort.user_modes.state"
+    on = decode(rvm, comfort.UserModesState(car_wash_mode=True, field4=2))
+    assert on == {"carWashMode": "on", "_field4": 2}
+    assert decode(rvm) == {"carWashMode": "off"}
