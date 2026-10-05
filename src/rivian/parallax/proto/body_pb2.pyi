@@ -202,6 +202,13 @@ class WindowsNextAction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     WINDOWS_OBSTRUCTED_WHILE_CLOSING_CLOSE_ALLOWED: _ClassVar[WindowsNextAction]
     WINDOWS_CLOSE_NOT_ALLOWED_UNCALIBRATED: _ClassVar[WindowsNextAction]
     WINDOWS_OPEN_NOT_ALLOWED_UNCALIBRATED: _ClassVar[WindowsNextAction]
+
+class WiperFluidState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    WIPER_FLUID_STATE_UNSPECIFIED: _ClassVar[WiperFluidState]
+    WIPER_FLUID_STATE_NORMAL: _ClassVar[WiperFluidState]
+    WIPER_FLUID_STATE_LOW: _ClassVar[WiperFluidState]
+    WIPER_FLUID_STATE_EMPTY: _ClassVar[WiperFluidState]
 CLOSURE_ID_UNSPECIFIED: ClosureId
 DOOR_FRONT_LEFT: ClosureId
 DOOR_FRONT_RIGHT: ClosureId
@@ -350,6 +357,10 @@ WINDOWS_CLOSE_NOT_ALLOWED_FAULTED: WindowsNextAction
 WINDOWS_OBSTRUCTED_WHILE_CLOSING_CLOSE_ALLOWED: WindowsNextAction
 WINDOWS_CLOSE_NOT_ALLOWED_UNCALIBRATED: WindowsNextAction
 WINDOWS_OPEN_NOT_ALLOWED_UNCALIBRATED: WindowsNextAction
+WIPER_FLUID_STATE_UNSPECIFIED: WiperFluidState
+WIPER_FLUID_STATE_NORMAL: WiperFluidState
+WIPER_FLUID_STATE_LOW: WiperFluidState
+WIPER_FLUID_STATE_EMPTY: WiperFluidState
 
 class ClosuresState(_message.Message):
     __slots__ = ("closure",)
@@ -419,7 +430,7 @@ class TrailerState(_message.Message):
     def __init__(self, presence: _Optional[_Union[TrailerPresence, str]] = ..., rear_hitch_status: _Optional[_Union[RearHitchStatus, str]] = ...) -> None: ...
 
 class WiperFluidLevel(_message.Message):
-    __slots__ = ("field_2",)
-    FIELD_2_FIELD_NUMBER: _ClassVar[int]
-    field_2: int
-    def __init__(self, field_2: _Optional[int] = ...) -> None: ...
+    __slots__ = ("state",)
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    state: WiperFluidState
+    def __init__(self, state: _Optional[_Union[WiperFluidState, str]] = ...) -> None: ...

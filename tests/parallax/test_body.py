@@ -157,6 +157,8 @@ def test_window_calibration() -> None:
 
 
 def test_wiper_fluid_level() -> None:
-    """The raw washer fluid value."""
-    result = decode("body.wipers.fluid_level", body.WiperFluidLevel(field_2=1))
-    assert result == {"_wiperFluidLevel": 1}
+    """The washer fluid state; unset is None."""
+    rvm = "body.wipers.fluid_level"
+    result = decode(rvm, body.WiperFluidLevel(state=body.WIPER_FLUID_STATE_NORMAL))
+    assert result == {"wiperFluidState": "normal"}
+    assert decode(rvm) == {"wiperFluidState": None}

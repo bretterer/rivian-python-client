@@ -248,9 +248,20 @@ def decode_mass_estimate(m: dynamics_pb2.MassEstimate) -> dict[str, Any]:
 def decode_brake_fluid_level(m: dynamics_pb2.BrakeFluidLevel) -> dict[str, Any]:
     """dynamics.brakes.fluid_level — brake fluid level.
 
+    The value numbering is a best guess.
+
     Fields:
-        _brakeFluidLevel: int — raw
+        brakeFluidLow: str ("inactive" | "active" | "signal_not_available")
     """
-    if (v := _present(m, "field_1")) is None:
-        return {}
-    return {"_brakeFluidLevel": v}
+    return {
+        "brakeFluidLow": _enum(
+            _BRAKE_FLUID_LOW_MAP, m.fluid_low, what="brake fluid low"
+        )
+    }
+
+
+_BRAKE_FLUID_LOW_MAP: Final[dict[int, str]] = {
+    dynamics_pb2.BRAKE_FLUID_LOW_SIGNAL_NOT_AVAILABLE: "signal_not_available",
+    dynamics_pb2.BRAKE_FLUID_LOW_INACTIVE: "inactive",
+    dynamics_pb2.BRAKE_FLUID_LOW_ACTIVE: "active",
+}

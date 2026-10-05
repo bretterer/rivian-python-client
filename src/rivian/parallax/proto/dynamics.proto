@@ -146,7 +146,13 @@ message MassEstimate {
 
 // dynamics.brakes.fluid_level
 message BrakeFluidLevel {
-  // Likely the app's FluidLevelLow (inactive | active | signal not
-  // available, i.e. the gateway's brakeFluidLow); its numbers are unknown.
-  optional int32 field_1 = 1;
+  BrakeFluidLow fluid_low = 1;
+}
+
+// Best guess: the app's FluidLevelLow values (the gateway's brakeFluidLow),
+// numbered like the other SNA / false / true enums.
+enum BrakeFluidLow {
+  BRAKE_FLUID_LOW_SIGNAL_NOT_AVAILABLE = 0;
+  BRAKE_FLUID_LOW_INACTIVE = 1;
+  BRAKE_FLUID_LOW_ACTIVE = 2;
 }

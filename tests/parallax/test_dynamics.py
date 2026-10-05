@@ -146,6 +146,10 @@ def test_mass_estimate() -> None:
 
 
 def test_brake_fluid_level() -> None:
-    """The raw brake fluid value."""
-    result = decode("dynamics.brakes.fluid_level", dynamics.BrakeFluidLevel(field_1=1))
-    assert result == {"_brakeFluidLevel": 1}
+    """The brake fluid low state; unset is signal not available."""
+    rvm = "dynamics.brakes.fluid_level"
+    result = decode(
+        rvm, dynamics.BrakeFluidLevel(fluid_low=dynamics.BRAKE_FLUID_LOW_INACTIVE)
+    )
+    assert result == {"brakeFluidLow": "inactive"}
+    assert decode(rvm) == {"brakeFluidLow": "signal_not_available"}

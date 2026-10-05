@@ -254,7 +254,14 @@ enum WindowsNextAction {
 
 // body.wipers.fluid_level
 message WiperFluidLevel {
-  // Likely the app's FluidLevelState (normal | low | empty, i.e. the
-  // gateway's wiperFluidState); its numbers are unknown.
-  optional int32 field_2 = 2;
+  WiperFluidState state = 2;
+}
+
+// Best guess: the app's FluidLevelState values (the gateway's
+// wiperFluidState), numbered in the app's normal | low | empty order.
+enum WiperFluidState {
+  WIPER_FLUID_STATE_UNSPECIFIED = 0;
+  WIPER_FLUID_STATE_NORMAL = 1;
+  WIPER_FLUID_STATE_LOW = 2;
+  WIPER_FLUID_STATE_EMPTY = 3;
 }

@@ -241,9 +241,20 @@ def decode_trailer_state(m: body_pb2.TrailerState) -> dict[str, Any]:
 def decode_wiper_fluid_level(m: body_pb2.WiperFluidLevel) -> dict[str, Any]:
     """body.wipers.fluid_level — washer fluid level.
 
+    The value numbering is a best guess.
+
     Fields:
-        _wiperFluidLevel: int — raw
+        wiperFluidState: str | None ("normal" | "low" | "empty")
     """
-    if (v := _present(m, "field_2")) is None:
-        return {}
-    return {"_wiperFluidLevel": v}
+    return {
+        "wiperFluidState": _enum(
+            _WIPER_FLUID_STATE_MAP, m.state or None, what="wiper fluid state"
+        )
+    }
+
+
+_WIPER_FLUID_STATE_MAP: Final[dict[int, str]] = {
+    body_pb2.WIPER_FLUID_STATE_NORMAL: "normal",
+    body_pb2.WIPER_FLUID_STATE_LOW: "low",
+    body_pb2.WIPER_FLUID_STATE_EMPTY: "empty",
+}

@@ -71,6 +71,12 @@ class TirePressureStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TIRE_PRESSURE_STATUS_WARNING_HARD: _ClassVar[TirePressureStatus]
     TIRE_PRESSURE_STATUS_WARNING_SOFT: _ClassVar[TirePressureStatus]
     TIRE_PRESSURE_STATUS_WARNING_PUNCTURE: _ClassVar[TirePressureStatus]
+
+class BrakeFluidLow(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    BRAKE_FLUID_LOW_SIGNAL_NOT_AVAILABLE: _ClassVar[BrakeFluidLow]
+    BRAKE_FLUID_LOW_INACTIVE: _ClassVar[BrakeFluidLow]
+    BRAKE_FLUID_LOW_ACTIVE: _ClassVar[BrakeFluidLow]
 DRIVE_MODE_UNSPECIFIED: DriveModeValue
 DRIVE_MODE_INIT: DriveModeValue
 DRIVE_MODE_EVERYDAY: DriveModeValue
@@ -115,6 +121,9 @@ TIRE_PRESSURE_STATUS_NORMAL: TirePressureStatus
 TIRE_PRESSURE_STATUS_WARNING_HARD: TirePressureStatus
 TIRE_PRESSURE_STATUS_WARNING_SOFT: TirePressureStatus
 TIRE_PRESSURE_STATUS_WARNING_PUNCTURE: TirePressureStatus
+BRAKE_FLUID_LOW_SIGNAL_NOT_AVAILABLE: BrakeFluidLow
+BRAKE_FLUID_LOW_INACTIVE: BrakeFluidLow
+BRAKE_FLUID_LOW_ACTIVE: BrakeFluidLow
 
 class DriveMode(_message.Message):
     __slots__ = ("mode", "limited_accel_cold", "limited_regen_cold")
@@ -223,7 +232,7 @@ class MassEstimate(_message.Message):
     def __init__(self, mass: _Optional[int] = ...) -> None: ...
 
 class BrakeFluidLevel(_message.Message):
-    __slots__ = ("field_1",)
-    FIELD_1_FIELD_NUMBER: _ClassVar[int]
-    field_1: int
-    def __init__(self, field_1: _Optional[int] = ...) -> None: ...
+    __slots__ = ("fluid_low",)
+    FLUID_LOW_FIELD_NUMBER: _ClassVar[int]
+    fluid_low: BrakeFluidLow
+    def __init__(self, fluid_low: _Optional[_Union[BrakeFluidLow, str]] = ...) -> None: ...
