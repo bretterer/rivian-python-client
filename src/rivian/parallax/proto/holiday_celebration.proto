@@ -54,7 +54,7 @@ message HalloweenCelebrationSettings {
   BoolValue light_show_enabled = 8;
   BoolValue interior_overhead_lights_enabled = 9;
   BoolValue exterior_light_show_enabled = 10;
-  StringValue lights_color = 11;
+  Int32Value lights_color = 11;
   StringValue car_costume_availability = 12;
   optional bool motion_light_sound_enabled = 13;
 

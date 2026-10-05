@@ -135,7 +135,7 @@ def decode_halloween_celebration_settings(
         halloweenLightShowEnabled: bool
         halloweenInteriorOverheadLightsEnabled: bool
         halloweenExteriorLightShowEnabled: bool
-        halloweenLightsColor: str
+        halloweenLightsColor: int
         halloweenCarCostumeAvailability: str
         halloweenMotionLightSoundEnabled: bool
     """

@@ -161,6 +161,18 @@ def test_ota_config_one_time_without_time() -> None:
     assert result == {"otaSchedules": [{"type": "one_time", "enabled": False}]}
 
 
+def test_ota_config_one_time_sentinel_time() -> None:
+    """A starts_at before the Unix epoch is a "not set" sentinel, not a time."""
+    config = ota.OtaConfig
+    occurrence = config.SingleOccurrence()
+    occurrence.starts_at.seconds = -62135596800
+    result = decode(
+        "ota.user_schedule.ota_config",
+        config(schedule=[config.Schedule(single_occurrence=occurrence)]),
+    )
+    assert result == {"otaSchedules": [{"type": "one_time", "enabled": False}]}
+
+
 def test_vehicle_ota_state() -> None:
     """The pending scheduled install time, or None when nothing is scheduled."""
     state = ota.VehicleOtaState

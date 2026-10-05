@@ -30,13 +30,31 @@ class VasKeyperDevices(_message.Message):
     KEY_TYPE_PHONE: VasKeyperDevices.KeyType
     KEY_TYPE_KEY_CARD: VasKeyperDevices.KeyType
     KEY_TYPE_KEY_FOB: VasKeyperDevices.KeyType
+    class DeviceOem(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        DEVICE_OEM_UNKNOWN: _ClassVar[VasKeyperDevices.DeviceOem]
+        DEVICE_OEM_RIVIAN: _ClassVar[VasKeyperDevices.DeviceOem]
+        DEVICE_OEM_APPLE: _ClassVar[VasKeyperDevices.DeviceOem]
+        DEVICE_OEM_GOOGLE: _ClassVar[VasKeyperDevices.DeviceOem]
+        DEVICE_OEM_SAMSUNG: _ClassVar[VasKeyperDevices.DeviceOem]
+        DEVICE_OEM_VW: _ClassVar[VasKeyperDevices.DeviceOem]
+    DEVICE_OEM_UNKNOWN: VasKeyperDevices.DeviceOem
+    DEVICE_OEM_RIVIAN: VasKeyperDevices.DeviceOem
+    DEVICE_OEM_APPLE: VasKeyperDevices.DeviceOem
+    DEVICE_OEM_GOOGLE: VasKeyperDevices.DeviceOem
+    DEVICE_OEM_SAMSUNG: VasKeyperDevices.DeviceOem
+    DEVICE_OEM_VW: VasKeyperDevices.DeviceOem
     class Label(_message.Message):
-        __slots__ = ("name", "key_type")
+        __slots__ = ("name", "key_type", "deletable", "wcc_version")
         NAME_FIELD_NUMBER: _ClassVar[int]
         KEY_TYPE_FIELD_NUMBER: _ClassVar[int]
+        DELETABLE_FIELD_NUMBER: _ClassVar[int]
+        WCC_VERSION_FIELD_NUMBER: _ClassVar[int]
         name: str
         key_type: VasKeyperDevices.KeyType
-        def __init__(self, name: _Optional[str] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ...) -> None: ...
+        deletable: bool
+        wcc_version: int
+        def __init__(self, name: _Optional[str] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., deletable: bool = ..., wcc_version: _Optional[int] = ...) -> None: ...
     class Device(_message.Message):
         __slots__ = ("mapped_identity_id", "hrid", "profile_id", "public_key", "revision", "vehicle_response_required")
         MAPPED_IDENTITY_ID_FIELD_NUMBER: _ClassVar[int]
@@ -50,10 +68,10 @@ class VasKeyperDevices(_message.Message):
         profile_id: str
         public_key: str
         revision: int
-        vehicle_response_required: bool
-        def __init__(self, mapped_identity_id: _Optional[str] = ..., hrid: _Optional[str] = ..., profile_id: _Optional[str] = ..., public_key: _Optional[str] = ..., revision: _Optional[int] = ..., vehicle_response_required: bool = ...) -> None: ...
+        vehicle_response_required: int
+        def __init__(self, mapped_identity_id: _Optional[str] = ..., hrid: _Optional[str] = ..., profile_id: _Optional[str] = ..., public_key: _Optional[str] = ..., revision: _Optional[int] = ..., vehicle_response_required: _Optional[int] = ...) -> None: ...
     class Credentials(_message.Message):
-        __slots__ = ("info", "card", "fob", "phone", "key_type", "active")
+        __slots__ = ("info", "card", "fob", "phone", "key_type", "device_oem")
         class Info(_message.Message):
             __slots__ = ("a", "c", "status", "b")
             A_FIELD_NUMBER: _ClassVar[int]
@@ -70,14 +88,14 @@ class VasKeyperDevices(_message.Message):
         FOB_FIELD_NUMBER: _ClassVar[int]
         PHONE_FIELD_NUMBER: _ClassVar[int]
         KEY_TYPE_FIELD_NUMBER: _ClassVar[int]
-        ACTIVE_FIELD_NUMBER: _ClassVar[int]
+        DEVICE_OEM_FIELD_NUMBER: _ClassVar[int]
         info: VasKeyperDevices.Credentials.Info
         card: VasKeyperDevices.KeyMaterial
         fob: VasKeyperDevices.KeyMaterial
         phone: VasKeyperDevices.KeyMaterial
         key_type: VasKeyperDevices.KeyType
-        active: bool
-        def __init__(self, info: _Optional[_Union[VasKeyperDevices.Credentials.Info, _Mapping]] = ..., card: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., phone: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., active: bool = ...) -> None: ...
+        device_oem: VasKeyperDevices.DeviceOem
+        def __init__(self, info: _Optional[_Union[VasKeyperDevices.Credentials.Info, _Mapping]] = ..., card: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., phone: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., device_oem: _Optional[_Union[VasKeyperDevices.DeviceOem, str]] = ...) -> None: ...
     class KeyMaterial(_message.Message):
         __slots__ = ("id", "credential")
         ID_FIELD_NUMBER: _ClassVar[int]

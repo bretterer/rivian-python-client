@@ -17,7 +17,7 @@ def test_halloween_celebration_settings() -> None:
             sound_volume=settings.Int32Value(value=13),
             music_type=settings.Int32Value(value=1),
             exterior_sounds_muted=settings.BoolValue(value=True),
-            lights_color=settings.StringValue(),
+            lights_color=settings.Int32Value(),
         ),
     )
     assert result == {

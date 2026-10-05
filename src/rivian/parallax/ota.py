@@ -211,8 +211,14 @@ def decode_ota_config(m: ota_pb2.OtaConfig) -> dict[str, Any]:
                 and (v := _present(daily.location, "name")) is not None
             ):
                 entry["location"] = v
-        if one_time and (
-            seconds := _present(schedule.single_occurrence.starts_at, "seconds")
+        # A non-positive starts_at is a "not set" sentinel.
+        if (
+            one_time
+            and (
+                (seconds := _present(schedule.single_occurrence.starts_at, "seconds"))
+                or 0
+            )
+            > 0
         ):
             entry["installTime"] = from_epoch(seconds)
         entry["enabled"] = schedule.enabled

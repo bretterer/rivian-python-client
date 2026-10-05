@@ -18,13 +18,18 @@ def test_phone_key() -> None:
     result = decode(
         RVM,
         Devices(
-            label=Devices.Label(name="My Phone", key_type=Devices.KEY_TYPE_PHONE),
+            label=Devices.Label(
+                name="My Phone",
+                key_type=Devices.KEY_TYPE_PHONE,
+                deletable=True,
+                wcc_version=3,
+            ),
             device=Devices.Device(
                 mapped_identity_id="17-id",
                 profile_id="02-profile",
                 public_key="ab",
                 revision=301,
-                vehicle_response_required=True,
+                vehicle_response_required=2,
             ),
             credentials=Devices.Credentials(
                 info=Devices.Credentials.Info(
@@ -38,11 +43,13 @@ def test_phone_key() -> None:
     assert result == {
         "deviceName": "My Phone",
         "keyType": "phone",
+        "keyDeletable": True,
+        "wccVersion": 3,
         "mappedIdentityId": "17-id",
         "profileId": "02-profile",
         "publicKey": "ab",
         "keyRevision": 301,
-        "vehicleResponseRequired": True,
+        "vehicleResponseRequired": 2,
         "infoA": 5,
         "infoC": 2,
         "infoB": 5,
@@ -61,7 +68,7 @@ def test_key_card() -> None:
             credentials=Devices.Credentials(
                 card=Devices.KeyMaterial(id=b"\x0a\x0b", credential=b"\xff"),
                 key_type=Devices.KEY_TYPE_KEY_CARD,
-                active=True,
+                device_oem=Devices.DEVICE_OEM_RIVIAN,
             ),
         ),
     )
@@ -70,7 +77,7 @@ def test_key_card() -> None:
         "deviceId": "0a0b",
         "credentialHex": "ff",
         "keyType": "key_card",
-        "active": True,
+        "deviceOem": "rivian",
     }
 
 

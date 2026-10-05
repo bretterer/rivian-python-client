@@ -55,7 +55,7 @@ message Gnss {
   float position_vertical_error = 7;   // meters
   float speed_error = 8;               // m/s
   float bearing_error = 9;             // degrees
-  int64 time = 10; // epoch milliseconds; time of the whole fix
+  int64 time = 10; // epoch ms (Unix, or GPS on some vehicles); the whole fix
 }
 
 // dynamics.vehicle.location
