@@ -75,7 +75,7 @@ class VasKeyperDevices(_message.Message):
         phone: VasKeyperDevices.KeyMaterial
         key_type: VasKeyperDevices.KeyType
         active: bool
-        def __init__(self, info: _Optional[_Union[VasKeyperDevices.Credentials.Info, _Mapping]] = ..., card: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., phone: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., active: _Optional[bool] = ...) -> None: ...
+        def __init__(self, info: _Optional[_Union[VasKeyperDevices.Credentials.Info, _Mapping]] = ..., card: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., phone: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., active: bool = ...) -> None: ...
     class KeyMaterial(_message.Message):
         __slots__ = ("id", "credential")
         ID_FIELD_NUMBER: _ClassVar[int]

@@ -188,7 +188,7 @@ class TiresState(_message.Message):
         pressure: float
         invalid: bool
         timestamp: int
-        def __init__(self, pos: _Optional[_Union[TirePosition, str]] = ..., status: _Optional[_Union[TirePressureStatus, str]] = ..., pressure: _Optional[float] = ..., invalid: _Optional[bool] = ..., timestamp: _Optional[int] = ...) -> None: ...
+        def __init__(self, pos: _Optional[_Union[TirePosition, str]] = ..., status: _Optional[_Union[TirePressureStatus, str]] = ..., pressure: _Optional[float] = ..., invalid: bool = ..., timestamp: _Optional[int] = ...) -> None: ...
     FIELD_1_FIELD_NUMBER: _ClassVar[int]
     TIRE_FIELD_NUMBER: _ClassVar[int]
     field_1: int

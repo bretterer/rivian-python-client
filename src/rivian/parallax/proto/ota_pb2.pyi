@@ -106,7 +106,7 @@ class OtaConfig(_message.Message):
         enabled: bool
         repeats_daily: OtaConfig.RepeatsDaily
         single_occurrence: OtaConfig.SingleOccurrence
-        def __init__(self, id: _Optional[str] = ..., enabled: _Optional[bool] = ..., repeats_daily: _Optional[_Union[OtaConfig.RepeatsDaily, _Mapping]] = ..., single_occurrence: _Optional[_Union[OtaConfig.SingleOccurrence, _Mapping]] = ...) -> None: ...
+        def __init__(self, id: _Optional[str] = ..., enabled: bool = ..., repeats_daily: _Optional[_Union[OtaConfig.RepeatsDaily, _Mapping]] = ..., single_occurrence: _Optional[_Union[OtaConfig.SingleOccurrence, _Mapping]] = ...) -> None: ...
     class RepeatsDaily(_message.Message):
         __slots__ = ("starts_at", "location")
         STARTS_AT_FIELD_NUMBER: _ClassVar[int]

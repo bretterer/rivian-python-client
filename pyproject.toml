@@ -15,7 +15,7 @@ dependencies = [
     "cryptography (>=41.0.1)",
     "backports-strenum (>=1.2.4) ; python_version < '3.11'",
     "typing_extensions (>=4.14.1) ; python_version < '3.11'",
-    "protobuf>=7.35.1,<8",
+    "protobuf>=6.31.1,<8",
 ]
 dynamic = ["version"]
 
@@ -34,8 +34,8 @@ dev = [
     "mypy>=1.7,<3.0",
     "ruff>=0.16,<0.17",
     "pre-commit>=4.6.1,<5",
-    "types-protobuf>=7.35.1.20260906",
-    "grpcio-tools==1.84.0",
+    "types-protobuf>=6.32.1.20260221",
+    "grpcio-tools==1.80.0",
     "pytest-cov>=7.0,<8",
 ]
 

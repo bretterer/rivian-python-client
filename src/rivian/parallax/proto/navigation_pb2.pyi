@@ -152,7 +152,7 @@ class TripInfo(_message.Message):
             end: int
             end_fraction: float
             flag: bool
-            def __init__(self, start: _Optional[int] = ..., start_fraction: _Optional[float] = ..., end: _Optional[int] = ..., end_fraction: _Optional[float] = ..., flag: _Optional[bool] = ...) -> None: ...
+            def __init__(self, start: _Optional[int] = ..., start_fraction: _Optional[float] = ..., end: _Optional[int] = ..., end_fraction: _Optional[float] = ..., flag: bool = ...) -> None: ...
         DISTANCE_FIELD_NUMBER: _ClassVar[int]
         DURATION_FIELD_NUMBER: _ClassVar[int]
         ROAD_LABEL_FIELD_NUMBER: _ClassVar[int]

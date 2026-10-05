@@ -87,7 +87,7 @@ class ChargeSessionBreakdown(_message.Message):
     is_free_session: bool
     charging_state: _charging_pb2.ChargingState
     timestamp: int
-    def __init__(self, total_energy: _Optional[float] = ..., pack_energy: _Optional[float] = ..., thermal_energy: _Optional[float] = ..., outlets_energy: _Optional[float] = ..., system_energy: _Optional[float] = ..., active_charging_time: _Optional[int] = ..., time_remaining: _Optional[int] = ..., range_added: _Optional[int] = ..., power: _Optional[float] = ..., range_rate: _Optional[int] = ..., session_cost: _Optional[_Union[ChargeSessionBreakdown.Money, _Mapping]] = ..., is_free_session: _Optional[bool] = ..., charging_state: _Optional[_Union[_charging_pb2.ChargingState, str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    def __init__(self, total_energy: _Optional[float] = ..., pack_energy: _Optional[float] = ..., thermal_energy: _Optional[float] = ..., outlets_energy: _Optional[float] = ..., system_energy: _Optional[float] = ..., active_charging_time: _Optional[int] = ..., time_remaining: _Optional[int] = ..., range_added: _Optional[int] = ..., power: _Optional[float] = ..., range_rate: _Optional[int] = ..., session_cost: _Optional[_Union[ChargeSessionBreakdown.Money, _Mapping]] = ..., is_free_session: bool = ..., charging_state: _Optional[_Union[_charging_pb2.ChargingState, str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class ChargingGraphGlobal(_message.Message):
     __slots__ = ("segment",)
