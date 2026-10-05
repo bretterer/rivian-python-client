@@ -50,11 +50,11 @@ message Gnss {
   double altitude = 3; // meters
   float speed = 4; // m/s
   float bearing = 5; // degrees
-  // Errors for the fields above, in the same order (the gateway's gnssError).
+  // The gateway's gnssError, in the same units.
   float position_horizontal_error = 6; // meters
   float position_vertical_error = 7;   // meters
   float speed_error = 8;               // m/s
-  float bearing_error = 9;
+  float bearing_error = 9;             // degrees
   int64 time = 10; // epoch milliseconds; time of the whole fix
 }
 
@@ -84,10 +84,10 @@ message Range {
 
 enum RangeThreshold {
   RANGE_THRESHOLD_UNSPECIFIED = 0;
-  RANGE_NORMAL = 1;
-  RANGE_LOW = 2;
-  RANGE_RED = 3;
-  RANGE_CRITICALLY_LOW = 4;
+  RANGE_THRESHOLD_NORMAL = 1;
+  RANGE_THRESHOLD_LOW = 2;
+  RANGE_THRESHOLD_RED = 3;
+  RANGE_THRESHOLD_CRITICALLY_LOW = 4;
 }
 
 enum TemperatureImpact {
@@ -121,8 +121,10 @@ enum TirePosition {
 
 enum TirePressureStatus {
   TIRE_PRESSURE_STATUS_UNSPECIFIED = 0;
-  TIRE_PRESSURE_OK = 1;
-  TIRE_PRESSURE_WARNING = 2;
+  TIRE_PRESSURE_STATUS_NORMAL = 1;
+  TIRE_PRESSURE_STATUS_WARNING_HARD = 2;
+  TIRE_PRESSURE_STATUS_WARNING_SOFT = 3;
+  TIRE_PRESSURE_STATUS_WARNING_PUNCTURE = 4;
 }
 
 // dynamics.vehicle.efficiency
@@ -144,5 +146,7 @@ message MassEstimate {
 
 // dynamics.brakes.fluid_level
 message BrakeFluidLevel {
-  optional int32 field_1 = 1; // unknown
+  // Likely the app's FluidLevelLow (inactive | active | signal not
+  // available, i.e. the gateway's brakeFluidLow); its numbers are unknown.
+  optional int32 field_1 = 1;
 }

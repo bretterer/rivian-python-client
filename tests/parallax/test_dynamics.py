@@ -73,7 +73,7 @@ def test_range() -> None:
         "dynamics.vehicle.range",
         dynamics.Range(
             distance_to_empty=344,
-            threshold=dynamics.RANGE_NORMAL,
+            threshold=dynamics.RANGE_THRESHOLD_NORMAL,
             temperature_impact=dynamics.TEMPERATURE_COLD_IMPACT,
         ),
     )
@@ -93,14 +93,19 @@ def test_tires() -> None:
             tire=[
                 tire(
                     pos=dynamics.TIRE_FRONT_LEFT,
-                    status=dynamics.TIRE_PRESSURE_OK,
+                    status=dynamics.TIRE_PRESSURE_STATUS_NORMAL,
                     pressure=3.48,
                 ),
                 tire(
                     pos=dynamics.TIRE_FRONT_RIGHT,
-                    status=dynamics.TIRE_PRESSURE_WARNING,
+                    status=dynamics.TIRE_PRESSURE_STATUS_WARNING_SOFT,
                     pressure=2.1,
                     invalid=True,
+                ),
+                tire(
+                    pos=dynamics.TIRE_REAR_LEFT,
+                    status=dynamics.TIRE_PRESSURE_STATUS_WARNING_PUNCTURE,
+                    pressure=1.2,
                 ),
             ]
         ),
@@ -110,6 +115,9 @@ def test_tires() -> None:
         "tirePressureFrontLeft": 3.48,
         "tirePressureStatusFrontLeft": "OK",
         "tirePressureStatusValidFrontRight": "invalid",
+        "tirePressureStatusValidRearLeft": "valid",
+        "tirePressureRearLeft": 1.2,
+        "tirePressureStatusRearLeft": "warning_puncture",
     }
 
 

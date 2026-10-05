@@ -28,7 +28,7 @@ message DeploymentState {
     optional int32 active_flag = 3; // set while an update is active
     Progress progress = 5;
     optional int32 timeout_budget = 7; // unit unknown
-    optional int32 late_stage_flag = 11; // 1 from SCHEDULED_TO_INSTALL until done
+    optional int32 late_stage_flag = 11;
   }
 
   message Progress {
@@ -44,26 +44,29 @@ message DeploymentState {
     int32 time_remaining = 6;
     optional int32 field_7 = 7; // unknown
     int32 update_cycle_count = 8; // increments when an update completes
-    optional int32 field_9 = 9; // unknown; set from SCHEDULED_TO_INSTALL until done
+    optional int32 field_9 = 9; // unknown
 
     message Progress100 {
       optional int32 field_2 = 2; // 0-100
     }
   }
 
-  // Update order: IDLE -> DOWNLOADING -> PREPARING -> SCHEDULED_TO_INSTALL
-  // -> INSTALL_COUNTDOWN -> AWAITING_INSTALL -> INSTALLING ->
-  // INSTALL_SUCCESS -> IDLE.
   enum OtaPhase {
     OTA_PHASE_UNSPECIFIED = 0;
     OTA_PHASE_IDLE = 1;
+    OTA_PHASE_READY_TO_DOWNLOAD = 2;
+    OTA_PHASE_FAULT = 3;
+    OTA_PHASE_CONNECTION_LOST = 4;
     OTA_PHASE_INSTALL_COUNTDOWN = 5;
     OTA_PHASE_PREPARING = 6;
     OTA_PHASE_DOWNLOADING = 7;
-    OTA_PHASE_SCHEDULED_TO_INSTALL = 8;
+    OTA_PHASE_READY_TO_INSTALL = 8;
+    OTA_PHASE_SCHEDULED_TO_INSTALL = 9;
     OTA_PHASE_AWAITING_INSTALL = 10;
     OTA_PHASE_INSTALLING = 11;
     OTA_PHASE_INSTALL_SUCCESS = 12;
+    OTA_PHASE_DOWNLOAD_FAILED = 13;
+    OTA_PHASE_INSTALL_FAILED = 14;
   }
 }
 

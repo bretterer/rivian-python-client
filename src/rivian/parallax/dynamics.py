@@ -41,16 +41,24 @@ _KNOWN_LOCATION_MAP: Final[dict[int, str]] = {
 }
 
 _RANGE_THRESHOLD_MAP: Final[dict[int, str]] = {
-    dynamics_pb2.RANGE_NORMAL: "normal",
-    dynamics_pb2.RANGE_LOW: "low",
-    dynamics_pb2.RANGE_RED: "red",
-    dynamics_pb2.RANGE_CRITICALLY_LOW: "critically_low",
+    dynamics_pb2.RANGE_THRESHOLD_NORMAL: "normal",
+    dynamics_pb2.RANGE_THRESHOLD_LOW: "low",
+    dynamics_pb2.RANGE_THRESHOLD_RED: "red",
+    dynamics_pb2.RANGE_THRESHOLD_CRITICALLY_LOW: "critically_low",
 }
 
 _TEMPERATURE_IMPACT_MAP: Final[dict[int, str]] = {
     dynamics_pb2.TEMPERATURE_NORMAL_RANGE: "normal_range",
     dynamics_pb2.TEMPERATURE_COLD_MAY_IMPACT: "cold_may_impact",
     dynamics_pb2.TEMPERATURE_COLD_IMPACT: "cold_impact",
+}
+
+# "OK" is the GraphQL value for normal.
+_TIRE_PRESSURE_STATUS_MAP: Final[dict[int, str]] = {
+    dynamics_pb2.TIRE_PRESSURE_STATUS_NORMAL: "OK",
+    dynamics_pb2.TIRE_PRESSURE_STATUS_WARNING_HARD: "warning_hard",
+    dynamics_pb2.TIRE_PRESSURE_STATUS_WARNING_SOFT: "warning_soft",
+    dynamics_pb2.TIRE_PRESSURE_STATUS_WARNING_PUNCTURE: "warning_puncture",
 }
 
 _TIRE_POSITION_MAP: Final[dict[int, str]] = {
@@ -178,7 +186,8 @@ def decode_tires(m: dynamics_pb2.TiresState) -> dict[str, Any]:
 
     Fields:
         tirePressureFrontLeft, tirePressureFrontRight, etc.: float (bar)
-        tirePressureStatusFrontLeft, etc.: str ("OK" | "Warning")
+        tirePressureStatusFrontLeft, etc.: str ("OK" | "warning_hard" |
+            "warning_soft" | "warning_puncture")
         tirePressureStatusValidFrontLeft, etc.: str ("valid" | "invalid")
     """
     result: dict[str, Any] = {}
@@ -197,8 +206,8 @@ def decode_tires(m: dynamics_pb2.TiresState) -> dict[str, Any]:
         if (pressure := _present(s, "pressure")) is not None:
             result[f"tirePressure{suffix}"] = pressure
         if (status_val := _present(s, "status")) is not None:
-            result[f"tirePressureStatus{suffix}"] = (
-                "OK" if status_val == dynamics_pb2.TIRE_PRESSURE_OK else "Warning"
+            result[f"tirePressureStatus{suffix}"] = _enum(
+                _TIRE_PRESSURE_STATUS_MAP, status_val, what="tire pressure status"
             )
     return result
 

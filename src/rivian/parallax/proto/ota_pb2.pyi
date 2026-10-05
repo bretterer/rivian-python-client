@@ -13,22 +13,34 @@ class DeploymentState(_message.Message):
         __slots__ = ()
         OTA_PHASE_UNSPECIFIED: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_IDLE: _ClassVar[DeploymentState.OtaPhase]
+        OTA_PHASE_READY_TO_DOWNLOAD: _ClassVar[DeploymentState.OtaPhase]
+        OTA_PHASE_FAULT: _ClassVar[DeploymentState.OtaPhase]
+        OTA_PHASE_CONNECTION_LOST: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_INSTALL_COUNTDOWN: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_PREPARING: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_DOWNLOADING: _ClassVar[DeploymentState.OtaPhase]
+        OTA_PHASE_READY_TO_INSTALL: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_SCHEDULED_TO_INSTALL: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_AWAITING_INSTALL: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_INSTALLING: _ClassVar[DeploymentState.OtaPhase]
         OTA_PHASE_INSTALL_SUCCESS: _ClassVar[DeploymentState.OtaPhase]
+        OTA_PHASE_DOWNLOAD_FAILED: _ClassVar[DeploymentState.OtaPhase]
+        OTA_PHASE_INSTALL_FAILED: _ClassVar[DeploymentState.OtaPhase]
     OTA_PHASE_UNSPECIFIED: DeploymentState.OtaPhase
     OTA_PHASE_IDLE: DeploymentState.OtaPhase
+    OTA_PHASE_READY_TO_DOWNLOAD: DeploymentState.OtaPhase
+    OTA_PHASE_FAULT: DeploymentState.OtaPhase
+    OTA_PHASE_CONNECTION_LOST: DeploymentState.OtaPhase
     OTA_PHASE_INSTALL_COUNTDOWN: DeploymentState.OtaPhase
     OTA_PHASE_PREPARING: DeploymentState.OtaPhase
     OTA_PHASE_DOWNLOADING: DeploymentState.OtaPhase
+    OTA_PHASE_READY_TO_INSTALL: DeploymentState.OtaPhase
     OTA_PHASE_SCHEDULED_TO_INSTALL: DeploymentState.OtaPhase
     OTA_PHASE_AWAITING_INSTALL: DeploymentState.OtaPhase
     OTA_PHASE_INSTALLING: DeploymentState.OtaPhase
     OTA_PHASE_INSTALL_SUCCESS: DeploymentState.OtaPhase
+    OTA_PHASE_DOWNLOAD_FAILED: DeploymentState.OtaPhase
+    OTA_PHASE_INSTALL_FAILED: DeploymentState.OtaPhase
     class Deployment(_message.Message):
         __slots__ = ("state", "version", "progress_wrapper")
         STATE_FIELD_NUMBER: _ClassVar[int]

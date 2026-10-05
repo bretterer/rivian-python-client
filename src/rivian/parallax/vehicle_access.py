@@ -15,6 +15,17 @@ _CCC_PASSIVE_PERMISSION_MAP: Final[dict[int, str]] = {
 
 
 @RVMDecoder.register(
+    "vehicle_access.passive_entry.passive_entry",
+    vehicle_access_pb2.PassiveEntrySetting,
+)
+def decode_passive_entry_setting(
+    _m: vehicle_access_pb2.PassiveEntrySetting,
+) -> dict[str, Any]:
+    """vehicle_access.passive_entry.passive_entry — passive entry setting; unmapped."""
+    return {}
+
+
+@RVMDecoder.register(
     "vehicle_access.state.passive_entry", vehicle_access_pb2.PassiveEntryState
 )
 def decode_vehicle_access_passive_entry(

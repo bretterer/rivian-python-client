@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1frivian/parallax/proto/ota.proto\x12\x13rivian.parallax.ota\"\xa1\x0c\n\x0f\x44\x65ploymentState\x12\x43\n\ndeployment\x18\x01 \x01(\x0b\x32/.rivian.parallax.ota.DeploymentState.Deployment\x1a\xb9\x01\n\nDeployment\x12\x12\n\x05state\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12=\n\x07version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12N\n\x10progress_wrapper\x18\x04 \x01(\x0b\x32\x34.rivian.parallax.ota.DeploymentState.ProgressWrapperB\x08\n\x06_state\x1a\xb7\x01\n\x07Version\x12\x1b\n\x0eversion_string\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x19\n\x0cversion_year\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12\x1a\n\rversion_build\x18\x04 \x01(\x05H\x02\x88\x01\x01\x12\x15\n\x08\x62uild_id\x18\x06 \x01(\tH\x03\x88\x01\x01\x42\x11\n\x0f_version_stringB\x0f\n\r_version_yearB\x10\n\x0e_version_buildB\x0b\n\t_build_id\x1a\xd2\x02\n\x0fProgressWrapper\x12\x1a\n\rdeployment_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x44\n\x0etarget_version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12\x18\n\x0b\x61\x63tive_flag\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12?\n\x08progress\x18\x05 \x01(\x0b\x32-.rivian.parallax.ota.DeploymentState.Progress\x12\x1b\n\x0etimeout_budget\x18\x07 \x01(\x05H\x02\x88\x01\x01\x12\x1c\n\x0flate_stage_flag\x18\x0b \x01(\x05H\x03\x88\x01\x01\x42\x10\n\x0e_deployment_idB\x0e\n\x0c_active_flagB\x11\n\x0f_timeout_budgetB\x12\n\x10_late_stage_flag\x1a\xef\x03\n\x08Progress\x12\x41\n\x05phase\x18\x01 \x01(\x0e\x32-.rivian.parallax.ota.DeploymentState.OtaPhaseH\x00\x88\x01\x01\x12\x14\n\x07\x66ield_2\x18\x02 \x01(\x05H\x01\x88\x01\x01\x12T\n\x11\x64ownload_progress\x18\x03 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12S\n\x10install_progress\x18\x04 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12\x14\n\x07\x66ield_5\x18\x05 \x01(\tH\x02\x88\x01\x01\x12\x16\n\x0etime_remaining\x18\x06 \x01(\x05\x12\x14\n\x07\x66ield_7\x18\x07 \x01(\x05H\x03\x88\x01\x01\x12\x1a\n\x12update_cycle_count\x18\x08 \x01(\x05\x12\x14\n\x07\x66ield_9\x18\t \x01(\x05H\x04\x88\x01\x01\x1a/\n\x0bProgress100\x12\x14\n\x07\x66ield_2\x18\x02 \x01(\x05H\x00\x88\x01\x01\x42\n\n\x08_field_2B\x08\n\x06_phaseB\n\n\x08_field_2B\n\n\x08_field_5B\n\n\x08_field_7B\n\n\x08_field_9\"\x8b\x02\n\x08OtaPhase\x12\x19\n\x15OTA_PHASE_UNSPECIFIED\x10\x00\x12\x12\n\x0eOTA_PHASE_IDLE\x10\x01\x12\x1f\n\x1bOTA_PHASE_INSTALL_COUNTDOWN\x10\x05\x12\x17\n\x13OTA_PHASE_PREPARING\x10\x06\x12\x19\n\x15OTA_PHASE_DOWNLOADING\x10\x07\x12\"\n\x1eOTA_PHASE_SCHEDULED_TO_INSTALL\x10\x08\x12\x1e\n\x1aOTA_PHASE_AWAITING_INSTALL\x10\n\x12\x18\n\x14OTA_PHASE_INSTALLING\x10\x0b\x12\x1d\n\x19OTA_PHASE_INSTALL_SUCCESS\x10\x0c\"\xb2\x05\n\tOtaConfig\x12\x39\n\x08schedule\x18\x01 \x03(\x0b\x32\'.rivian.parallax.ota.OtaConfig.Schedule\x12<\n\nupdated_at\x18\x02 \x01(\x0b\x32(.rivian.parallax.ota.OtaConfig.UpdatedAt\x1a\xd5\x01\n\x08Schedule\x12\x0f\n\x02id\x18\x01 \x01(\tH\x01\x88\x01\x01\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\x12\x44\n\rrepeats_daily\x18\x03 \x01(\x0b\x32+.rivian.parallax.ota.OtaConfig.RepeatsDailyH\x00\x12L\n\x11single_occurrence\x18\x04 \x01(\x0b\x32/.rivian.parallax.ota.OtaConfig.SingleOccurrenceH\x00\x42\x0c\n\noccurrenceB\x05\n\x03_id\x1ao\n\x0cRepeatsDaily\x12\x16\n\tstarts_at\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x39\n\x08location\x18\x02 \x01(\x0b\x32\'.rivian.parallax.ota.OtaConfig.LocationB\x0c\n\n_starts_at\x1a&\n\x08Location\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_name\x1a\x8d\x01\n\x10SingleOccurrence\x12K\n\tstarts_at\x18\x01 \x01(\x0b\x32\x38.rivian.parallax.ota.OtaConfig.SingleOccurrence.StartsAt\x1a,\n\x08StartsAt\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_seconds\x1a+\n\tUpdatedAt\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\"\xa7\x01\n\x0fVehicleOtaState\x12\x0c\n\x04name\x18\x01 \x01(\t\x12P\n\x11scheduled_install\x18\x02 \x01(\x0b\x32\x35.rivian.parallax.ota.VehicleOtaState.ScheduledInstall\x1a\x34\n\x10ScheduledInstall\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_secondsb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1frivian/parallax/proto/ota.proto\x12\x13rivian.parallax.ota\"\xd3\r\n\x0f\x44\x65ploymentState\x12\x43\n\ndeployment\x18\x01 \x01(\x0b\x32/.rivian.parallax.ota.DeploymentState.Deployment\x1a\xb9\x01\n\nDeployment\x12\x12\n\x05state\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12=\n\x07version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12N\n\x10progress_wrapper\x18\x04 \x01(\x0b\x32\x34.rivian.parallax.ota.DeploymentState.ProgressWrapperB\x08\n\x06_state\x1a\xb7\x01\n\x07Version\x12\x1b\n\x0eversion_string\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x19\n\x0cversion_year\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12\x1a\n\rversion_build\x18\x04 \x01(\x05H\x02\x88\x01\x01\x12\x15\n\x08\x62uild_id\x18\x06 \x01(\tH\x03\x88\x01\x01\x42\x11\n\x0f_version_stringB\x0f\n\r_version_yearB\x10\n\x0e_version_buildB\x0b\n\t_build_id\x1a\xd2\x02\n\x0fProgressWrapper\x12\x1a\n\rdeployment_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x44\n\x0etarget_version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12\x18\n\x0b\x61\x63tive_flag\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12?\n\x08progress\x18\x05 \x01(\x0b\x32-.rivian.parallax.ota.DeploymentState.Progress\x12\x1b\n\x0etimeout_budget\x18\x07 \x01(\x05H\x02\x88\x01\x01\x12\x1c\n\x0flate_stage_flag\x18\x0b \x01(\x05H\x03\x88\x01\x01\x42\x10\n\x0e_deployment_idB\x0e\n\x0c_active_flagB\x11\n\x0f_timeout_budgetB\x12\n\x10_late_stage_flag\x1a\xef\x03\n\x08Progress\x12\x41\n\x05phase\x18\x01 \x01(\x0e\x32-.rivian.parallax.ota.DeploymentState.OtaPhaseH\x00\x88\x01\x01\x12\x14\n\x07\x66ield_2\x18\x02 \x01(\x05H\x01\x88\x01\x01\x12T\n\x11\x64ownload_progress\x18\x03 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12S\n\x10install_progress\x18\x04 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12\x14\n\x07\x66ield_5\x18\x05 \x01(\tH\x02\x88\x01\x01\x12\x16\n\x0etime_remaining\x18\x06 \x01(\x05\x12\x14\n\x07\x66ield_7\x18\x07 \x01(\x05H\x03\x88\x01\x01\x12\x1a\n\x12update_cycle_count\x18\x08 \x01(\x05\x12\x14\n\x07\x66ield_9\x18\t \x01(\x05H\x04\x88\x01\x01\x1a/\n\x0bProgress100\x12\x14\n\x07\x66ield_2\x18\x02 \x01(\x05H\x00\x88\x01\x01\x42\n\n\x08_field_2B\x08\n\x06_phaseB\n\n\x08_field_2B\n\n\x08_field_5B\n\n\x08_field_7B\n\n\x08_field_9\"\xbd\x03\n\x08OtaPhase\x12\x19\n\x15OTA_PHASE_UNSPECIFIED\x10\x00\x12\x12\n\x0eOTA_PHASE_IDLE\x10\x01\x12\x1f\n\x1bOTA_PHASE_READY_TO_DOWNLOAD\x10\x02\x12\x13\n\x0fOTA_PHASE_FAULT\x10\x03\x12\x1d\n\x19OTA_PHASE_CONNECTION_LOST\x10\x04\x12\x1f\n\x1bOTA_PHASE_INSTALL_COUNTDOWN\x10\x05\x12\x17\n\x13OTA_PHASE_PREPARING\x10\x06\x12\x19\n\x15OTA_PHASE_DOWNLOADING\x10\x07\x12\x1e\n\x1aOTA_PHASE_READY_TO_INSTALL\x10\x08\x12\"\n\x1eOTA_PHASE_SCHEDULED_TO_INSTALL\x10\t\x12\x1e\n\x1aOTA_PHASE_AWAITING_INSTALL\x10\n\x12\x18\n\x14OTA_PHASE_INSTALLING\x10\x0b\x12\x1d\n\x19OTA_PHASE_INSTALL_SUCCESS\x10\x0c\x12\x1d\n\x19OTA_PHASE_DOWNLOAD_FAILED\x10\r\x12\x1c\n\x18OTA_PHASE_INSTALL_FAILED\x10\x0e\"\xb2\x05\n\tOtaConfig\x12\x39\n\x08schedule\x18\x01 \x03(\x0b\x32\'.rivian.parallax.ota.OtaConfig.Schedule\x12<\n\nupdated_at\x18\x02 \x01(\x0b\x32(.rivian.parallax.ota.OtaConfig.UpdatedAt\x1a\xd5\x01\n\x08Schedule\x12\x0f\n\x02id\x18\x01 \x01(\tH\x01\x88\x01\x01\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\x12\x44\n\rrepeats_daily\x18\x03 \x01(\x0b\x32+.rivian.parallax.ota.OtaConfig.RepeatsDailyH\x00\x12L\n\x11single_occurrence\x18\x04 \x01(\x0b\x32/.rivian.parallax.ota.OtaConfig.SingleOccurrenceH\x00\x42\x0c\n\noccurrenceB\x05\n\x03_id\x1ao\n\x0cRepeatsDaily\x12\x16\n\tstarts_at\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x39\n\x08location\x18\x02 \x01(\x0b\x32\'.rivian.parallax.ota.OtaConfig.LocationB\x0c\n\n_starts_at\x1a&\n\x08Location\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_name\x1a\x8d\x01\n\x10SingleOccurrence\x12K\n\tstarts_at\x18\x01 \x01(\x0b\x32\x38.rivian.parallax.ota.OtaConfig.SingleOccurrence.StartsAt\x1a,\n\x08StartsAt\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_seconds\x1a+\n\tUpdatedAt\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\"\xa7\x01\n\x0fVehicleOtaState\x12\x0c\n\x04name\x18\x01 \x01(\t\x12P\n\x11scheduled_install\x18\x02 \x01(\x0b\x32\x35.rivian.parallax.ota.VehicleOtaState.ScheduledInstall\x1a\x34\n\x10ScheduledInstall\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_secondsb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,7 +32,7 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.ota_p
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_DEPLOYMENTSTATE']._serialized_start=57
-  _globals['_DEPLOYMENTSTATE']._serialized_end=1626
+  _globals['_DEPLOYMENTSTATE']._serialized_end=1804
   _globals['_DEPLOYMENTSTATE_DEPLOYMENT']._serialized_start=146
   _globals['_DEPLOYMENTSTATE_DEPLOYMENT']._serialized_end=331
   _globals['_DEPLOYMENTSTATE_VERSION']._serialized_start=334
@@ -44,23 +44,23 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_DEPLOYMENTSTATE_PROGRESS_PROGRESS100']._serialized_start=1251
   _globals['_DEPLOYMENTSTATE_PROGRESS_PROGRESS100']._serialized_end=1298
   _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_start=1359
-  _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_end=1626
-  _globals['_OTACONFIG']._serialized_start=1629
-  _globals['_OTACONFIG']._serialized_end=2319
-  _globals['_OTACONFIG_SCHEDULE']._serialized_start=1764
-  _globals['_OTACONFIG_SCHEDULE']._serialized_end=1977
-  _globals['_OTACONFIG_REPEATSDAILY']._serialized_start=1979
-  _globals['_OTACONFIG_REPEATSDAILY']._serialized_end=2090
-  _globals['_OTACONFIG_LOCATION']._serialized_start=2092
-  _globals['_OTACONFIG_LOCATION']._serialized_end=2130
-  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_start=2133
-  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_end=2274
-  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_start=2230
-  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_end=2274
-  _globals['_OTACONFIG_UPDATEDAT']._serialized_start=2276
-  _globals['_OTACONFIG_UPDATEDAT']._serialized_end=2319
-  _globals['_VEHICLEOTASTATE']._serialized_start=2322
-  _globals['_VEHICLEOTASTATE']._serialized_end=2489
-  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_start=2437
-  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_end=2489
+  _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_end=1804
+  _globals['_OTACONFIG']._serialized_start=1807
+  _globals['_OTACONFIG']._serialized_end=2497
+  _globals['_OTACONFIG_SCHEDULE']._serialized_start=1942
+  _globals['_OTACONFIG_SCHEDULE']._serialized_end=2155
+  _globals['_OTACONFIG_REPEATSDAILY']._serialized_start=2157
+  _globals['_OTACONFIG_REPEATSDAILY']._serialized_end=2268
+  _globals['_OTACONFIG_LOCATION']._serialized_start=2270
+  _globals['_OTACONFIG_LOCATION']._serialized_end=2308
+  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_start=2311
+  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_end=2452
+  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_start=2408
+  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_end=2452
+  _globals['_OTACONFIG_UPDATEDAT']._serialized_start=2454
+  _globals['_OTACONFIG_UPDATEDAT']._serialized_end=2497
+  _globals['_VEHICLEOTASTATE']._serialized_start=2500
+  _globals['_VEHICLEOTASTATE']._serialized_end=2667
+  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_start=2615
+  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_end=2667
 # @@protoc_insertion_point(module_scope)

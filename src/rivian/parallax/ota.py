@@ -10,13 +10,19 @@ from .proto import ota_pb2
 
 _OTA_STATUS_MAP: Final[dict[int, str]] = {
     ota_pb2.DeploymentState.OTA_PHASE_IDLE: "idle",
+    ota_pb2.DeploymentState.OTA_PHASE_READY_TO_DOWNLOAD: "ready_to_download",
+    ota_pb2.DeploymentState.OTA_PHASE_FAULT: "fault",
+    ota_pb2.DeploymentState.OTA_PHASE_CONNECTION_LOST: "connection_lost",
     ota_pb2.DeploymentState.OTA_PHASE_INSTALL_COUNTDOWN: "install_countdown",
     ota_pb2.DeploymentState.OTA_PHASE_PREPARING: "preparing",
     ota_pb2.DeploymentState.OTA_PHASE_DOWNLOADING: "downloading",
+    ota_pb2.DeploymentState.OTA_PHASE_READY_TO_INSTALL: "ready_to_install",
     ota_pb2.DeploymentState.OTA_PHASE_SCHEDULED_TO_INSTALL: "scheduled_to_install",
     ota_pb2.DeploymentState.OTA_PHASE_AWAITING_INSTALL: "awaiting_install",
     ota_pb2.DeploymentState.OTA_PHASE_INSTALLING: "installing",
     ota_pb2.DeploymentState.OTA_PHASE_INSTALL_SUCCESS: "install_success",
+    ota_pb2.DeploymentState.OTA_PHASE_DOWNLOAD_FAILED: "download_failed",
+    ota_pb2.DeploymentState.OTA_PHASE_INSTALL_FAILED: "install_failed",
 }
 
 
@@ -58,9 +64,11 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         otaAvailableVersion, otaAvailableVersionYear,
         otaAvailableVersionWeek, otaAvailableVersionNumber,
         otaAvailableVersionGitHash — the version being installed
-        otaStatus: str — "idle" | "downloading" | "preparing" |
-            "scheduled_to_install" | "install_countdown" |
-            "awaiting_install" | "installing" | "install_success"
+        otaStatus: str — "idle" | "ready_to_download" | "downloading" |
+            "preparing" | "ready_to_install" | "scheduled_to_install" |
+            "install_countdown" | "awaiting_install" | "installing" |
+            "install_success" | "fault" | "connection_lost" |
+            "download_failed" | "install_failed"
         otaDownloadProgress, otaInstallProgress: int (0-100)
         otaTimeRemaining: int (seconds; counts down during
             "install_countdown", a static default otherwise)

@@ -97,6 +97,9 @@ enum LockFault {
   LOCK_FAULT_FAULTED = 1;
 }
 
+// body.windows.states -- unmapped.
+message WindowsState {}
+
 // body.trailer.state
 message TrailerState {
   optional TrailerPresence presence = 1;
@@ -218,5 +221,7 @@ enum WindowsNextAction {
 
 // body.wipers.fluid_level
 message WiperFluidLevel {
-  optional int32 field_2 = 2; // unknown
+  // Likely the app's FluidLevelState (normal | low | empty, i.e. the
+  // gateway's wiperFluidState); its numbers are unknown.
+  optional int32 field_2 = 2;
 }

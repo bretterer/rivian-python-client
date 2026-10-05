@@ -44,10 +44,10 @@ class KnownLocationValue(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 class RangeThreshold(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     RANGE_THRESHOLD_UNSPECIFIED: _ClassVar[RangeThreshold]
-    RANGE_NORMAL: _ClassVar[RangeThreshold]
-    RANGE_LOW: _ClassVar[RangeThreshold]
-    RANGE_RED: _ClassVar[RangeThreshold]
-    RANGE_CRITICALLY_LOW: _ClassVar[RangeThreshold]
+    RANGE_THRESHOLD_NORMAL: _ClassVar[RangeThreshold]
+    RANGE_THRESHOLD_LOW: _ClassVar[RangeThreshold]
+    RANGE_THRESHOLD_RED: _ClassVar[RangeThreshold]
+    RANGE_THRESHOLD_CRITICALLY_LOW: _ClassVar[RangeThreshold]
 
 class TemperatureImpact(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -67,8 +67,10 @@ class TirePosition(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 class TirePressureStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     TIRE_PRESSURE_STATUS_UNSPECIFIED: _ClassVar[TirePressureStatus]
-    TIRE_PRESSURE_OK: _ClassVar[TirePressureStatus]
-    TIRE_PRESSURE_WARNING: _ClassVar[TirePressureStatus]
+    TIRE_PRESSURE_STATUS_NORMAL: _ClassVar[TirePressureStatus]
+    TIRE_PRESSURE_STATUS_WARNING_HARD: _ClassVar[TirePressureStatus]
+    TIRE_PRESSURE_STATUS_WARNING_SOFT: _ClassVar[TirePressureStatus]
+    TIRE_PRESSURE_STATUS_WARNING_PUNCTURE: _ClassVar[TirePressureStatus]
 DRIVE_MODE_UNSPECIFIED: DriveModeValue
 DRIVE_MODE_INIT: DriveModeValue
 DRIVE_MODE_EVERYDAY: DriveModeValue
@@ -95,10 +97,10 @@ KNOWN_LOCATION_UNKNOWN: KnownLocationValue
 KNOWN_LOCATION_HOME: KnownLocationValue
 KNOWN_LOCATION_WORK: KnownLocationValue
 RANGE_THRESHOLD_UNSPECIFIED: RangeThreshold
-RANGE_NORMAL: RangeThreshold
-RANGE_LOW: RangeThreshold
-RANGE_RED: RangeThreshold
-RANGE_CRITICALLY_LOW: RangeThreshold
+RANGE_THRESHOLD_NORMAL: RangeThreshold
+RANGE_THRESHOLD_LOW: RangeThreshold
+RANGE_THRESHOLD_RED: RangeThreshold
+RANGE_THRESHOLD_CRITICALLY_LOW: RangeThreshold
 TEMPERATURE_IMPACT_UNSPECIFIED: TemperatureImpact
 TEMPERATURE_NORMAL_RANGE: TemperatureImpact
 TEMPERATURE_COLD_MAY_IMPACT: TemperatureImpact
@@ -109,8 +111,10 @@ TIRE_FRONT_RIGHT: TirePosition
 TIRE_REAR_LEFT: TirePosition
 TIRE_REAR_RIGHT: TirePosition
 TIRE_PRESSURE_STATUS_UNSPECIFIED: TirePressureStatus
-TIRE_PRESSURE_OK: TirePressureStatus
-TIRE_PRESSURE_WARNING: TirePressureStatus
+TIRE_PRESSURE_STATUS_NORMAL: TirePressureStatus
+TIRE_PRESSURE_STATUS_WARNING_HARD: TirePressureStatus
+TIRE_PRESSURE_STATUS_WARNING_SOFT: TirePressureStatus
+TIRE_PRESSURE_STATUS_WARNING_PUNCTURE: TirePressureStatus
 
 class DriveMode(_message.Message):
     __slots__ = ("mode", "limited_accel_cold", "limited_regen_cold")

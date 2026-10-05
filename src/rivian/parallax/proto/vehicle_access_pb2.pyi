@@ -16,6 +16,10 @@ CCC_PASSIVE_PERMISSION_SNA: CccPassivePermission
 CCC_PASSIVE_PERMISSION_ENABLED: CccPassivePermission
 CCC_PASSIVE_PERMISSION_DISABLED: CccPassivePermission
 
+class PassiveEntrySetting(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class PassiveEntryState(_message.Message):
     __slots__ = ("allow_bluetooth_while_in_ccc", "ccc_passive_permission")
     ALLOW_BLUETOOTH_WHILE_IN_CCC_FIELD_NUMBER: _ClassVar[int]
