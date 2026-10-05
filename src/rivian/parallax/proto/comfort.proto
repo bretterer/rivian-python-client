@@ -10,8 +10,9 @@ message HvacSettingsStatus {
   float target_temperature = 1; // °C
 }
 
-// comfort.user_modes.state -- unmapped.
+// comfort.user_modes.state
 message UserModesState {
+  bool car_wash_mode = 2;
   optional int32 field4 = 4; // unknown
   optional int32 field7 = 7; // unknown
 }

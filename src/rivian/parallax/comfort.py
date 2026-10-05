@@ -22,8 +22,13 @@ def decode_hvac_settings_status(m: comfort_pb2.HvacSettingsStatus) -> dict[str, 
 
 @RVMDecoder.register("comfort.user_modes.state", comfort_pb2.UserModesState)
 def decode_user_modes_state(m: comfort_pb2.UserModesState) -> dict[str, Any]:
-    """comfort.user_modes.state — unmapped; fields 4 and 7 as `_field4`/`_field7`."""
-    result: dict[str, Any] = {}
+    """comfort.user_modes.state — user modes.
+
+    Fields:
+        carWashMode: str ("on" | "off")
+        _field4, _field7: int — raw
+    """
+    result: dict[str, Any] = {"carWashMode": "on" if m.car_wash_mode else "off"}
     if (v := _present(m, "field4")) is not None:
         result["_field4"] = v
     if (v := _present(m, "field7")) is not None:
