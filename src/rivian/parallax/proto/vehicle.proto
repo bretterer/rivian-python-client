@@ -4,8 +4,8 @@ package rivian.parallax.vehicle;
 
 // Reverse-engineered `vehicle.*` RVM payloads; see ../vehicle.py.
 
-// vehicle.profiles.active_user
-// "NN-<uuid>-<suffix>"; may be a device or session id, not a driver profile.
+// vehicle.profiles.active_user -- the active driver's profile id (as in
+// device_table.vas_keyper.devices). Changes with the key that unlocks.
 message ActiveUserProfile {
   optional string active_user_profile_id = 1;
 }

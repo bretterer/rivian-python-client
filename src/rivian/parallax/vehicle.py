@@ -17,11 +17,11 @@ _POWER_STATE_MAP: Final[dict[int, str]] = {
 
 @RVMDecoder.register("vehicle.profiles.active_user", vehicle_pb2.ActiveUserProfile)
 def decode_active_user_profile(m: vehicle_pb2.ActiveUserProfile) -> dict[str, Any]:
-    """vehicle.profiles.active_user — the active profile.
+    """vehicle.profiles.active_user — the active driver profile.
 
     Fields:
-        activeUserProfileId: str — may be a device or session id rather
-            than a driver profile
+        activeUserProfileId: str — the same profile id as the device
+            table's `profileId`
     """
     if (v := _present(m, "active_user_profile_id")) is None:
         return {}
