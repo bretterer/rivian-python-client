@@ -37,7 +37,8 @@ def decode_vas_keyper_devices(m: device_table_pb2.VasKeyperDevices) -> dict[str,
         keyType: str ("phone" | "key_card" | "key_fob"; key_fob inferred)
         mappedIdentityId: str — the GraphQL device's `mappedIdentityId`
         hrid: str — short human-readable id (key card)
-        profileId: str — the driver profile the key belongs to
+        profileId: str — the driver profile the key belongs to (as in
+            vehicle.profiles.active_user)
         publicKey: str — hex; phone keys
         keyRevision: int — key table revision when the entry was last written
         keyStatus: str ("active" | "inactive" | "waiting_to_pair" |

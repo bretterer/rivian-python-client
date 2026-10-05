@@ -251,6 +251,9 @@ def decode_session_power(m: charging_pb2.SessionPower) -> dict[str, Any]:
     """charging.session.power — live charging power, about every 5 seconds.
 
     Fields:
-        power: float (kW; 0 when not charging)
+        power: float (kW)
+
+    Isn't resent as 0 when a charge completes, so gate on
+    charging.session.status rather than treating the last value as live.
     """
     return {"power": round(m.power, 2)}
