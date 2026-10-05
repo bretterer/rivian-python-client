@@ -7,27 +7,23 @@ DESCRIPTOR: _descriptor.FileDescriptor
 
 class ConsentValue(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    CONSENT_UNRECOGNIZED: _ClassVar[ConsentValue]
+    CONSENT_UNKNOWN: _ClassVar[ConsentValue]
+    CONSENT_NOT_APPLICABLE: _ClassVar[ConsentValue]
     CONSENT_CONSENTED: _ClassVar[ConsentValue]
     CONSENT_NOT_CONSENTED: _ClassVar[ConsentValue]
-    CONSENT_NOT_APPLICABLE: _ClassVar[ConsentValue]
-    CONSENT_UNKNOWN: _ClassVar[ConsentValue]
 
 class DailyLimitValue(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    DAILY_LIMIT_UNRECOGNIZED: _ClassVar[DailyLimitValue]
     DAILY_LIMIT_UNDEFINED: _ClassVar[DailyLimitValue]
-    DAILY_LIMIT_NOT_HIT: _ClassVar[DailyLimitValue]
     DAILY_LIMIT_HIT: _ClassVar[DailyLimitValue]
-CONSENT_UNRECOGNIZED: ConsentValue
+    DAILY_LIMIT_NOT_HIT: _ClassVar[DailyLimitValue]
+CONSENT_UNKNOWN: ConsentValue
+CONSENT_NOT_APPLICABLE: ConsentValue
 CONSENT_CONSENTED: ConsentValue
 CONSENT_NOT_CONSENTED: ConsentValue
-CONSENT_NOT_APPLICABLE: ConsentValue
-CONSENT_UNKNOWN: ConsentValue
-DAILY_LIMIT_UNRECOGNIZED: DailyLimitValue
 DAILY_LIMIT_UNDEFINED: DailyLimitValue
-DAILY_LIMIT_NOT_HIT: DailyLimitValue
 DAILY_LIMIT_HIT: DailyLimitValue
+DAILY_LIMIT_NOT_HIT: DailyLimitValue
 
 class GearGuardStreamingConsent(_message.Message):
     __slots__ = ("consent",)

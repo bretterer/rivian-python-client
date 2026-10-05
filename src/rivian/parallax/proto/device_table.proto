@@ -23,6 +23,7 @@ message VasKeyperDevices {
     optional string profile_id = 3;         // the driver profile the key belongs to
     optional string public_key = 4;         // phone keys; 64 bytes as hex
     optional int32 revision = 5;            // key table revision when last written
+    optional bool vehicle_response_required = 6;
   }
 
   message Credentials {

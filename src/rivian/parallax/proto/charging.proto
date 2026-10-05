@@ -38,22 +38,58 @@ message ScheduleTimeWindow {
   }
 }
 
-// charging.session.notification -- unmapped.
+// charging.session.notification
 message SessionNotification {
-  optional int32 field1 = 1; // unknown
+  int32 unexpected_stop_reason = 1;
+  ChargerDerateStatus derate_status = 2;
+  FaultChime fault_chime = 3;
 }
 
-// charging.session.remote_command
-// App stop / "charge now", and the vehicle holding (STOP) or resuming
-// (START) charging around a schedule/limit change.
+enum ChargerDerateStatus {
+  DERATE_STATUS_NONE = 0;
+  DERATE_STATUS_WARM_ADAPTER = 1;
+  DERATE_STATUS_DC_WARM_PLUG = 2;
+  DERATE_STATUS_AC_WARM_PLUG = 3;
+  DERATE_STATUS_EVSE_DERATING = 4;
+  DERATE_STATUS_NEARING_TOC = 5;
+  DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING = 6;
+  DERATE_STATUS_HVAC_PRIORITIZED = 7;
+  DERATE_STATUS_BATTERY_HEATING = 8;
+  DERATE_STATUS_BATTERY_COOLING = 9;
+  DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT = 10;
+  DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT = 11;
+  DERATE_STATUS_CELL_THERMAL_LIM_COLD = 12;
+  DERATE_STATUS_CELL_THERMAL_LIM_HOT = 13;
+  DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM = 14;
+  DERATE_STATUS_HIGH_SOC_SIGMA = 15;
+  DERATE_STATUS_HV_BATTERY_FAULT = 16;
+  DERATE_STATUS_DCAC_EXPORT = 17;
+}
+
+enum FaultChime {
+  FAULT_CHIME_NONE = 0;
+  FAULT_CHIME_CHARGING_DISABLED_ALL = 1;
+  FAULT_CHIME_CHARGING_DISABLED_DC = 2;
+  FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_DC = 3;
+  FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_GRADIENT_DC = 4;
+  FAULT_CHIME_CHARGING_DEGRADED_DC = 5;
+  FAULT_CHIME_CHARGING_DISABLED_AC = 6;
+  FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_AC = 7;
+  FAULT_CHIME_CHARGING_DEGRADED_AC = 8;
+  FAULT_CHIME_CHARGING_DISABLED_PARTIAL_CONNECTION = 9;
+  FAULT_CHIME_CHARGING_DISABLED_NOT_PARKED = 10;
+}
+
+// charging.session.remote_command -- whether a remote start (charge now) is
+// available.
 message SessionRemoteCommand {
-  optional RemoteCommand command = 1;
+  StartAvailability start_available = 1;
 }
 
-enum RemoteCommand {
-  REMOTE_COMMAND_UNSPECIFIED = 0;
-  REMOTE_COMMAND_START = 1;
-  REMOTE_COMMAND_STOP = 2;
+enum StartAvailability {
+  START_AVAILABILITY_SNA = 0;
+  START_AVAILABILITY_FALSE = 1;
+  START_AVAILABILITY_TRUE = 2;
 }
 
 // charging.session.soc_slider
@@ -63,30 +99,70 @@ message SocSlider {
 
 // charging.session.trip_target -- unmapped.
 message TripTarget {
-  optional int32 field2 = 2; // unknown; 0xFFFF seems to mean "not set"
+  int32 soc_limit = 2; // percent; 0xFFFF when not set
 }
 
-// charging.smart_charging.settings -- unmapped.
-message SmartChargingSettings {}
+// charging.smart_charging.settings -- not seen yet; the app's likely schema.
+message SmartChargingSettings {
+  repeated ReadyByTime ready_by_times = 1;
+  bool clean_energy_enabled = 2;
 
-// charging.smart_charging.smart_charging_info -- unmapped.
-message SmartChargingInfo {}
+  message ReadyByTime {
+    int32 hours = 1;
+    int32 minutes = 2;
+    repeated SmartChargingDay days = 3;
+  }
+}
+
+// charging.smart_charging.smart_charging_info -- not seen yet; the app's
+// likely schema.
+message SmartChargingInfo {
+  ResumeTime resume_time = 1;
+  SmartChargingNotification notification = 2;
+  int32 schedule_type = 3; // enum type unknown
+
+  message ResumeTime {
+    int64 seconds = 1;
+    int32 nanos = 2;
+  }
+}
+
+enum SmartChargingDay {
+  SMART_CHARGING_DAY_UNSPECIFIED = 0;
+  SMART_CHARGING_DAY_MONDAY = 1;
+  SMART_CHARGING_DAY_TUESDAY = 2;
+  SMART_CHARGING_DAY_WEDNESDAY = 3;
+  SMART_CHARGING_DAY_THURSDAY = 4;
+  SMART_CHARGING_DAY_FRIDAY = 5;
+  SMART_CHARGING_DAY_SATURDAY = 6;
+  SMART_CHARGING_DAY_SUNDAY = 7;
+}
+
+enum SmartChargingNotification {
+  SMART_CHARGING_NOTIFICATION_SNA = 0;
+  SMART_CHARGING_NOTIFICATION_CHARGING_WITH_CLEAN_ENERGY = 1;
+  SMART_CHARGING_NOTIFICATION_CHARGING_PAUSED = 2;
+  SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_NOT_ENOUGH_TIME = 3;
+  SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_FORECAST_UNAVAILABLE_OR_INCOMPLETE = 4;
+}
 
 // charging.smart_charging.weighted_charging_forecast -- unmapped.
 message WeightedChargingForecast {}
 
 // charging.session.status
-// is_active is true from a session's start until it ends.
 message SessionStatus {
   optional ConnectionState connection_state = 1;
   optional ChargingState charging_state = 2;
-  bool is_active = 3;
+  int32 evse_type = 3; // enum type unknown
 }
 
+// The app's PlugConnectionStatus.
 enum ConnectionState {
-  CONNECTION_STATE_UNSPECIFIED = 0;
+  CONNECTION_STATE_INIT = 0;
   CONNECTION_STATE_DISCONNECTED = 1; // unplugged
   CONNECTION_STATE_CONNECTED = 2;
+  CONNECTION_STATE_ERROR = 3;
+  CONNECTION_STATE_V2L_CONNECTED = 4;
 }
 
 enum ChargingState {
@@ -118,33 +194,18 @@ enum ChargingState {
   CHARGING_SMART_CHARGING_ACTIVE = 25;
 }
 
-// Charger derate reasons (the gateway's chargerDerateStatus); the field
-// that carries it hasn't been identified yet.
-enum ChargerDerateStatus {
-  DERATE_STATUS_NONE = 0;
-  DERATE_STATUS_WARM_ADAPTER = 1;
-  DERATE_STATUS_DC_WARM_PLUG = 2;
-  DERATE_STATUS_AC_WARM_PLUG = 3;
-  DERATE_STATUS_EVSE_DERATING = 4;
-  DERATE_STATUS_NEARING_TOC = 5;
-  DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING = 6;
-  DERATE_STATUS_HVAC_PRIORITIZED = 7;
-  DERATE_STATUS_BATTERY_HEATING = 8;
-  DERATE_STATUS_BATTERY_COOLING = 9;
-  DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT = 10;
-  DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT = 11;
-  DERATE_STATUS_CELL_THERMAL_LIM_COLD = 12;
-  DERATE_STATUS_CELL_THERMAL_LIM_HOT = 13;
-  DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM = 14;
-  DERATE_STATUS_HIGH_SOC_SIGMA = 15;
-  DERATE_STATUS_HV_BATTERY_FAULT = 16;
-  DERATE_STATUS_DCAC_EXPORT = 17;
-}
-
 // charging.session.time_estimation
 // Minutes to the charge limit; empty (zero) when not charging.
 message TimeEstimation {
+  TimeEstimationValidity validity = 1;
   int32 estimated_time_remaining = 2; // minutes
+}
+
+enum TimeEstimationValidity {
+  TIME_ESTIMATION_VALIDITY_NONE = 0;
+  TIME_ESTIMATION_VALIDITY_VALID = 1;
+  TIME_ESTIMATION_VALIDITY_INVALID = 2;
+  TIME_ESTIMATION_VALIDITY_PACK_DISCHARGING = 3;
 }
 
 // charging.energy.state

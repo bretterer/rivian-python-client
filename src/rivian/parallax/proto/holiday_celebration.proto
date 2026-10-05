@@ -8,26 +8,37 @@ package rivian.parallax.holiday_celebration;
 // Unmapped.
 message HolidayCelebrationEnabled {}
 
-// holiday_celebration.car_costume.settings
-// All fields unknown.
+// holiday_celebration.car_costume.settings -- int enum types unknown.
 message CarCostumeSettings {
-  optional int32 field_1 = 1;
-  optional int32 field_2 = 2;
-  optional int32 field_3 = 3;
-  optional int32 field_6 = 6;
-  optional int32 field_7 = 7;
-  optional int32 field_9 = 9;
-  optional int32 field_11 = 11;
-  optional int32 field_12 = 12;
+  int32 celebration_sound_volume = 1;
+  bool interior_music_enabled = 2;
+  int32 interior_music_type = 3;
+  int32 motion_exterior_light_sound_effect = 4;
+  bool interior_light_show_enabled = 6;
+  bool interior_overhead_lights_enabled = 7;
+  int32 lights_color = 9;
+  int32 costume_effect = 11;
+  CostumeEffectTrigger effect_trigger = 12;
 }
 
-// holiday_celebration.car_costume.state
-// Fields 2, 3 and 6 are unknown.
+enum CostumeEffectTrigger {
+  COSTUME_EFFECT_TRIGGER_UNSPECIFIED = 0;
+  COSTUME_EFFECT_TRIGGER_MANUAL = 1;
+  COSTUME_EFFECT_TRIGGER_MOTION = 2;
+}
+
+// holiday_celebration.car_costume.state -- enum types unknown.
 message CarCostumeState {
-  int32 costume_id = 1; // 0 = none; other ids unmapped
-  optional int32 field_2 = 2;
-  optional int32 field_3 = 3;
-  optional int32 field_6 = 6;
+  int32 car_costume_availability = 1;
+  int32 costume_theme = 2;
+  bool motion_trigger_detected = 3;
+  Timestamp costume_start_time = 4;
+  int32 active_costume_effect = 6;
+
+  message Timestamp {
+    int64 seconds = 1;
+    int32 nanos = 2;
+  }
 }
 
 // holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings

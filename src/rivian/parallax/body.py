@@ -108,6 +108,28 @@ _LOCK_STATE_MAP: Final[dict[int, str]] = {
     body_pb2.LOCK_STATE_PARTIALLY_UNLOCKED: "partially_unlocked",
 }
 
+_REAR_HITCH_STATUS_MAP: Final[dict[int, str]] = {
+    body_pb2.REAR_HITCH_STATUS_NOT_PRESENT: "not_present",
+    body_pb2.REAR_HITCH_STATUS_ACCESSORY: "accessory",
+    body_pb2.REAR_HITCH_STATUS_TRAILER1: "trailer1",
+    body_pb2.REAR_HITCH_STATUS_TRAILER2: "trailer2",
+    body_pb2.REAR_HITCH_STATUS_TRAILER3: "trailer3",
+}
+
+_WINDOW_MAP: Final[dict[int, str]] = {
+    body_pb2.WINDOW_INSTANCE_FRONT_LEFT: "windowFrontLeftCalibrated",
+    body_pb2.WINDOW_INSTANCE_FRONT_RIGHT: "windowFrontRightCalibrated",
+    body_pb2.WINDOW_INSTANCE_REAR_LEFT: "windowRearLeftCalibrated",
+    body_pb2.WINDOW_INSTANCE_REAR_RIGHT: "windowRearRightCalibrated",
+    body_pb2.WINDOW_INSTANCE_REAR: "windowRearCalibrated",
+}
+
+# GraphQL's windowXCalibrated values.
+_CALIBRATION_MAP: Final[dict[int, str]] = {
+    body_pb2.CALIBRATION_STATUS_CALIBRATED: "Calibrated",
+    body_pb2.CALIBRATION_STATUS_NOT_CALIBRATED: "Not_Calibrated",
+}
+
 _TRAILER_PRESENCE_MAP: Final[dict[int, str]] = {
     body_pb2.TRAILER_NOT_PRESENT: "trailer_not_present",
     body_pb2.TRAILER_PRESENT: "trailer_present",
@@ -176,19 +198,37 @@ def decode_locks(m: body_pb2.LocksState) -> dict[str, Any]:
 
 
 @RVMDecoder.register("body.windows.states", body_pb2.WindowsState)
-def decode_windows(_m: body_pb2.WindowsState) -> dict[str, Any]:
-    """body.windows.states — unmapped."""
-    return {}
+def decode_windows(m: body_pb2.WindowsState) -> dict[str, Any]:
+    """body.windows.states — window calibration.
+
+    Fields:
+        windowFrontLeftCalibrated, windowFrontRightCalibrated,
+        windowRearLeftCalibrated, windowRearRightCalibrated,
+        windowRearCalibrated: str ("Calibrated" | "Not_Calibrated")
+    """
+    return {
+        _WINDOW_MAP[w.instance]: _enum(
+            _CALIBRATION_MAP, w.calibration_status or None, what="window calibration"
+        )
+        for w in m.window
+        if w.instance in _WINDOW_MAP
+    }
 
 
 @RVMDecoder.register("body.trailer.state", body_pb2.TrailerState)
 def decode_trailer_state(m: body_pb2.TrailerState) -> dict[str, Any]:
-    """body.trailer.state — trailer presence, with or without brakes.
+    """body.trailer.state — trailer presence and rear hitch status.
 
     Fields:
         trailerStatus: str
+        rearHitchStatus: str | None ("not_present" | "accessory" |
+            "trailer1" | "trailer2" | "trailer3")
     """
-    result: dict[str, Any] = {}
+    result: dict[str, Any] = {
+        "rearHitchStatus": _enum(
+            _REAR_HITCH_STATUS_MAP, m.rear_hitch_status or None, what="rear hitch"
+        )
+    }
     presence = _enum(
         _TRAILER_PRESENCE_MAP, _present(m, "presence"), what="trailer presence"
     )

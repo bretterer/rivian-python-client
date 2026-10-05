@@ -8,18 +8,16 @@ from .core import RVMDecoder, _enum, _present
 from .proto import gearguard_streaming_pb2
 
 _GEAR_GUARD_CONSENT_MAP: Final[dict[int, str]] = {
-    gearguard_streaming_pb2.CONSENT_UNRECOGNIZED: "unrecognized",
+    gearguard_streaming_pb2.CONSENT_UNKNOWN: "unknown",
+    gearguard_streaming_pb2.CONSENT_NOT_APPLICABLE: "not_applicable",
     gearguard_streaming_pb2.CONSENT_CONSENTED: "consented",
     gearguard_streaming_pb2.CONSENT_NOT_CONSENTED: "not_consented",
-    gearguard_streaming_pb2.CONSENT_NOT_APPLICABLE: "not_applicable",
-    gearguard_streaming_pb2.CONSENT_UNKNOWN: "unknown",
 }
 
 _GEAR_GUARD_DAILY_LIMIT_MAP: Final[dict[int, str]] = {
-    gearguard_streaming_pb2.DAILY_LIMIT_UNRECOGNIZED: "unrecognized",
     gearguard_streaming_pb2.DAILY_LIMIT_UNDEFINED: "undefined",
-    gearguard_streaming_pb2.DAILY_LIMIT_NOT_HIT: "not_hit",
     gearguard_streaming_pb2.DAILY_LIMIT_HIT: "hit",
+    gearguard_streaming_pb2.DAILY_LIMIT_NOT_HIT: "not_hit",
 }
 
 

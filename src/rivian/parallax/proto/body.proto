@@ -9,6 +9,7 @@ message ClosuresState {
   message Closure {
     ClosureId id = 1;
     optional ClosureState state = 2;
+    int32 open_position_percent = 3;
     // Unset on doors and windows; briefly GENERAL while re-reporting.
     ClosureFault fault = 4;
     optional WindowsNextAction windows_next_action = 5; // on GROUP_WINDOWS
@@ -16,10 +17,11 @@ message ClosuresState {
     // One field per closure type. Briefly SNA / not-available while the
     // vehicle re-reports after an app command.
     optional FrunkNextAction frunk_next_action = 6;
-    optional LiftgateNextAction liftgate_next_action = 7; // field inferred
+    optional LiftgateNextAction liftgate_next_action = 7;
     optional SideBinNextAction side_bin_next_action = 8;
     optional TailgateNextAction tailgate_next_action = 9;
     optional ChargePortDoorNextAction charge_port_door_next_action = 10;
+    int32 tonneau_next_action = 11; // enum type unknown
   }
   repeated Closure closure = 1;
 }
@@ -98,12 +100,43 @@ enum LockFault {
 }
 
 // body.windows.states -- unmapped.
-message WindowsState {}
+message WindowsState {
+  repeated Window window = 1;
+
+  message Window {
+    WindowInstance instance = 1;
+    CalibrationStatus calibration_status = 2;
+  }
+}
+
+enum WindowInstance {
+  WINDOW_INSTANCE_UNSPECIFIED = 0;
+  WINDOW_INSTANCE_FRONT_LEFT = 1;
+  WINDOW_INSTANCE_FRONT_RIGHT = 2;
+  WINDOW_INSTANCE_REAR_LEFT = 3;
+  WINDOW_INSTANCE_REAR_RIGHT = 4;
+  WINDOW_INSTANCE_REAR = 5;
+}
+
+enum CalibrationStatus {
+  CALIBRATION_STATUS_UNSPECIFIED = 0;
+  CALIBRATION_STATUS_CALIBRATED = 1;
+  CALIBRATION_STATUS_NOT_CALIBRATED = 2;
+}
 
 // body.trailer.state
 message TrailerState {
   optional TrailerPresence presence = 1;
-  int32 field_2 = 2; // unknown
+  RearHitchStatus rear_hitch_status = 2;
+}
+
+enum RearHitchStatus {
+  REAR_HITCH_STATUS_UNSPECIFIED = 0;
+  REAR_HITCH_STATUS_NOT_PRESENT = 1;
+  REAR_HITCH_STATUS_ACCESSORY = 2;
+  REAR_HITCH_STATUS_TRAILER1 = 3;
+  REAR_HITCH_STATUS_TRAILER2 = 4;
+  REAR_HITCH_STATUS_TRAILER3 = 5;
 }
 
 enum ClosureFault {

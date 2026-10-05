@@ -24,6 +24,7 @@ def test_phone_key() -> None:
                 profile_id="02-profile",
                 public_key="ab",
                 revision=301,
+                vehicle_response_required=True,
             ),
             credentials=Devices.Credentials(
                 info=Devices.Credentials.Info(
@@ -41,6 +42,7 @@ def test_phone_key() -> None:
         "profileId": "02-profile",
         "publicKey": "ab",
         "keyRevision": 301,
+        "vehicleResponseRequired": True,
         "infoA": 5,
         "infoC": 2,
         "infoB": 5,

@@ -9,14 +9,12 @@ DESCRIPTOR: _descriptor.FileDescriptor
 
 class GeofenceType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    GEOFENCE_TYPE_UNSPECIFIED: _ClassVar[GeofenceType]
+    GEOFENCE_TYPE_CUSTOM: _ClassVar[GeofenceType]
     GEOFENCE_TYPE_HOME: _ClassVar[GeofenceType]
     GEOFENCE_TYPE_WORK: _ClassVar[GeofenceType]
-    GEOFENCE_TYPE_CUSTOM: _ClassVar[GeofenceType]
-GEOFENCE_TYPE_UNSPECIFIED: GeofenceType
+GEOFENCE_TYPE_CUSTOM: GeofenceType
 GEOFENCE_TYPE_HOME: GeofenceType
 GEOFENCE_TYPE_WORK: GeofenceType
-GEOFENCE_TYPE_CUSTOM: GeofenceType
 
 class FavoriteGeofences(_message.Message):
     __slots__ = ("geofence",)

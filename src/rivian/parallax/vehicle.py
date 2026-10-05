@@ -12,6 +12,9 @@ _POWER_STATE_MAP: Final[dict[int, str]] = {
     vehicle_pb2.POWER_STANDBY: "standby",
     vehicle_pb2.POWER_READY: "ready",
     vehicle_pb2.POWER_GO: "go",
+    vehicle_pb2.POWER_VEHICLE_RESET: "vehicle_reset",
+    vehicle_pb2.POWER_OTA_UPDATE: "ota_update",
+    vehicle_pb2.POWER_SHUTDOWN: "shutdown",
 }
 
 
@@ -37,11 +40,7 @@ def decode_power_state(m: vehicle_pb2.VehiclePowerState) -> dict[str, Any]:
     """
     if (v := _present(m, "state")) is None:
         return {}
-    return {
-        "powerState": _enum(
-            _POWER_STATE_MAP, v, what="power state", unmapped_default="standby"
-        )
-    }
+    return {"powerState": _enum(_POWER_STATE_MAP, v, what="power state")}
 
 
 @RVMDecoder.register("vehicle.wheels.vehicle_wheels", vehicle_pb2.VehicleWheels)
@@ -93,12 +92,34 @@ _ACTIVE_INTERFACE_MAP: Final[dict[int, str]] = {
     vehicle_pb2.ACTIVE_INTERFACE_CELLULAR: "cellular",
 }
 
+_Net = vehicle_pb2.NetworkState
+
 _WIFI_SECURITY_MAP: Final[dict[int, str]] = {
     vehicle_pb2.WIFI_OPEN: "open",
     vehicle_pb2.WIFI_WPA_PERSONAL: "wpa_personal",
     vehicle_pb2.WIFI_WPA_ENTERPRISE: "wpa_enterprise",
     vehicle_pb2.WIFI_WPA2_PERSONAL: "wpa2_personal",
     vehicle_pb2.WIFI_WPA2_ENTERPRISE: "wpa2_enterprise",
+    vehicle_pb2.WIFI_WPA3_PERSONAL: "wpa3_personal",
+    vehicle_pb2.WIFI_WPA3_ENTERPRISE: "wpa3_enterprise",
+    vehicle_pb2.WIFI_ENHANCED_OPEN: "enhanced_open",
+}
+
+_CONN_STATUS_MAP: Final[dict[int, str]] = {
+    _Net.CONN_STATUS_CHECKING: "checking",
+    _Net.CONN_STATUS_SUCCESS: "success",
+    _Net.CONN_STATUS_UNSTABLE: "unstable",
+    _Net.CONN_STATUS_NO_NETWORK: "no_network",
+    _Net.CONN_STATUS_OUT_OF_SERVICE: "out_of_service",
+    _Net.CONN_STATUS_CAPTIVE_PORTAL: "captive_portal",
+    _Net.CONN_STATUS_DNS_ERROR: "dns_error",
+    _Net.CONN_STATUS_DHCP_ERROR: "dhcp_error",
+    _Net.CONN_STATUS_UNREACHABLE_UNKNOWN: "unreachable_unknown",
+}
+
+_TERNARY_MAP: Final[dict[int, bool]] = {
+    _Net.TERNARY_FALSE: False,
+    _Net.TERNARY_TRUE: True,
 }
 
 _WPA_STATUS_MAP: Final[dict[int, str]] = {
@@ -107,6 +128,9 @@ _WPA_STATUS_MAP: Final[dict[int, str]] = {
     vehicle_pb2.WPA_SCANNING: "scanning",
     vehicle_pb2.WPA_CONNECTING: "connecting",
     vehicle_pb2.WPA_DISCONNECTING: "disconnecting",
+    vehicle_pb2.WPA_CONNECTION_FAILED: "connection_failed",
+    vehicle_pb2.WPA_DISABLED: "disabled",
+    vehicle_pb2.WPA_SCAN_FAILURE: "scan_failure",
 }
 
 
@@ -123,6 +147,12 @@ def _decode_wifi(wifi: vehicle_pb2.NetworkState.Wifi) -> dict[str, Any]:
         "wifiSignal": wifi.signal,
         "wifiLinkSpeed": wifi.link_speed,
         "wifiFreq": wifi.freq,
+        "wifiBandwidth": wifi.bandwidth,
+        "wifiConnStatus": _enum(
+            _CONN_STATUS_MAP, wifi.conn_status or None, what="wifi connection status"
+        ),
+        "wifiSecured": _TERNARY_MAP.get(wifi.secured),
+        "wifiUserEnabled": _TERNARY_MAP.get(wifi.user_enabled),
         "wifiSecureStatus": _enum(
             _WIFI_SECURITY_MAP, wifi.secure_status or None, what="wifi security"
         ),
@@ -155,6 +185,9 @@ def decode_network_state(m: vehicle_pb2.NetworkState) -> dict[str, Any]:
         wifiSignal: int (dBm; -255 = no reading)
         wifiLinkSpeed: int (Mbps)
         wifiFreq: int (MHz)
+        wifiBandwidth: int (MHz)
+        wifiConnStatus: str | None (e.g. "success" | "no_network")
+        wifiSecured, wifiUserEnabled: bool | None
         cellularCarrier, cellularMode, cellularAntennaBars: str
         cellularSignalStrength: int (dBm; -255 = no reading)
     """

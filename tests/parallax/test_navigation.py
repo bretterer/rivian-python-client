@@ -11,11 +11,12 @@ def test_trip_info() -> None:
     """Origin, waypoints of both types, legs, and route preferences."""
     trip = nav.TripInfo
     stop = trip.ChargingStop
+    leg = trip.Leg
     result = decode(
         "navigation.navigation_service.trip_info",
         trip(
             trip_id="-123",
-            origin=trip.Origin(
+            origin=nav.GpsFix(
                 location=nav.GeoCoordinate(latitude=33.1, longitude=-80.2),
                 time=1790553420000,
             ),
@@ -29,7 +30,7 @@ def test_trip_info() -> None:
                             snapped_location=nav.GeoCoordinate(
                                 latitude=33.1, longitude=-80.1
                             ),
-                            place_type=2,
+                            status=nav.STOP_STATUS_NEXT_STOP,
                             name="Store",
                             arrival=nav.Timestamp(seconds=1790554000),
                         )
@@ -39,20 +40,32 @@ def test_trip_info() -> None:
                             station_id="100103",
                             location=nav.GeoCoordinate(latitude=34.0, longitude=-81.0),
                             charge_duration=1800.0,
-                            departure_time=stop.DepartureTimeWrapper(
-                                seconds=1790558000
-                            ),
-                            arrival_time=stop.ArrivalTimeWrapper(seconds=1790556200),
+                            departure_time=nav.Timestamp(seconds=1790558000),
+                            arrival_time=nav.Timestamp(seconds=1790556200),
+                            compatible=True,
+                            status=nav.STOP_STATUS_FUTURE,
                         )
                     ),
                 ],
                 leg=[
-                    trip.Leg(
+                    leg(
                         distance=500.0,
                         polyline="poly",
-                        index_range_segment=[
-                            trip.Leg.IndexRangeSegment(
-                                start=1, start_fraction=0.5, end=4, end_fraction=0.25
+                        energy=leg.EnergyConsumption(total=2500.0, hvac=300.0),
+                        incidents=[
+                            leg.Incident(
+                                polyline_first_index=3,
+                                polyline_last_index=9,
+                                type=leg.INCIDENT_CONSTRUCTION,
+                            )
+                        ],
+                        traffic_blocks=[
+                            leg.TrafficBlock(
+                                first_index=1,
+                                first_index_fraction=0.5,
+                                last_index=4,
+                                last_index_fraction=0.25,
+                                priority=1,
                             )
                         ],
                     )
@@ -60,27 +73,29 @@ def test_trip_info() -> None:
                 overview_polyline="overview",
             ),
             route_preferences=trip.RoutePreferences(
-                weight_a=0.25,
+                current_arrival_soc=15.0,
                 road_avoidance=["switchExcludeToll:true"],
                 charging_network_filters=[
                     "switchRivianFilter:true",
                     "switchChargePointFilter:false",
                 ],
             ),
-            next_waypoint_departure=trip.NextWaypointDeparture(seconds=1790558000),
+            next_waypoint_departure=nav.Timestamp(seconds=1790558000),
         ),
     )
     assert result["tripId"] == "-123"
     assert result["originLatitude"] == 33.1
     assert result["originTime"] == epoch(1790553420000)
     assert result["distance"] == 1000.0
+    assert result["socIsBelowLimit"] is False
     place, charger = result["waypoints"]
     assert place == {  # an identical snapped location is not surfaced
         "type": "place",
         "latitude": 33.1,
         "longitude": -80.1,
-        "placeType": 2,
+        "status": "next_stop",
         "name": "Store",
+        "stopDuration": 0.0,
         "stateOfCharge": 0.0,
         "rangeRemaining": 0.0,
         "arrivalTime": epoch(1790554000_000),
@@ -90,24 +105,34 @@ def test_trip_info() -> None:
     assert charger["chargeDuration"] == 1800.0
     assert charger["arrivalTime"] == epoch(1790556200_000)
     assert charger["departureTime"] == epoch(1790558000_000)
+    assert charger["compatible"] is True
+    assert charger["status"] == "future"
     assert result["legs"] == [
         {
             "distance": 500.0,
             "duration": 0.0,
             "polyline": "poly",
-            "indexRangeSegments": [
+            "energyConsumption": {
+                "total": 2500.0,
+                "thermal": 0.0,
+                "lv": 0.0,
+                "hvac": 300.0,
+                "elevation": 0.0,
+            },
+            "trafficBlocks": [
                 {
-                    "start": 1,
-                    "startFraction": 0.5,
-                    "end": 4,
-                    "endFraction": 0.25,
-                    "flagged": False,
+                    "firstIndex": 1,
+                    "firstIndexFraction": 0.5,
+                    "lastIndex": 4,
+                    "lastIndexFraction": 0.25,
+                    "priority": 1,
                 }
             ],
+            "incidents": [{"firstIndex": 3, "lastIndex": 9, "type": "construction"}],
         }
     ]
     assert result["overviewPolyline"] == "overview"
-    assert result["routeWeightA"] == 0.25
+    assert result["currentArrivalSoc"] == 15.0
     assert result["roadAvoidance"] == {"switchExcludeToll": True}
     assert result["chargingNetworkFilters"] == {
         "switchRivianFilter": True,
@@ -131,14 +156,14 @@ def test_trip_info_snapped_location() -> None:
 
 
 def test_trip_progress() -> None:
-    """ETAs, remaining distance, and the live location fix."""
-    progress = nav.TripProgress
+    """ETAs, the next stop, remaining distance, and the live location fix."""
     result = decode(
         "navigation.navigation_service.trip_progress",
-        progress(
-            next_waypoint=progress.NextWaypoint(seconds=1790553420),
+        nav.TripProgress(
+            next_waypoint=nav.Timestamp(seconds=1790553420),
+            next_stop_index=1,
             distance_remaining=54.0,
-            location_fix=progress.LocationFix(
+            location_fix=nav.GpsFix(
                 location=nav.GeoCoordinate(latitude=33.4, longitude=-80.8),
                 speed=10.5,
                 time=1790553428211,
@@ -147,6 +172,7 @@ def test_trip_progress() -> None:
     )
     assert result == {
         "nextWaypointArrivalTime": epoch(1790553420_000),
+        "nextStopIndex": 1,
         "distanceRemaining": 54.0,
         "durationRemaining": 0.0,
         "latitude": 33.4,

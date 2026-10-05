@@ -41,6 +41,7 @@ def decode_vas_keyper_devices(m: device_table_pb2.VasKeyperDevices) -> dict[str,
             vehicle.profiles.active_user)
         publicKey: str — hex; phone keys
         keyRevision: int — key table revision when the entry was last written
+        vehicleResponseRequired: bool
         keyStatus: str ("active" | "inactive" | "waiting_to_pair" |
             "pairing"); inactive covers unpaired, no longer paired and
             deleted keys
@@ -65,6 +66,7 @@ def decode_vas_keyper_devices(m: device_table_pb2.VasKeyperDevices) -> dict[str,
             ("profile_id", "profileId"),
             ("public_key", "publicKey"),
             ("revision", "keyRevision"),
+            ("vehicle_response_required", "vehicleResponseRequired"),
         ):
             if (v := _present(m.device, field)) is not None:
                 result[key] = v

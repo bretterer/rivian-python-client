@@ -9,6 +9,38 @@ DESCRIPTOR: _descriptor.FileDescriptor
 
 class DeploymentState(_message.Message):
     __slots__ = ("deployment",)
+    class SoftwareCategory(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        SOFTWARE_CATEGORY_UNSPECIFIED: _ClassVar[DeploymentState.SoftwareCategory]
+        SOFTWARE_CATEGORY_FIRMWARE: _ClassVar[DeploymentState.SoftwareCategory]
+        SOFTWARE_CATEGORY_HD_MAPS: _ClassVar[DeploymentState.SoftwareCategory]
+        SOFTWARE_CATEGORY_VEHICLE_CONFIG: _ClassVar[DeploymentState.SoftwareCategory]
+    SOFTWARE_CATEGORY_UNSPECIFIED: DeploymentState.SoftwareCategory
+    SOFTWARE_CATEGORY_FIRMWARE: DeploymentState.SoftwareCategory
+    SOFTWARE_CATEGORY_HD_MAPS: DeploymentState.SoftwareCategory
+    SOFTWARE_CATEGORY_VEHICLE_CONFIG: DeploymentState.SoftwareCategory
+    class DeploymentIntent(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        DEPLOYMENT_INTENT_UNSPECIFIED: _ClassVar[DeploymentState.DeploymentIntent]
+        DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE: _ClassVar[DeploymentState.DeploymentIntent]
+        DEPLOYMENT_INTENT_BUG_FIX: _ClassVar[DeploymentState.DeploymentIntent]
+        DEPLOYMENT_INTENT_SECURITY_UPDATE: _ClassVar[DeploymentState.DeploymentIntent]
+        DEPLOYMENT_INTENT_FEATURE_ADDITION: _ClassVar[DeploymentState.DeploymentIntent]
+    DEPLOYMENT_INTENT_UNSPECIFIED: DeploymentState.DeploymentIntent
+    DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE: DeploymentState.DeploymentIntent
+    DEPLOYMENT_INTENT_BUG_FIX: DeploymentState.DeploymentIntent
+    DEPLOYMENT_INTENT_SECURITY_UPDATE: DeploymentState.DeploymentIntent
+    DEPLOYMENT_INTENT_FEATURE_ADDITION: DeploymentState.DeploymentIntent
+    class CurrentStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        CURRENT_STATUS_UNSPECIFIED: _ClassVar[DeploymentState.CurrentStatus]
+        CURRENT_STATUS_INSTALL_SUCCESS: _ClassVar[DeploymentState.CurrentStatus]
+        CURRENT_STATUS_INSTALL_FAILED: _ClassVar[DeploymentState.CurrentStatus]
+        CURRENT_STATUS_INSTALL_UNABLE_TO_START: _ClassVar[DeploymentState.CurrentStatus]
+    CURRENT_STATUS_UNSPECIFIED: DeploymentState.CurrentStatus
+    CURRENT_STATUS_INSTALL_SUCCESS: DeploymentState.CurrentStatus
+    CURRENT_STATUS_INSTALL_FAILED: DeploymentState.CurrentStatus
+    CURRENT_STATUS_INSTALL_UNABLE_TO_START: DeploymentState.CurrentStatus
     class OtaPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         OTA_PHASE_UNSPECIFIED: _ClassVar[DeploymentState.OtaPhase]
@@ -42,69 +74,122 @@ class DeploymentState(_message.Message):
     OTA_PHASE_DOWNLOAD_FAILED: DeploymentState.OtaPhase
     OTA_PHASE_INSTALL_FAILED: DeploymentState.OtaPhase
     class Deployment(_message.Message):
-        __slots__ = ("state", "version", "progress_wrapper")
-        STATE_FIELD_NUMBER: _ClassVar[int]
+        __slots__ = ("software_category", "version", "deployment_id", "progress_wrapper")
+        SOFTWARE_CATEGORY_FIELD_NUMBER: _ClassVar[int]
         VERSION_FIELD_NUMBER: _ClassVar[int]
+        DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
         PROGRESS_WRAPPER_FIELD_NUMBER: _ClassVar[int]
-        state: int
+        software_category: DeploymentState.SoftwareCategory
         version: DeploymentState.Version
+        deployment_id: str
         progress_wrapper: DeploymentState.ProgressWrapper
-        def __init__(self, state: _Optional[int] = ..., version: _Optional[_Union[DeploymentState.Version, _Mapping]] = ..., progress_wrapper: _Optional[_Union[DeploymentState.ProgressWrapper, _Mapping]] = ...) -> None: ...
+        def __init__(self, software_category: _Optional[_Union[DeploymentState.SoftwareCategory, str]] = ..., version: _Optional[_Union[DeploymentState.Version, _Mapping]] = ..., deployment_id: _Optional[str] = ..., progress_wrapper: _Optional[_Union[DeploymentState.ProgressWrapper, _Mapping]] = ...) -> None: ...
     class Version(_message.Message):
-        __slots__ = ("version_string", "version_year", "version_build", "build_id")
+        __slots__ = ("version_string", "software_version_id", "version_year", "version_build", "version_number", "build_id")
         VERSION_STRING_FIELD_NUMBER: _ClassVar[int]
+        SOFTWARE_VERSION_ID_FIELD_NUMBER: _ClassVar[int]
         VERSION_YEAR_FIELD_NUMBER: _ClassVar[int]
         VERSION_BUILD_FIELD_NUMBER: _ClassVar[int]
+        VERSION_NUMBER_FIELD_NUMBER: _ClassVar[int]
         BUILD_ID_FIELD_NUMBER: _ClassVar[int]
         version_string: str
+        software_version_id: str
         version_year: int
         version_build: int
+        version_number: int
         build_id: str
-        def __init__(self, version_string: _Optional[str] = ..., version_year: _Optional[int] = ..., version_build: _Optional[int] = ..., build_id: _Optional[str] = ...) -> None: ...
+        def __init__(self, version_string: _Optional[str] = ..., software_version_id: _Optional[str] = ..., version_year: _Optional[int] = ..., version_build: _Optional[int] = ..., version_number: _Optional[int] = ..., build_id: _Optional[str] = ...) -> None: ...
     class ProgressWrapper(_message.Message):
-        __slots__ = ("deployment_id", "target_version", "active_flag", "progress", "timeout_budget", "late_stage_flag")
+        __slots__ = ("deployment_id", "target_version", "ota_type", "deployment_context", "progress", "install_time", "install_tod", "skip_count", "skip_allowed", "deployment_intent", "is_active")
+        class DeploymentContext(_message.Message):
+            __slots__ = ("download_policy",)
+            DOWNLOAD_POLICY_FIELD_NUMBER: _ClassVar[int]
+            download_policy: int
+            def __init__(self, download_policy: _Optional[int] = ...) -> None: ...
         DEPLOYMENT_ID_FIELD_NUMBER: _ClassVar[int]
         TARGET_VERSION_FIELD_NUMBER: _ClassVar[int]
-        ACTIVE_FLAG_FIELD_NUMBER: _ClassVar[int]
+        OTA_TYPE_FIELD_NUMBER: _ClassVar[int]
+        DEPLOYMENT_CONTEXT_FIELD_NUMBER: _ClassVar[int]
         PROGRESS_FIELD_NUMBER: _ClassVar[int]
-        TIMEOUT_BUDGET_FIELD_NUMBER: _ClassVar[int]
-        LATE_STAGE_FLAG_FIELD_NUMBER: _ClassVar[int]
+        INSTALL_TIME_FIELD_NUMBER: _ClassVar[int]
+        INSTALL_TOD_FIELD_NUMBER: _ClassVar[int]
+        SKIP_COUNT_FIELD_NUMBER: _ClassVar[int]
+        SKIP_ALLOWED_FIELD_NUMBER: _ClassVar[int]
+        DEPLOYMENT_INTENT_FIELD_NUMBER: _ClassVar[int]
+        IS_ACTIVE_FIELD_NUMBER: _ClassVar[int]
         deployment_id: str
         target_version: DeploymentState.Version
-        active_flag: int
+        ota_type: int
+        deployment_context: DeploymentState.ProgressWrapper.DeploymentContext
         progress: DeploymentState.Progress
-        timeout_budget: int
-        late_stage_flag: int
-        def __init__(self, deployment_id: _Optional[str] = ..., target_version: _Optional[_Union[DeploymentState.Version, _Mapping]] = ..., active_flag: _Optional[int] = ..., progress: _Optional[_Union[DeploymentState.Progress, _Mapping]] = ..., timeout_budget: _Optional[int] = ..., late_stage_flag: _Optional[int] = ...) -> None: ...
+        install_time: int
+        install_tod: int
+        skip_count: int
+        skip_allowed: bool
+        deployment_intent: DeploymentState.DeploymentIntent
+        is_active: bool
+        def __init__(self, deployment_id: _Optional[str] = ..., target_version: _Optional[_Union[DeploymentState.Version, _Mapping]] = ..., ota_type: _Optional[int] = ..., deployment_context: _Optional[_Union[DeploymentState.ProgressWrapper.DeploymentContext, _Mapping]] = ..., progress: _Optional[_Union[DeploymentState.Progress, _Mapping]] = ..., install_time: _Optional[int] = ..., install_tod: _Optional[int] = ..., skip_count: _Optional[int] = ..., skip_allowed: bool = ..., deployment_intent: _Optional[_Union[DeploymentState.DeploymentIntent, str]] = ..., is_active: bool = ...) -> None: ...
     class Progress(_message.Message):
-        __slots__ = ("phase", "field_2", "download_progress", "install_progress", "field_5", "time_remaining", "field_7", "update_cycle_count", "field_9")
+        __slots__ = ("phase", "current_status", "download_progress", "install_progress", "pending_reasons", "time_remaining", "install_ready", "status_acknowledge", "install_duration")
         class Progress100(_message.Message):
-            __slots__ = ("field_2",)
-            FIELD_2_FIELD_NUMBER: _ClassVar[int]
-            field_2: int
-            def __init__(self, field_2: _Optional[int] = ...) -> None: ...
+            __slots__ = ("started_at", "progress_percent")
+            STARTED_AT_FIELD_NUMBER: _ClassVar[int]
+            PROGRESS_PERCENT_FIELD_NUMBER: _ClassVar[int]
+            started_at: DeploymentState.Progress.Timestamp
+            progress_percent: int
+            def __init__(self, started_at: _Optional[_Union[DeploymentState.Progress.Timestamp, _Mapping]] = ..., progress_percent: _Optional[int] = ...) -> None: ...
+        class Timestamp(_message.Message):
+            __slots__ = ("seconds", "nanos")
+            SECONDS_FIELD_NUMBER: _ClassVar[int]
+            NANOS_FIELD_NUMBER: _ClassVar[int]
+            seconds: int
+            nanos: int
+            def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
+        class PendingReasons(_message.Message):
+            __slots__ = ("active_mode", "fast_charging", "hv_batt_low", "lv_batt", "lv_temp_low", "not_parked", "other", "transport", "unplugged", "camp_mode")
+            ACTIVE_MODE_FIELD_NUMBER: _ClassVar[int]
+            FAST_CHARGING_FIELD_NUMBER: _ClassVar[int]
+            HV_BATT_LOW_FIELD_NUMBER: _ClassVar[int]
+            LV_BATT_FIELD_NUMBER: _ClassVar[int]
+            LV_TEMP_LOW_FIELD_NUMBER: _ClassVar[int]
+            NOT_PARKED_FIELD_NUMBER: _ClassVar[int]
+            OTHER_FIELD_NUMBER: _ClassVar[int]
+            TRANSPORT_FIELD_NUMBER: _ClassVar[int]
+            UNPLUGGED_FIELD_NUMBER: _ClassVar[int]
+            CAMP_MODE_FIELD_NUMBER: _ClassVar[int]
+            active_mode: bool
+            fast_charging: bool
+            hv_batt_low: bool
+            lv_batt: bool
+            lv_temp_low: bool
+            not_parked: bool
+            other: bool
+            transport: bool
+            unplugged: bool
+            camp_mode: bool
+            def __init__(self, active_mode: bool = ..., fast_charging: bool = ..., hv_batt_low: bool = ..., lv_batt: bool = ..., lv_temp_low: bool = ..., not_parked: bool = ..., other: bool = ..., transport: bool = ..., unplugged: bool = ..., camp_mode: bool = ...) -> None: ...
         PHASE_FIELD_NUMBER: _ClassVar[int]
-        FIELD_2_FIELD_NUMBER: _ClassVar[int]
+        CURRENT_STATUS_FIELD_NUMBER: _ClassVar[int]
         DOWNLOAD_PROGRESS_FIELD_NUMBER: _ClassVar[int]
         INSTALL_PROGRESS_FIELD_NUMBER: _ClassVar[int]
-        FIELD_5_FIELD_NUMBER: _ClassVar[int]
+        PENDING_REASONS_FIELD_NUMBER: _ClassVar[int]
         TIME_REMAINING_FIELD_NUMBER: _ClassVar[int]
-        FIELD_7_FIELD_NUMBER: _ClassVar[int]
-        UPDATE_CYCLE_COUNT_FIELD_NUMBER: _ClassVar[int]
-        FIELD_9_FIELD_NUMBER: _ClassVar[int]
+        INSTALL_READY_FIELD_NUMBER: _ClassVar[int]
+        STATUS_ACKNOWLEDGE_FIELD_NUMBER: _ClassVar[int]
+        INSTALL_DURATION_FIELD_NUMBER: _ClassVar[int]
         phase: DeploymentState.OtaPhase
-        field_2: int
+        current_status: DeploymentState.CurrentStatus
         download_progress: DeploymentState.Progress.Progress100
         install_progress: DeploymentState.Progress.Progress100
-        field_5: str
+        pending_reasons: DeploymentState.Progress.PendingReasons
         time_remaining: int
-        field_7: int
-        update_cycle_count: int
-        field_9: int
-        def __init__(self, phase: _Optional[_Union[DeploymentState.OtaPhase, str]] = ..., field_2: _Optional[int] = ..., download_progress: _Optional[_Union[DeploymentState.Progress.Progress100, _Mapping]] = ..., install_progress: _Optional[_Union[DeploymentState.Progress.Progress100, _Mapping]] = ..., field_5: _Optional[str] = ..., time_remaining: _Optional[int] = ..., field_7: _Optional[int] = ..., update_cycle_count: _Optional[int] = ..., field_9: _Optional[int] = ...) -> None: ...
+        install_ready: bool
+        status_acknowledge: int
+        install_duration: int
+        def __init__(self, phase: _Optional[_Union[DeploymentState.OtaPhase, str]] = ..., current_status: _Optional[_Union[DeploymentState.CurrentStatus, str]] = ..., download_progress: _Optional[_Union[DeploymentState.Progress.Progress100, _Mapping]] = ..., install_progress: _Optional[_Union[DeploymentState.Progress.Progress100, _Mapping]] = ..., pending_reasons: _Optional[_Union[DeploymentState.Progress.PendingReasons, _Mapping]] = ..., time_remaining: _Optional[int] = ..., install_ready: bool = ..., status_acknowledge: _Optional[int] = ..., install_duration: _Optional[int] = ...) -> None: ...
     DEPLOYMENT_FIELD_NUMBER: _ClassVar[int]
-    deployment: DeploymentState.Deployment
-    def __init__(self, deployment: _Optional[_Union[DeploymentState.Deployment, _Mapping]] = ...) -> None: ...
+    deployment: _containers.RepeatedCompositeFieldContainer[DeploymentState.Deployment]
+    def __init__(self, deployment: _Optional[_Iterable[_Union[DeploymentState.Deployment, _Mapping]]] = ...) -> None: ...
 
 class OtaConfig(_message.Message):
     __slots__ = ("schedule", "updated_at")

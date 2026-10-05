@@ -8,7 +8,9 @@ import "rivian/parallax/proto/charging.proto";
 
 // energy_edge_compute.graphs.cold_weather_soc
 message ColdWeatherSoc {
-  optional int32 soc = 1; // percent
+  int32 soc_perc_green = 1; // percent
+  int32 soc_perc_blue = 2;  // percent
+  int32 cold_range_impact = 3; // km
 }
 
 // energy_edge_compute.graphs.parked_energy_distributions
@@ -52,7 +54,6 @@ message ChargeSessionBreakdown {
   Money session_cost = 11; // empty when free
   bool is_free_session = 12;
   optional rivian.parallax.charging.ChargingState charging_state = 13;
-  int64 timestamp = 14; // unit unknown
 
   message Money {
     string currency_code = 1;
@@ -70,8 +71,23 @@ message ChargingGraphGlobal {
     float power = 2; // kW
     int64 start_time = 3; // epoch milliseconds
     int64 end_time = 4; // epoch milliseconds
+    BarValidity time_estimation_validity = 5;
     rivian.parallax.charging.ChargingState state = 6;
-    int32 field_7 = 7; // unknown; 0 while charging, 2 once a segment has ended
+    BarContext bar_context = 7;
   }
   repeated Segment segment = 1;
+}
+
+enum BarValidity {
+  BAR_VALIDITY_NONE = 0;
+  BAR_VALIDITY_PACK_DISCHARGING = 1;
+  BAR_VALIDITY_INVALID = 2;
+  BAR_VALIDITY_VALID = 3;
+}
+
+enum BarContext {
+  BAR_CONTEXT_HISTORICAL = 0;
+  BAR_CONTEXT_PREDICTIVE = 1;
+  BAR_CONTEXT_NOT_CHARGING = 2;
+  BAR_CONTEXT_PAUSED_CHARGING = 3;
 }

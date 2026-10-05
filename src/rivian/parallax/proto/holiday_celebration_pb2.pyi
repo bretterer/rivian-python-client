@@ -1,3 +1,4 @@
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Mapping as _Mapping
@@ -5,41 +6,61 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class CostumeEffectTrigger(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    COSTUME_EFFECT_TRIGGER_UNSPECIFIED: _ClassVar[CostumeEffectTrigger]
+    COSTUME_EFFECT_TRIGGER_MANUAL: _ClassVar[CostumeEffectTrigger]
+    COSTUME_EFFECT_TRIGGER_MOTION: _ClassVar[CostumeEffectTrigger]
+COSTUME_EFFECT_TRIGGER_UNSPECIFIED: CostumeEffectTrigger
+COSTUME_EFFECT_TRIGGER_MANUAL: CostumeEffectTrigger
+COSTUME_EFFECT_TRIGGER_MOTION: CostumeEffectTrigger
+
 class HolidayCelebrationEnabled(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class CarCostumeSettings(_message.Message):
-    __slots__ = ("field_1", "field_2", "field_3", "field_6", "field_7", "field_9", "field_11", "field_12")
-    FIELD_1_FIELD_NUMBER: _ClassVar[int]
-    FIELD_2_FIELD_NUMBER: _ClassVar[int]
-    FIELD_3_FIELD_NUMBER: _ClassVar[int]
-    FIELD_6_FIELD_NUMBER: _ClassVar[int]
-    FIELD_7_FIELD_NUMBER: _ClassVar[int]
-    FIELD_9_FIELD_NUMBER: _ClassVar[int]
-    FIELD_11_FIELD_NUMBER: _ClassVar[int]
-    FIELD_12_FIELD_NUMBER: _ClassVar[int]
-    field_1: int
-    field_2: int
-    field_3: int
-    field_6: int
-    field_7: int
-    field_9: int
-    field_11: int
-    field_12: int
-    def __init__(self, field_1: _Optional[int] = ..., field_2: _Optional[int] = ..., field_3: _Optional[int] = ..., field_6: _Optional[int] = ..., field_7: _Optional[int] = ..., field_9: _Optional[int] = ..., field_11: _Optional[int] = ..., field_12: _Optional[int] = ...) -> None: ...
+    __slots__ = ("celebration_sound_volume", "interior_music_enabled", "interior_music_type", "motion_exterior_light_sound_effect", "interior_light_show_enabled", "interior_overhead_lights_enabled", "lights_color", "costume_effect", "effect_trigger")
+    CELEBRATION_SOUND_VOLUME_FIELD_NUMBER: _ClassVar[int]
+    INTERIOR_MUSIC_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    INTERIOR_MUSIC_TYPE_FIELD_NUMBER: _ClassVar[int]
+    MOTION_EXTERIOR_LIGHT_SOUND_EFFECT_FIELD_NUMBER: _ClassVar[int]
+    INTERIOR_LIGHT_SHOW_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    INTERIOR_OVERHEAD_LIGHTS_ENABLED_FIELD_NUMBER: _ClassVar[int]
+    LIGHTS_COLOR_FIELD_NUMBER: _ClassVar[int]
+    COSTUME_EFFECT_FIELD_NUMBER: _ClassVar[int]
+    EFFECT_TRIGGER_FIELD_NUMBER: _ClassVar[int]
+    celebration_sound_volume: int
+    interior_music_enabled: bool
+    interior_music_type: int
+    motion_exterior_light_sound_effect: int
+    interior_light_show_enabled: bool
+    interior_overhead_lights_enabled: bool
+    lights_color: int
+    costume_effect: int
+    effect_trigger: CostumeEffectTrigger
+    def __init__(self, celebration_sound_volume: _Optional[int] = ..., interior_music_enabled: bool = ..., interior_music_type: _Optional[int] = ..., motion_exterior_light_sound_effect: _Optional[int] = ..., interior_light_show_enabled: bool = ..., interior_overhead_lights_enabled: bool = ..., lights_color: _Optional[int] = ..., costume_effect: _Optional[int] = ..., effect_trigger: _Optional[_Union[CostumeEffectTrigger, str]] = ...) -> None: ...
 
 class CarCostumeState(_message.Message):
-    __slots__ = ("costume_id", "field_2", "field_3", "field_6")
-    COSTUME_ID_FIELD_NUMBER: _ClassVar[int]
-    FIELD_2_FIELD_NUMBER: _ClassVar[int]
-    FIELD_3_FIELD_NUMBER: _ClassVar[int]
-    FIELD_6_FIELD_NUMBER: _ClassVar[int]
-    costume_id: int
-    field_2: int
-    field_3: int
-    field_6: int
-    def __init__(self, costume_id: _Optional[int] = ..., field_2: _Optional[int] = ..., field_3: _Optional[int] = ..., field_6: _Optional[int] = ...) -> None: ...
+    __slots__ = ("car_costume_availability", "costume_theme", "motion_trigger_detected", "costume_start_time", "active_costume_effect")
+    class Timestamp(_message.Message):
+        __slots__ = ("seconds", "nanos")
+        SECONDS_FIELD_NUMBER: _ClassVar[int]
+        NANOS_FIELD_NUMBER: _ClassVar[int]
+        seconds: int
+        nanos: int
+        def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
+    CAR_COSTUME_AVAILABILITY_FIELD_NUMBER: _ClassVar[int]
+    COSTUME_THEME_FIELD_NUMBER: _ClassVar[int]
+    MOTION_TRIGGER_DETECTED_FIELD_NUMBER: _ClassVar[int]
+    COSTUME_START_TIME_FIELD_NUMBER: _ClassVar[int]
+    ACTIVE_COSTUME_EFFECT_FIELD_NUMBER: _ClassVar[int]
+    car_costume_availability: int
+    costume_theme: int
+    motion_trigger_detected: bool
+    costume_start_time: CarCostumeState.Timestamp
+    active_costume_effect: int
+    def __init__(self, car_costume_availability: _Optional[int] = ..., costume_theme: _Optional[int] = ..., motion_trigger_detected: bool = ..., costume_start_time: _Optional[_Union[CarCostumeState.Timestamp, _Mapping]] = ..., active_costume_effect: _Optional[int] = ...) -> None: ...
 
 class HalloweenCelebrationSettings(_message.Message):
     __slots__ = ("costume_theme", "sound_volume", "music_enabled", "music_type", "sound_effect", "exterior_sound_effect", "exterior_sounds_muted", "light_show_enabled", "interior_overhead_lights_enabled", "exterior_light_show_enabled", "lights_color", "car_costume_availability", "motion_light_sound_enabled")

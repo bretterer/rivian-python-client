@@ -15,11 +15,16 @@ from .helpers import decode, epoch
 
 
 def test_cold_weather_soc() -> None:
-    """A state-of-charge percentage data point."""
+    """The graph's green and blue values plus the cold range impact."""
     result = decode(
-        "energy_edge_compute.graphs.cold_weather_soc", eec.ColdWeatherSoc(soc=70)
+        "energy_edge_compute.graphs.cold_weather_soc",
+        eec.ColdWeatherSoc(soc_perc_green=70, soc_perc_blue=62, cold_range_impact=25),
     )
-    assert result == {"coldWeatherSoc": 70}
+    assert result == {
+        "coldWeatherSoc": 70,
+        "coldWeatherSocBlue": 62,
+        "coldRangeImpact": 25,
+    }
 
 
 def test_parked_energy_distributions() -> None:

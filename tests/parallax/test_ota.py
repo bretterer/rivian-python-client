@@ -20,15 +20,18 @@ def test_ota_deployment_state() -> None:
     idle = decode(
         "ota.deployment.state",
         deployment(
-            deployment=deployment.Deployment(
-                state=1,
-                version=version,
-                progress_wrapper=deployment.ProgressWrapper(
-                    progress=deployment.Progress(phase=deployment.OTA_PHASE_IDLE)
-                ),
-            )
+            deployment=[
+                deployment.Deployment(
+                    software_category=deployment.SOFTWARE_CATEGORY_FIRMWARE,
+                    version=version,
+                    progress_wrapper=deployment.ProgressWrapper(
+                        progress=deployment.Progress(phase=deployment.OTA_PHASE_IDLE)
+                    ),
+                )
+            ]
         ),
     )
+    assert idle["otaSoftwareCategory"] == "Firmware"
     assert idle["otaCurrentVersion"] == "2026.36.1"
     assert idle["otaCurrentVersionYear"] == 2026
     assert idle["otaCurrentVersionWeek"] == 36
@@ -40,22 +43,62 @@ def test_ota_deployment_state() -> None:
     active = decode(
         "ota.deployment.state",
         deployment(
-            deployment=deployment.Deployment(
-                version=version,
-                progress_wrapper=deployment.ProgressWrapper(
-                    deployment_id="uuid",
-                    progress=deployment.Progress(
-                        phase=deployment.OTA_PHASE_DOWNLOADING,
-                        download_progress=deployment.Progress.Progress100(field_2=42),
+            deployment=[
+                deployment.Deployment(
+                    version=version,
+                    progress_wrapper=deployment.ProgressWrapper(
+                        deployment_id="uuid",
+                        progress=deployment.Progress(
+                            phase=deployment.OTA_PHASE_DOWNLOADING,
+                            download_progress=deployment.Progress.Progress100(
+                                progress_percent=42
+                            ),
+                        ),
                     ),
-                ),
-            )
+                )
+            ]
         ),
     )
     assert active["otaUpdateInProgress"] is True
     assert active["otaDeploymentId"] == "uuid"
     assert active["otaStatus"] == "downloading"
     assert active["otaDownloadProgress"] == 42
+    assert active["otaInstallReady"] == "ota_not_available"
+    assert active["otaPendingReasons"] == []
+
+
+def test_ota_progress_details() -> None:
+    """Install readiness, result, duration, blockers and intent."""
+    deployment = ota.DeploymentState
+    progress = deployment.Progress
+    result = decode(
+        "ota.deployment.state",
+        deployment(
+            deployment=[
+                deployment.Deployment(
+                    progress_wrapper=deployment.ProgressWrapper(
+                        install_tod=180,
+                        deployment_intent=deployment.DEPLOYMENT_INTENT_BUG_FIX,
+                        progress=progress(
+                            phase=deployment.OTA_PHASE_READY_TO_INSTALL,
+                            current_status=deployment.CURRENT_STATUS_INSTALL_SUCCESS,
+                            install_ready=True,
+                            install_duration=50,
+                            pending_reasons=progress.PendingReasons(
+                                not_parked=True, unplugged=True
+                            ),
+                        ),
+                    )
+                )
+            ]
+        ),
+    )
+    assert result["otaInstallTimeOfDay"] == 180
+    assert result["otaDeploymentIntent"] == "Bug_Fix"
+    assert result["otaCurrentStatus"] == "Install_Success"
+    assert result["otaInstallReady"] == "ota_available"
+    assert result["otaInstallDuration"] == 50
+    assert result["otaPendingReasons"] == ["not_parked", "unplugged"]
 
 
 def test_ota_config() -> None:
@@ -130,3 +173,25 @@ def test_vehicle_ota_state() -> None:
     assert decode(rvm, state(name="VehicleOTAState")) == {
         "otaScheduledInstallTime": None
     }
+
+
+def test_ota_deployment_state_picks_firmware() -> None:
+    """With several deployments, the firmware one is reported."""
+    deployment = ota.DeploymentState
+    result = decode(
+        "ota.deployment.state",
+        deployment(
+            deployment=[
+                deployment.Deployment(
+                    software_category=deployment.SOFTWARE_CATEGORY_HD_MAPS,
+                    version=deployment.Version(version_string="2026.1.0"),
+                ),
+                deployment.Deployment(
+                    software_category=deployment.SOFTWARE_CATEGORY_FIRMWARE,
+                    version=deployment.Version(version_string="2026.36.1"),
+                ),
+            ]
+        ),
+    )
+    assert result["otaSoftwareCategory"] == "Firmware"
+    assert result["otaCurrentVersion"] == "2026.36.1"

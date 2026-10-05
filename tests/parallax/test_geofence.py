@@ -8,7 +8,7 @@ from .helpers import decode
 
 
 def test_favorite_geofences() -> None:
-    """Saved places come through by name, with their type when sent."""
+    """Saved places come through by name and type; no type means custom."""
     entry = geofence.FavoriteGeofences.Geofence
     result = decode(
         "geofence.geofence_service.favoriteGeofences",
@@ -24,6 +24,6 @@ def test_favorite_geofences() -> None:
         "favoriteGeofences": [
             {"name": "Home", "type": "home"},
             {"name": "Work", "type": "work"},
-            {"name": "123 Main St"},
+            {"name": "123 Main St", "type": "custom"},
         ]
     }

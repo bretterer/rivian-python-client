@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
+from ..utils import from_epoch
 from .core import RVMDecoder, _enum, _present
 from .proto import charging_pb2
 
@@ -58,15 +59,75 @@ def decode_schedule_time_window(m: charging_pb2.ScheduleTimeWindow) -> dict[str,
     return result
 
 
+_DERATE_STATUS_MAP: Final[dict[int, str]] = {
+    charging_pb2.DERATE_STATUS_NONE: "none",
+    charging_pb2.DERATE_STATUS_WARM_ADAPTER: "warm_adapter",
+    charging_pb2.DERATE_STATUS_DC_WARM_PLUG: "dc_warm_plug",
+    charging_pb2.DERATE_STATUS_AC_WARM_PLUG: "ac_warm_plug",
+    charging_pb2.DERATE_STATUS_EVSE_DERATING: "evse_derating",
+    charging_pb2.DERATE_STATUS_NEARING_TOC: "nearing_toc",
+    charging_pb2.DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING: "near_toc_lfp_batt_calibrating",
+    charging_pb2.DERATE_STATUS_HVAC_PRIORITIZED: "hvac_prioritized",
+    charging_pb2.DERATE_STATUS_BATTERY_HEATING: "battery_heating",
+    charging_pb2.DERATE_STATUS_BATTERY_COOLING: "battery_cooling",
+    charging_pb2.DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT: "cell_thermal_lim_cold_no_current",
+    charging_pb2.DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT: "cell_thermal_lim_hot_no_current",
+    charging_pb2.DERATE_STATUS_CELL_THERMAL_LIM_COLD: "cell_thermal_lim_cold",
+    charging_pb2.DERATE_STATUS_CELL_THERMAL_LIM_HOT: "cell_thermal_lim_hot",
+    charging_pb2.DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM: "pack_hardware_thermal_lim",
+    charging_pb2.DERATE_STATUS_HIGH_SOC_SIGMA: "high_soc_sigma",
+    charging_pb2.DERATE_STATUS_HV_BATTERY_FAULT: "hv_battery_fault",
+    charging_pb2.DERATE_STATUS_DCAC_EXPORT: "dcac_export",
+}
+
+_FAULT_CHIME_MAP: Final[dict[int, str]] = {
+    charging_pb2.FAULT_CHIME_NONE: "none",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_ALL: "charging_disabled_all",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_DC: "charging_disabled_dc",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_DC: "charging_disabled_pin_temp_dc",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_GRADIENT_DC: "charging_disabled_pin_temp_gradient_dc",
+    charging_pb2.FAULT_CHIME_CHARGING_DEGRADED_DC: "charging_degraded_dc",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_AC: "charging_disabled_ac",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_AC: "charging_disabled_pin_temp_ac",
+    charging_pb2.FAULT_CHIME_CHARGING_DEGRADED_AC: "charging_degraded_ac",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_PARTIAL_CONNECTION: "charging_disabled_partial_connection",
+    charging_pb2.FAULT_CHIME_CHARGING_DISABLED_NOT_PARKED: "charging_disabled_not_parked",
+}
+
+
 @RVMDecoder.register("charging.session.notification", charging_pb2.SessionNotification)
 def decode_session_notification(m: charging_pb2.SessionNotification) -> dict[str, Any]:
-    """charging.session.notification — unmapped; field 1 as `_field1`."""
-    return {"_field1": m.field1} if m.HasField("field1") else {}
+    """charging.session.notification — charging derate and fault notices.
+
+    Fields:
+        chargerDerateStatus: str ("none" | "warm_adapter" | "nearing_toc" |
+            "battery_heating" | ...)
+        chargingFaultChime: str ("none" | "charging_disabled_all" |
+            "charging_disabled_dc" | ...)
+        _unexpectedStopReason: int — raw
+    """
+    return {
+        "chargerDerateStatus": _enum(
+            _DERATE_STATUS_MAP, m.derate_status, what="charger derate status"
+        ),
+        "chargingFaultChime": _enum(
+            _FAULT_CHIME_MAP, m.fault_chime, what="charging fault chime"
+        ),
+        "_unexpectedStopReason": m.unexpected_stop_reason,
+    }
 
 
-_REMOTE_COMMAND_MAP: Final[dict[int, str]] = {
-    charging_pb2.REMOTE_COMMAND_START: "start",
-    charging_pb2.REMOTE_COMMAND_STOP: "stop",
+# The same "true"/"false"/"signal_not_available" vocabulary as the alarm.
+_START_AVAILABILITY_MAP: Final[dict[int, str]] = {
+    charging_pb2.START_AVAILABILITY_SNA: "signal_not_available",
+    charging_pb2.START_AVAILABILITY_FALSE: "false",
+    charging_pb2.START_AVAILABILITY_TRUE: "true",
+}
+
+_TIME_ESTIMATION_VALIDITY_MAP: Final[dict[int, str]] = {
+    charging_pb2.TIME_ESTIMATION_VALIDITY_VALID: "valid",
+    charging_pb2.TIME_ESTIMATION_VALIDITY_INVALID: "invalid",
+    charging_pb2.TIME_ESTIMATION_VALIDITY_PACK_DISCHARGING: "pack_discharging",
 }
 
 
@@ -76,19 +137,16 @@ _REMOTE_COMMAND_MAP: Final[dict[int, str]] = {
 def decode_session_remote_command(
     m: charging_pb2.SessionRemoteCommand,
 ) -> dict[str, Any]:
-    """charging.session.remote_command — the last start/stop command.
+    """charging.session.remote_command — whether a remote start is available.
 
     Fields:
-        chargingRemoteCommand: str ("start" | "stop")
-
-    Also sent when the vehicle holds ("stop") or resumes ("start")
-    charging around a schedule or limit change.
+        remoteChargingAvailable: str ("true" | "false" |
+            "signal_not_available"); true while charging is held (e.g. by a
+            schedule), so "charge now" can start it
     """
-    if not m.HasField("command"):
-        return {}
     return {
-        "chargingRemoteCommand": _enum(
-            _REMOTE_COMMAND_MAP, m.command, what="charging remote command"
+        "remoteChargingAvailable": _enum(
+            _START_AVAILABILITY_MAP, m.start_available, what="remote charging"
         )
     }
 
@@ -107,29 +165,74 @@ def decode_soc_slider(m: charging_pb2.SocSlider) -> dict[str, Any]:
 
 @RVMDecoder.register("charging.session.trip_target", charging_pb2.TripTarget)
 def decode_trip_target(m: charging_pb2.TripTarget) -> dict[str, Any]:
-    """charging.session.trip_target — unmapped; field 2 as `_field2`.
+    """charging.session.trip_target — the trip's target state of charge.
 
-    0xFFFF seems to mean "not set".
+    Fields:
+        chargingTripTargetSoc: int | None (percent; None when not set)
     """
-    return {"_field2": m.field2} if m.HasField("field2") else {}
+    soc = m.soc_limit
+    return {"chargingTripTargetSoc": None if soc in (0, 0xFFFF) else soc}
 
 
 @RVMDecoder.register(
     "charging.smart_charging.settings", charging_pb2.SmartChargingSettings
 )
 def decode_smart_charging_settings(
-    _m: charging_pb2.SmartChargingSettings,
+    m: charging_pb2.SmartChargingSettings,
 ) -> dict[str, Any]:
-    """charging.smart_charging.settings — unmapped."""
-    return {}
+    """charging.smart_charging.settings — smart charging schedule.
+
+    Not seen yet; the schema comes from the app.
+
+    Fields:
+        smartChargingCleanEnergyEnabled: bool
+        smartChargingReadyByTimes: list of {"hours": int, "minutes": int,
+            "days": list[str]} ("monday" … "sunday")
+    """
+    return {
+        "smartChargingCleanEnergyEnabled": m.clean_energy_enabled,
+        "smartChargingReadyByTimes": [
+            {
+                "hours": t.hours,
+                "minutes": t.minutes,
+                "days": [
+                    _enum(_SMART_CHARGING_DAY_MAP, d, what="smart charging day")
+                    for d in t.days
+                ],
+            }
+            for t in m.ready_by_times
+        ],
+    }
 
 
 @RVMDecoder.register(
     "charging.smart_charging.smart_charging_info", charging_pb2.SmartChargingInfo
 )
-def decode_smart_charging_info(_m: charging_pb2.SmartChargingInfo) -> dict[str, Any]:
-    """charging.smart_charging.smart_charging_info — unmapped."""
-    return {}
+def decode_smart_charging_info(m: charging_pb2.SmartChargingInfo) -> dict[str, Any]:
+    """charging.smart_charging.smart_charging_info — smart charging status.
+
+    Not seen yet; the schema comes from the app.
+
+    Fields:
+        smartChargingNotification: str ("signal_not_available" |
+            "charging_with_clean_energy" | "charging_paused" |
+            "clean_energy_not_enough_time" |
+            "clean_energy_forecast_unavailable_or_incomplete")
+        smartChargingResumeTime: datetime, only when sent
+        _smartChargingScheduleType: int (raw; unmapped)
+    """
+    result: dict[str, Any] = {
+        "smartChargingNotification": _enum(
+            _SMART_CHARGING_NOTIFICATION_MAP,
+            m.notification,
+            what="smart charging notification",
+        ),
+        "_smartChargingScheduleType": m.schedule_type,
+    }
+    if m.HasField("resume_time"):
+        t = m.resume_time
+        result["smartChargingResumeTime"] = from_epoch(t.seconds + t.nanos / 1e9)
+    return result
 
 
 @RVMDecoder.register(
@@ -143,9 +246,35 @@ def decode_weighted_charging_forecast(
     return {}
 
 
+_SMART_CHARGING_DAY_MAP: Final[dict[int, str]] = {
+    charging_pb2.SMART_CHARGING_DAY_MONDAY: "monday",
+    charging_pb2.SMART_CHARGING_DAY_TUESDAY: "tuesday",
+    charging_pb2.SMART_CHARGING_DAY_WEDNESDAY: "wednesday",
+    charging_pb2.SMART_CHARGING_DAY_THURSDAY: "thursday",
+    charging_pb2.SMART_CHARGING_DAY_FRIDAY: "friday",
+    charging_pb2.SMART_CHARGING_DAY_SATURDAY: "saturday",
+    charging_pb2.SMART_CHARGING_DAY_SUNDAY: "sunday",
+}
+
+_SMART_CHARGING_NOTIFICATION_MAP: Final[dict[int, str]] = {
+    charging_pb2.SMART_CHARGING_NOTIFICATION_SNA: "signal_not_available",
+    charging_pb2.SMART_CHARGING_NOTIFICATION_CHARGING_WITH_CLEAN_ENERGY: (
+        "charging_with_clean_energy"
+    ),
+    charging_pb2.SMART_CHARGING_NOTIFICATION_CHARGING_PAUSED: "charging_paused",
+    charging_pb2.SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_NOT_ENOUGH_TIME: (
+        "clean_energy_not_enough_time"
+    ),
+    charging_pb2.SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_FORECAST_UNAVAILABLE_OR_INCOMPLETE: (
+        "clean_energy_forecast_unavailable_or_incomplete"
+    ),
+}
+
 _CONNECTION_STATE_MAP: Final[dict[int, str]] = {
     charging_pb2.CONNECTION_STATE_DISCONNECTED: "disconnected",
     charging_pb2.CONNECTION_STATE_CONNECTED: "connected",
+    charging_pb2.CONNECTION_STATE_ERROR: "error",
+    charging_pb2.CONNECTION_STATE_V2L_CONNECTED: "v2l_connected",
 }
 
 _CHARGING_STATE_MAP: Final[dict[int, str]] = {
@@ -182,12 +311,13 @@ def decode_charging_status(m: charging_pb2.SessionStatus) -> dict[str, Any]:
     """charging.session.status — plug and charging state.
 
     Fields:
-        connectionState: str ("connected" | "disconnected")
+        connectionState: str ("connected" | "disconnected" | "error" |
+            "v2l_connected")
         chargerState: str — GraphQL chargerState values, e.g.
             "charging_ready" (no session, or unplugged),
             "charging_connecting", "charging_active", "charging_complete",
             "charging_scheduled", "charging_stopped_by_user"
-        isActive: bool — true from a session's start until it ends
+        _evseType: int — raw; 1 while connected to a charger
     """
     result: dict[str, Any] = {}
     if m.HasField("connection_state"):
@@ -198,7 +328,7 @@ def decode_charging_status(m: charging_pb2.SessionStatus) -> dict[str, Any]:
         result["chargerState"] = _enum(
             _CHARGING_STATE_MAP, m.charging_state, what="charging state"
         )
-    result["isActive"] = m.is_active
+    result["_evseType"] = m.evse_type
     return result
 
 
@@ -208,8 +338,17 @@ def decode_time_estimation(m: charging_pb2.TimeEstimation) -> dict[str, Any]:
 
     Fields:
         timeToEndOfCharge: int (minutes; 0 when not charging)
+        chargingTimeEstimationValidity: str | None ("valid" | "invalid" |
+            "pack_discharging")
     """
-    return {"timeToEndOfCharge": m.estimated_time_remaining}
+    return {
+        "timeToEndOfCharge": m.estimated_time_remaining,
+        "chargingTimeEstimationValidity": _enum(
+            _TIME_ESTIMATION_VALIDITY_MAP,
+            m.validity or None,
+            what="time estimation validity",
+        ),
+    }
 
 
 _CHARGER_STATUS_MAP: Final[dict[int, str]] = {

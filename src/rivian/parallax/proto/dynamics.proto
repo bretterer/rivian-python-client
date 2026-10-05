@@ -7,8 +7,8 @@ package rivian.parallax.dynamics;
 // dynamics.vehicle.drive_mode
 message DriveMode {
   optional DriveModeValue mode = 1;
-  int32 limited_accel_cold = 8; // flag
-  int32 limited_regen_cold = 9; // flag
+  bool limited_accel_cold = 8;
+  bool limited_regen_cold = 9;
 }
 
 enum DriveModeValue {
@@ -99,7 +99,7 @@ enum TemperatureImpact {
 
 // dynamics.tires.state
 message TiresState {
-  int32 field_1 = 1; // unknown
+  int32 tpms_monitor_status = 1; // enum type unknown
 
   message Tire {
     TirePosition pos = 1;

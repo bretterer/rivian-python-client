@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from .core import RVMDecoder, _present
+from ..utils import from_epoch
+from .core import RVMDecoder, _enum, _present
 from .proto import holiday_celebration_pb2
 
 
@@ -19,6 +20,12 @@ def decode_holiday_celebration_enabled(
     return {}
 
 
+_COSTUME_EFFECT_TRIGGER_MAP: Final[dict[int, str]] = {
+    holiday_celebration_pb2.COSTUME_EFFECT_TRIGGER_MANUAL: "manual",
+    holiday_celebration_pb2.COSTUME_EFFECT_TRIGGER_MOTION: "motion",
+}
+
+
 @RVMDecoder.register(
     "holiday_celebration.car_costume.settings",
     holiday_celebration_pb2.CarCostumeSettings,
@@ -26,12 +33,40 @@ def decode_holiday_celebration_enabled(
 def decode_car_costume_settings(
     m: holiday_celebration_pb2.CarCostumeSettings,
 ) -> dict[str, Any]:
-    """holiday_celebration.car_costume.settings — unmapped; fields as raw `_fieldN`."""
-    result: dict[str, Any] = {}
-    for num in (1, 2, 3, 6, 7, 9, 11, 12):
-        if (v := _present(m, f"field_{num}")) is not None:
-            result[f"_field{num}"] = v
-    return result
+    """holiday_celebration.car_costume.settings — car costume settings.
+
+    Names come from the app; the int values are unmapped enums.
+
+    Fields:
+        costumeSoundVolume: int
+        costumeInteriorMusicEnabled: bool
+        costumeInteriorMusicType: int
+        costumeMotionExteriorLightSoundEffect: int
+        costumeInteriorLightShowEnabled: bool
+        costumeInteriorOverheadLightsEnabled: bool
+        costumeLightsColor: int
+        costumeEffect: int
+        costumeEffectTrigger: str ("manual" | "motion"), None when unset
+    """
+    return {
+        "costumeSoundVolume": m.celebration_sound_volume,
+        "costumeInteriorMusicEnabled": m.interior_music_enabled,
+        "costumeInteriorMusicType": m.interior_music_type,
+        "costumeMotionExteriorLightSoundEffect": (m.motion_exterior_light_sound_effect),
+        "costumeInteriorLightShowEnabled": m.interior_light_show_enabled,
+        "costumeInteriorOverheadLightsEnabled": m.interior_overhead_lights_enabled,
+        "costumeLightsColor": m.lights_color,
+        "costumeEffect": m.costume_effect,
+        "costumeEffectTrigger": (
+            _enum(
+                _COSTUME_EFFECT_TRIGGER_MAP,
+                m.effect_trigger,
+                what="costume effect trigger",
+            )
+            if m.effect_trigger
+            else None
+        ),
+    }
 
 
 @RVMDecoder.register(
@@ -42,10 +77,25 @@ def decode_car_costume_state(
 ) -> dict[str, Any]:
     """holiday_celebration.car_costume.state — the current car costume.
 
+    Names come from the app; the int values are unmapped enums.
+
     Fields:
-        costumeId: int (0 = none; other ids unmapped)
+        carCostumeAvailability: int
+        costumeTheme: int
+        costumeMotionTriggerDetected: bool
+        activeCostumeEffect: int
+        costumeStartTime: datetime, only when sent
     """
-    return {"costumeId": m.costume_id}
+    result: dict[str, Any] = {
+        "carCostumeAvailability": m.car_costume_availability,
+        "costumeTheme": m.costume_theme,
+        "costumeMotionTriggerDetected": m.motion_trigger_detected,
+        "activeCostumeEffect": m.active_costume_effect,
+    }
+    if m.HasField("costume_start_time"):
+        t = m.costume_start_time
+        result["costumeStartTime"] = from_epoch(t.seconds + t.nanos / 1e9)
+    return result
 
 
 # Wrapped HalloweenCelebrationSettings field -> result key.

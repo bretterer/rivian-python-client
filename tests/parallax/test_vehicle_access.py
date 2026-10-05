@@ -22,3 +22,16 @@ def test_passive_entry_state() -> None:
         "cccPassivePermissionStatus": "enabled",
     }
     assert decode(rvm) == {}
+
+
+def test_passive_entry_setting() -> None:
+    """The setting's zero value is unavailable."""
+    rvm = "vehicle_access.passive_entry.passive_entry"
+    result = decode(
+        rvm,
+        vehicle_access.PassiveEntrySetting(
+            ccc_passive_permission=vehicle_access.CCC_PASSIVE_SETTING_DISABLED
+        ),
+    )
+    assert result == {"cccPassivePermission": "disabled"}
+    assert decode(rvm) == {"cccPassivePermission": "unavailable"}

@@ -75,7 +75,7 @@ def decode_drive_mode(m: dynamics_pb2.DriveMode) -> dict[str, Any]:
 
     Fields:
         driveMode: str
-        limitedAccelCold, limitedRegenCold: int — raw flags
+        limitedAccelCold, limitedRegenCold: bool
     """
     return {
         "driveMode": _enum(_DRIVE_MODE_MAP, _present(m, "mode"), what="drive mode"),

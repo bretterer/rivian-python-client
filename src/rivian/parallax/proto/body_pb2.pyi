@@ -68,6 +68,30 @@ class LockFault(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     LOCK_FAULT_UNSPECIFIED: _ClassVar[LockFault]
     LOCK_FAULT_FAULTED: _ClassVar[LockFault]
 
+class WindowInstance(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    WINDOW_INSTANCE_UNSPECIFIED: _ClassVar[WindowInstance]
+    WINDOW_INSTANCE_FRONT_LEFT: _ClassVar[WindowInstance]
+    WINDOW_INSTANCE_FRONT_RIGHT: _ClassVar[WindowInstance]
+    WINDOW_INSTANCE_REAR_LEFT: _ClassVar[WindowInstance]
+    WINDOW_INSTANCE_REAR_RIGHT: _ClassVar[WindowInstance]
+    WINDOW_INSTANCE_REAR: _ClassVar[WindowInstance]
+
+class CalibrationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CALIBRATION_STATUS_UNSPECIFIED: _ClassVar[CalibrationStatus]
+    CALIBRATION_STATUS_CALIBRATED: _ClassVar[CalibrationStatus]
+    CALIBRATION_STATUS_NOT_CALIBRATED: _ClassVar[CalibrationStatus]
+
+class RearHitchStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    REAR_HITCH_STATUS_UNSPECIFIED: _ClassVar[RearHitchStatus]
+    REAR_HITCH_STATUS_NOT_PRESENT: _ClassVar[RearHitchStatus]
+    REAR_HITCH_STATUS_ACCESSORY: _ClassVar[RearHitchStatus]
+    REAR_HITCH_STATUS_TRAILER1: _ClassVar[RearHitchStatus]
+    REAR_HITCH_STATUS_TRAILER2: _ClassVar[RearHitchStatus]
+    REAR_HITCH_STATUS_TRAILER3: _ClassVar[RearHitchStatus]
+
 class ClosureFault(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     CLOSURE_FAULT_UNSPECIFIED: _ClassVar[ClosureFault]
@@ -224,6 +248,21 @@ LOCK_STATE_UNLOCKED: LockState
 LOCK_STATE_PARTIALLY_UNLOCKED: LockState
 LOCK_FAULT_UNSPECIFIED: LockFault
 LOCK_FAULT_FAULTED: LockFault
+WINDOW_INSTANCE_UNSPECIFIED: WindowInstance
+WINDOW_INSTANCE_FRONT_LEFT: WindowInstance
+WINDOW_INSTANCE_FRONT_RIGHT: WindowInstance
+WINDOW_INSTANCE_REAR_LEFT: WindowInstance
+WINDOW_INSTANCE_REAR_RIGHT: WindowInstance
+WINDOW_INSTANCE_REAR: WindowInstance
+CALIBRATION_STATUS_UNSPECIFIED: CalibrationStatus
+CALIBRATION_STATUS_CALIBRATED: CalibrationStatus
+CALIBRATION_STATUS_NOT_CALIBRATED: CalibrationStatus
+REAR_HITCH_STATUS_UNSPECIFIED: RearHitchStatus
+REAR_HITCH_STATUS_NOT_PRESENT: RearHitchStatus
+REAR_HITCH_STATUS_ACCESSORY: RearHitchStatus
+REAR_HITCH_STATUS_TRAILER1: RearHitchStatus
+REAR_HITCH_STATUS_TRAILER2: RearHitchStatus
+REAR_HITCH_STATUS_TRAILER3: RearHitchStatus
 CLOSURE_FAULT_UNSPECIFIED: ClosureFault
 CLOSURE_FAULT_NO_FAULT: ClosureFault
 CLOSURE_FAULT_GENERAL: ClosureFault
@@ -315,9 +354,10 @@ WINDOWS_OPEN_NOT_ALLOWED_UNCALIBRATED: WindowsNextAction
 class ClosuresState(_message.Message):
     __slots__ = ("closure",)
     class Closure(_message.Message):
-        __slots__ = ("id", "state", "fault", "windows_next_action", "frunk_next_action", "liftgate_next_action", "side_bin_next_action", "tailgate_next_action", "charge_port_door_next_action")
+        __slots__ = ("id", "state", "open_position_percent", "fault", "windows_next_action", "frunk_next_action", "liftgate_next_action", "side_bin_next_action", "tailgate_next_action", "charge_port_door_next_action", "tonneau_next_action")
         ID_FIELD_NUMBER: _ClassVar[int]
         STATE_FIELD_NUMBER: _ClassVar[int]
+        OPEN_POSITION_PERCENT_FIELD_NUMBER: _ClassVar[int]
         FAULT_FIELD_NUMBER: _ClassVar[int]
         WINDOWS_NEXT_ACTION_FIELD_NUMBER: _ClassVar[int]
         FRUNK_NEXT_ACTION_FIELD_NUMBER: _ClassVar[int]
@@ -325,8 +365,10 @@ class ClosuresState(_message.Message):
         SIDE_BIN_NEXT_ACTION_FIELD_NUMBER: _ClassVar[int]
         TAILGATE_NEXT_ACTION_FIELD_NUMBER: _ClassVar[int]
         CHARGE_PORT_DOOR_NEXT_ACTION_FIELD_NUMBER: _ClassVar[int]
+        TONNEAU_NEXT_ACTION_FIELD_NUMBER: _ClassVar[int]
         id: ClosureId
         state: ClosureState
+        open_position_percent: int
         fault: ClosureFault
         windows_next_action: WindowsNextAction
         frunk_next_action: FrunkNextAction
@@ -334,7 +376,8 @@ class ClosuresState(_message.Message):
         side_bin_next_action: SideBinNextAction
         tailgate_next_action: TailgateNextAction
         charge_port_door_next_action: ChargePortDoorNextAction
-        def __init__(self, id: _Optional[_Union[ClosureId, str]] = ..., state: _Optional[_Union[ClosureState, str]] = ..., fault: _Optional[_Union[ClosureFault, str]] = ..., windows_next_action: _Optional[_Union[WindowsNextAction, str]] = ..., frunk_next_action: _Optional[_Union[FrunkNextAction, str]] = ..., liftgate_next_action: _Optional[_Union[LiftgateNextAction, str]] = ..., side_bin_next_action: _Optional[_Union[SideBinNextAction, str]] = ..., tailgate_next_action: _Optional[_Union[TailgateNextAction, str]] = ..., charge_port_door_next_action: _Optional[_Union[ChargePortDoorNextAction, str]] = ...) -> None: ...
+        tonneau_next_action: int
+        def __init__(self, id: _Optional[_Union[ClosureId, str]] = ..., state: _Optional[_Union[ClosureState, str]] = ..., open_position_percent: _Optional[int] = ..., fault: _Optional[_Union[ClosureFault, str]] = ..., windows_next_action: _Optional[_Union[WindowsNextAction, str]] = ..., frunk_next_action: _Optional[_Union[FrunkNextAction, str]] = ..., liftgate_next_action: _Optional[_Union[LiftgateNextAction, str]] = ..., side_bin_next_action: _Optional[_Union[SideBinNextAction, str]] = ..., tailgate_next_action: _Optional[_Union[TailgateNextAction, str]] = ..., charge_port_door_next_action: _Optional[_Union[ChargePortDoorNextAction, str]] = ..., tonneau_next_action: _Optional[int] = ...) -> None: ...
     CLOSURE_FIELD_NUMBER: _ClassVar[int]
     closure: _containers.RepeatedCompositeFieldContainer[ClosuresState.Closure]
     def __init__(self, closure: _Optional[_Iterable[_Union[ClosuresState.Closure, _Mapping]]] = ...) -> None: ...
@@ -355,16 +398,25 @@ class LocksState(_message.Message):
     def __init__(self, lock: _Optional[_Iterable[_Union[LocksState.Lock, _Mapping]]] = ...) -> None: ...
 
 class WindowsState(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("window",)
+    class Window(_message.Message):
+        __slots__ = ("instance", "calibration_status")
+        INSTANCE_FIELD_NUMBER: _ClassVar[int]
+        CALIBRATION_STATUS_FIELD_NUMBER: _ClassVar[int]
+        instance: WindowInstance
+        calibration_status: CalibrationStatus
+        def __init__(self, instance: _Optional[_Union[WindowInstance, str]] = ..., calibration_status: _Optional[_Union[CalibrationStatus, str]] = ...) -> None: ...
+    WINDOW_FIELD_NUMBER: _ClassVar[int]
+    window: _containers.RepeatedCompositeFieldContainer[WindowsState.Window]
+    def __init__(self, window: _Optional[_Iterable[_Union[WindowsState.Window, _Mapping]]] = ...) -> None: ...
 
 class TrailerState(_message.Message):
-    __slots__ = ("presence", "field_2")
+    __slots__ = ("presence", "rear_hitch_status")
     PRESENCE_FIELD_NUMBER: _ClassVar[int]
-    FIELD_2_FIELD_NUMBER: _ClassVar[int]
+    REAR_HITCH_STATUS_FIELD_NUMBER: _ClassVar[int]
     presence: TrailerPresence
-    field_2: int
-    def __init__(self, presence: _Optional[_Union[TrailerPresence, str]] = ..., field_2: _Optional[int] = ...) -> None: ...
+    rear_hitch_status: RearHitchStatus
+    def __init__(self, presence: _Optional[_Union[TrailerPresence, str]] = ..., rear_hitch_status: _Optional[_Union[RearHitchStatus, str]] = ...) -> None: ...
 
 class WiperFluidLevel(_message.Message):
     __slots__ = ("field_2",)

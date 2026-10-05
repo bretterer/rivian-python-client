@@ -16,6 +16,11 @@ message Btm {
   optional HardwareFailure rf = 4;
   optional HardwareFailure rfd = 5;
   optional HardwareFailure oc = 6;
+  // Error counters.
+  int32 ffr_error = 7;
+  int32 rfr_error = 8;
+  int32 ffl_error = 9;
+  int32 rfl_error = 10;
 }
 
 enum HardwareFailure {
@@ -36,7 +41,14 @@ enum ImmobilizerStatus {
 
 // security.access.passive_entry_debug
 message PassiveEntryDebug {
-  optional PassiveEntryFailReason reason = 2;
+  optional PassiveEntryFailReason reason = 1;
+  LockFailNotification send_lock_fail_notification = 2;
+}
+
+enum LockFailNotification {
+  LOCK_FAIL_NOTIFICATION_SNA = 0;
+  LOCK_FAIL_NOTIFICATION_TRUE = 1;
+  LOCK_FAIL_NOTIFICATION_FALSE = 2;
 }
 
 enum PassiveEntryFailReason {
@@ -79,10 +91,9 @@ enum AccessCanFaulted {
 }
 
 // security.alarm.state
-// Field 1's mapping is a guess.
 message AlarmState {
-  int32 consecutive_alarm_disabled_notification = 1;
-  optional AlarmSound sound_status = 2;
+  optional AlarmSound sound_alarm = 1;
+  bool consecutive_alarm_disabled_notification = 2;
 }
 
 enum AlarmSound {

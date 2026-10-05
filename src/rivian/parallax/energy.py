@@ -14,6 +14,37 @@ _BATTERY_CELL_TYPE_MAP: Final[dict[int, str]] = {
     energy_pb2.BATTERY_CELL_LG_4695: "lg_4695",
 }
 
+_CHEMISTRY_MAP: Final[dict[int, str]] = {
+    energy_pb2.BATTERY_CELL_CHEMISTRY_NCA: "nca",
+    energy_pb2.BATTERY_CELL_CHEMISTRY_LFP: "lfp",
+    energy_pb2.BATTERY_CELL_CHEMISTRY_NMC: "nmc",
+}
+
+_MODULE_TYPE_MAP: Final[dict[int, str]] = {
+    energy_pb2.BATTERY_MODULE_TYPE_9M: "9m",
+    energy_pb2.BATTERY_MODULE_TYPE_1M: "1m",
+    energy_pb2.BATTERY_MODULE_TYPE_8M: "8m",
+    energy_pb2.BATTERY_MODULE_TYPE_6M: "6m",
+    energy_pb2.BATTERY_MODULE_TYPE_11M: "11m",
+    energy_pb2.BATTERY_MODULE_TYPE_7M: "7m",
+    energy_pb2.BATTERY_MODULE_TYPE_3M: "3m",
+    energy_pb2.BATTERY_MODULE_TYPE_10M: "10m",
+}
+
+_PACK_CAPACITY_MAP: Final[dict[int, str]] = {
+    energy_pb2.BATTERY_PACK_CAPACITY_135KWH: "135kwh",
+    energy_pb2.BATTERY_PACK_CAPACITY_150KWH: "150kwh",
+    energy_pb2.BATTERY_PACK_CAPACITY_100KWH: "100kwh",
+    energy_pb2.BATTERY_PACK_CAPACITY_116KWH: "116kwh",
+    energy_pb2.BATTERY_PACK_CAPACITY_108KWH: "108kwh",
+    energy_pb2.BATTERY_PACK_CAPACITY_88KWH: "88kwh",
+}
+
+_POWER_OUTPUT_MAP: Final[dict[int, str]] = {
+    energy_pb2.POWER_OUTPUT_STATUS_NOMINAL: "nominal",
+    energy_pb2.POWER_OUTPUT_STATUS_COLD: "cold",
+}
+
 _LOW_VOLTAGE_HEALTH_MAP: Final[dict[int, str]] = {
     energy_pb2.LOW_VOLTAGE_NORMAL: "normal",
     energy_pb2.LOW_VOLTAGE_LOW: "low",
@@ -30,14 +61,28 @@ def decode_battery_characteristics(
 
     Fields:
         batteryCellType: str
-        batteryCapacity: float (kWh)
+        batteryChemistry: str | None ("nca" | "lfp" | "nmc")
+        batteryModuleType: str | None (e.g. "9m")
+        batteryPackCapacity: str | None (e.g. "135kwh")
+        batteryCapacity: float (kWh; usable)
+        batteryMaxCapacity: float (kWh)
     """
     result: dict[str, Any] = {
         "batteryCellType": _enum(
             _BATTERY_CELL_TYPE_MAP, _present(m, "cell_type"), what="battery cell type"
-        )
+        ),
+        "batteryChemistry": _enum(
+            _CHEMISTRY_MAP, m.chemistry or None, what="battery chemistry"
+        ),
+        "batteryModuleType": _enum(
+            _MODULE_TYPE_MAP, m.module_type or None, what="battery module type"
+        ),
+        "batteryPackCapacity": _enum(
+            _PACK_CAPACITY_MAP, m.pack_capacity or None, what="battery pack capacity"
+        ),
+        "batteryMaxCapacity": round(m.user_max_kwh, 2),
     }
-    if (v := _present(m, "pack_energy")) is not None:
+    if (v := _present(m, "user_total_kwh")) is not None:
         result["batteryCapacity"] = round(v, 2)
     return result
 
@@ -49,8 +94,12 @@ def decode_battery_state(m: energy_pb2.BatteryState) -> dict[str, Any]:
     Fields:
         batteryLevel: float (percent)
         batteryCapacity: float (kWh)
-        range: float (km, if present)
-        batteryTempMin, batteryTempMid, batteryTempMax: float (°C)
+        batteryTempMin, batteryTempMid, batteryTempMax: float (°C; mid is
+            the cell average)
+        batteryHvThermalEvent, batteryHvThermalEventPropagation: str
+            ("nominal" | "detected")
+        batteryPowerOutputStatus: str | None ("nominal" | "cold")
+        batteryNeedsLfpCalibration: str ("true" | "false")
         _bmsStateRaw: int — 4 idle, 5 discharging, 6 charging, others unnamed
     """
     result: dict[str, Any] = {}
@@ -58,13 +107,24 @@ def decode_battery_state(m: energy_pb2.BatteryState) -> dict[str, Any]:
         charge_state = m.charge_state
         result["batteryLevel"] = round(charge_state.soc, 2)
         result["batteryCapacity"] = round(charge_state.pack_energy, 2)
-        if (v := _present(charge_state, "range")) is not None:
-            result["range"] = round(v, 1)
     if m.HasField("temperatures"):
         temps = m.temperatures
         result["batteryTempMin"] = round(temps.min, 1)
         result["batteryTempMid"] = round(temps.mid, 1)
         result["batteryTempMax"] = round(temps.max, 1)
+    event = m.thermal_event
+    result["batteryHvThermalEvent"] = (
+        "detected" if event.high_voltage_battery_thermal_event else "nominal"
+    )
+    result["batteryHvThermalEventPropagation"] = (
+        "detected"
+        if event.high_voltage_battery_thermal_event_propagation
+        else "nominal"
+    )
+    result["batteryPowerOutputStatus"] = _enum(
+        _POWER_OUTPUT_MAP, m.power_output or None, what="battery power output"
+    )
+    result["batteryNeedsLfpCalibration"] = "true" if m.requires_calibration else "false"
     if (v := _present(m, "bms_state_raw")) is not None:
         result["_bmsStateRaw"] = v
     return result

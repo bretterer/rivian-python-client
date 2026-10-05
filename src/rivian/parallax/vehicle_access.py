@@ -9,8 +9,14 @@ from .proto import vehicle_access_pb2
 
 _CCC_PASSIVE_PERMISSION_MAP: Final[dict[int, str]] = {
     vehicle_access_pb2.CCC_PASSIVE_PERMISSION_SNA: "sna",
-    vehicle_access_pb2.CCC_PASSIVE_PERMISSION_ENABLED: "enabled",
     vehicle_access_pb2.CCC_PASSIVE_PERMISSION_DISABLED: "disabled",
+    vehicle_access_pb2.CCC_PASSIVE_PERMISSION_ENABLED: "enabled",
+}
+
+_CCC_PASSIVE_SETTING_MAP: Final[dict[int, str]] = {
+    vehicle_access_pb2.CCC_PASSIVE_SETTING_UNAVAILABLE: "unavailable",
+    vehicle_access_pb2.CCC_PASSIVE_SETTING_DISABLED: "disabled",
+    vehicle_access_pb2.CCC_PASSIVE_SETTING_ENABLED: "enabled",
 }
 
 
@@ -19,10 +25,22 @@ _CCC_PASSIVE_PERMISSION_MAP: Final[dict[int, str]] = {
     vehicle_access_pb2.PassiveEntrySetting,
 )
 def decode_passive_entry_setting(
-    _m: vehicle_access_pb2.PassiveEntrySetting,
+    m: vehicle_access_pb2.PassiveEntrySetting,
 ) -> dict[str, Any]:
-    """vehicle_access.passive_entry.passive_entry — passive entry setting; unmapped."""
-    return {}
+    """vehicle_access.passive_entry.passive_entry — passive entry setting.
+
+    Not seen yet; the schema comes from the app.
+
+    Fields:
+        cccPassivePermission: str ("unavailable" | "disabled" | "enabled")
+    """
+    return {
+        "cccPassivePermission": _enum(
+            _CCC_PASSIVE_SETTING_MAP,
+            m.ccc_passive_permission,
+            what="CCC passive setting",
+        )
+    }
 
 
 @RVMDecoder.register(
@@ -38,7 +56,7 @@ def decode_vehicle_access_passive_entry(
     Fields (each only when sent):
         passiveEntryBluetoothInCcc: bool — Bluetooth passive entry allowed
             while using a CCC digital key
-        cccPassivePermissionStatus: str ("sna" | "enabled" | "disabled")
+        cccPassivePermissionStatus: str ("sna" | "disabled" | "enabled")
     """
     result: dict[str, Any] = {}
     if (v := _present(m, "allow_bluetooth_while_in_ccc")) is not None:

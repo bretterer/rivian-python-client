@@ -14,11 +14,12 @@ from .helpers import decode
     [
         (vehicle.POWER_GO, "go"),
         (vehicle.POWER_SLEEP, "sleep"),
-        (9, "standby"),  # unmapped values fall back to standby
+        (vehicle.POWER_OTA_UPDATE, "ota_update"),
+        (9, 9),  # unmapped values pass through raw
     ],
 )
-def test_power_state(state: int, expected: str) -> None:
-    """Known states map; unknown values fall back to standby."""
+def test_power_state(state: int, expected: str | int) -> None:
+    """Known states map; unknown values pass through raw."""
     result = decode(
         "vehicle.power.state",
         vehicle.VehiclePowerState(state=state),  # type: ignore[arg-type]
@@ -47,6 +48,10 @@ def test_network_state() -> None:
         "wifiSignal": -55,
         "wifiLinkSpeed": 0,
         "wifiFreq": 0,
+        "wifiBandwidth": 0,
+        "wifiConnStatus": None,
+        "wifiSecured": None,
+        "wifiUserEnabled": None,
         "wifiSecureStatus": None,
         "cellularCarrier": "Carrier",
         "cellularMode": "LTE",
