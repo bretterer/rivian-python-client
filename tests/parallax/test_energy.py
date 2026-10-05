@@ -54,6 +54,6 @@ def test_battery_characteristics() -> None:
         "batteryChemistry": "nca",
         "batteryModuleType": "9m",
         "batteryPackCapacity": "135kwh",
-        "batteryCapacity": 123.82,
+        "batteryUsableCapacity": 123.82,
         "batteryMaxCapacity": 123.82,
     }

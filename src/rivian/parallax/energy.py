@@ -64,7 +64,7 @@ def decode_battery_characteristics(
         batteryChemistry: str | None ("nca" | "lfp" | "nmc")
         batteryModuleType: str | None (e.g. "9m")
         batteryPackCapacity: str | None (e.g. "135kwh")
-        batteryCapacity: float (kWh; usable)
+        batteryUsableCapacity: float (kWh)
         batteryMaxCapacity: float (kWh)
     """
     result: dict[str, Any] = {
@@ -83,7 +83,7 @@ def decode_battery_characteristics(
         "batteryMaxCapacity": round(m.user_max_kwh, 2),
     }
     if (v := _present(m, "user_total_kwh")) is not None:
-        result["batteryCapacity"] = round(v, 2)
+        result["batteryUsableCapacity"] = round(v, 2)
     return result
 
 
