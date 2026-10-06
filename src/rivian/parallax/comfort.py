@@ -173,13 +173,15 @@ def decode_cabin_temperatures(m: comfort_pb2.CabinTemperatures) -> dict[str, Any
 
     Fields:
         cabinClimateInteriorTemperature: float (°C)
-        cabinClimateDriverTemperature: float (°C) — set point, same as
-            `hvacTargetTemperature`
+        cabinClimateDriverTemperature: float | None (°C) — set point, same
+            as `hvacTargetTemperature`; None when the vehicle doesn't send it
         cabinClimateExteriorTemperature: float (°C), when sent
     """
     result: dict[str, Any] = {
         "cabinClimateInteriorTemperature": round(m.interior_temperature, 1),
-        "cabinClimateDriverTemperature": round(m.driver_set_point, 1),
+        "cabinClimateDriverTemperature": (
+            round(v, 1) if (v := _present(m, "driver_set_point")) is not None else None
+        ),
     }
     if (v := _present(m, "exterior_temperature")) is not None:
         result["cabinClimateExteriorTemperature"] = round(v, 1)

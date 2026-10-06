@@ -55,8 +55,8 @@ message CabinTemperatures {
   optional float exterior_temperature = 2; // °C
   float interior_temperature = 3; // °C
   // The app's interior display temperature: the set point, same as
-  // HvacSettingsStatus's target.
-  float driver_set_point = 4; // °C
+  // HvacSettingsStatus's target. Not sent by every vehicle.
+  optional float driver_set_point = 4; // °C
 
   message ZoneTemperature {
     int32 seat = 1;

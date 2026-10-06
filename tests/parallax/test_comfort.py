@@ -21,6 +21,18 @@ def test_cabin_temperatures() -> None:
     }
 
 
+def test_cabin_temperatures_without_set_point() -> None:
+    """A vehicle that doesn't send the set point reports None, not 0 °C."""
+    result = decode(
+        "comfort.cabin.cabin_temperatures",
+        comfort.CabinTemperatures(interior_temperature=32.4),
+    )
+    assert result == {
+        "cabinClimateInteriorTemperature": 32.4,
+        "cabinClimateDriverTemperature": None,
+    }
+
+
 @pytest.mark.parametrize(
     ("status", "expected"),
     [
