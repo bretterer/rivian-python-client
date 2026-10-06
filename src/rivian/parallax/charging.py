@@ -362,24 +362,29 @@ _CHARGER_STATUS_MAP: Final[dict[int, str]] = {
 def decode_energy_state(m: charging_pb2.EnergyState) -> dict[str, Any]:
     """charging.energy.state — charger connection and charging state.
 
+    Partial updates, so each field only when sent; most messages carry only
+    power (not reported; charging.session.power has it). charging.session.status
+    is the reliable source for the connection and charging states.
+
     Fields:
         chargerStatus: str — GraphQL chargerStatus values
             ("chrgr_sts_not_connected" | "chrgr_sts_connected_no_chrg" |
-            "chrgr_sts_connected_charging"); inferred
-        chargerState, connectionState: str | None — as in
-            charging.session.status
+            "chrgr_sts_connected_charging"); inferred. Only sent when the
+            plug state changes on some vehicles
+        energyChargerState, energyConnectionState: str — as
+            charging.session.status's chargerState / connectionState, which
+            these can lag
         _field3: int — raw
     """
-    result: dict[str, Any] = {
-        "chargerState": _enum(
-            _CHARGING_STATE_MAP, m.charging_state or None, what="charging state"
-        ),
-        "connectionState": _enum(
-            _CONNECTION_STATE_MAP,
-            m.connection_state or None,
-            what="charging connection state",
-        ),
-    }
+    result: dict[str, Any] = {}
+    if (v := _present(m, "charging_state")) is not None:
+        result["energyChargerState"] = _enum(
+            _CHARGING_STATE_MAP, v, what="charging state"
+        )
+    if (v := _present(m, "connection_state")) is not None:
+        result["energyConnectionState"] = _enum(
+            _CONNECTION_STATE_MAP, v, what="charging connection state"
+        )
     if (v := _present(m, "charger_status")) is not None:
         result["chargerStatus"] = _enum(_CHARGER_STATUS_MAP, v, what="charger status")
     if (v := _present(m, "field_3")) is not None:

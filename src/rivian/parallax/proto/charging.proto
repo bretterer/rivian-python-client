@@ -209,13 +209,16 @@ enum TimeEstimationValidity {
 }
 
 // charging.energy.state
-// The states match charging.session.status, give or take a message.
+// Partial updates: most messages carry only power, and the states are sent
+// only when the plug state changes, so they can't be relied on. The states
+// match charging.session.status, give or take a message.
 message EnergyState {
-  ChargingState charging_state = 1;
+  optional ChargingState charging_state = 1;
   optional ChargerStatus charger_status = 2; // inferred
   optional int32 field_3 = 3; // unknown
+  float power = 4; // kW; same as charging.session.power
   string field_10 = 10; // unknown
-  ConnectionState connection_state = 11;
+  optional ConnectionState connection_state = 11;
 }
 
 enum ChargerStatus {

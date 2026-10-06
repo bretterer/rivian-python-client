@@ -160,11 +160,16 @@ def test_energy_state() -> None:
         ),
     )
     assert result == {
-        "chargerState": "charging_complete",
-        "connectionState": "connected",
+        "energyChargerState": "charging_complete",
+        "energyConnectionState": "connected",
         "chargerStatus": "chrgr_sts_connected_no_chrg",
         "_field3": 1,
     }
+
+
+def test_energy_state_power_only() -> None:
+    """A power-only update doesn't clear the states."""
+    assert decode("charging.energy.state", charging.EnergyState(power=9.1)) == {}
 
 
 def test_session_power() -> None:

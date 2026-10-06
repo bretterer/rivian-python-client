@@ -98,16 +98,19 @@ def decode_charge_session_breakdown(
 
     Fields:
         totalChargedEnergy: float (kWh)
-        power: float (kW)
+        chargeSessionPower: float (kW; charging.session.power reports `power`)
         rangeAddedThisSession: float (km)
         kilometersChargedPerHour: float (km of range per hour; 0 while
             power is 0, since it can be stale)
-        timeToEndOfCharge: int (minutes)
+        chargeSessionTimeToEndOfCharge: int (minutes;
+            charging.session.time_estimation reports `timeToEndOfCharge`)
         activeChargingTime: int (minutes; pauses while stopped/scheduled)
         packEnergy, thermalEnergy, outletsEnergy, systemEnergy: float (kWh)
         isFreeSession: bool
         currentPrice: float, currentCurrency: str — only when there's a cost
-        chargerState: str — as in charging.session.status
+        chargeSessionChargerState: str — the session's state, which goes
+            stale after a session (charging.session.status reports
+            `chargerState`)
 
     A session's totals survive stops and holds, and persist after plug-in
     until the next session starts. The last message before charging
@@ -116,10 +119,10 @@ def decode_charge_session_breakdown(
     power = round(m.power, 2)
     result: dict[str, Any] = {
         "totalChargedEnergy": round(m.total_energy, 4),
-        "power": power,
+        "chargeSessionPower": power,
         "rangeAddedThisSession": float(m.range_added),
         "kilometersChargedPerHour": float(m.range_rate) if power > 0 else 0.0,
-        "timeToEndOfCharge": m.time_remaining,
+        "chargeSessionTimeToEndOfCharge": m.time_remaining,
         "activeChargingTime": m.active_charging_time,
         "packEnergy": round(m.pack_energy, 4),
         "thermalEnergy": round(m.thermal_energy, 4),
@@ -132,7 +135,7 @@ def decode_charge_session_breakdown(
         result["currentPrice"] = cost.units + cost.nanos / 1e9
         result["currentCurrency"] = cost.currency_code
     if m.HasField("charging_state"):
-        result["chargerState"] = _enum(
+        result["chargeSessionChargerState"] = _enum(
             _CHARGING_STATE_MAP, m.charging_state, what="charging state"
         )
     return result
@@ -150,11 +153,11 @@ def decode_charging_graph_global(
     Fields:
         startTime: datetime (session start)
         timeElapsed: int (seconds spent charging)
-        power: float (kW, latest segment)
-        kilometersChargedPerHour: float (estimated from power)
+        chargingGraphPower: float (kW, latest segment)
+        chargingGraphKilometersChargedPerHour: float (estimated from power)
 
-    Power updates about once a minute; prefer charge_session_breakdown
-    for live power and rate.
+    Power updates about once a minute; charging.session.power and
+    charge_session_breakdown report live power and rate.
     """
     segments = m.segment
     if not segments:
@@ -179,12 +182,12 @@ def decode_charging_graph_global(
 
     latest_power = round(segments[-1].power, 2)
     if latest_power > 0 and segments[-1].state != charging_pb2.CHARGING_USER_STOPPED:
-        result["power"] = latest_power
-        result["kilometersChargedPerHour"] = round(
+        result["chargingGraphPower"] = latest_power
+        result["chargingGraphKilometersChargedPerHour"] = round(
             latest_power * _FALLBACK_KM_PER_KWH, 1
         )
     else:
-        result["power"] = 0.0
-        result["kilometersChargedPerHour"] = 0.0
+        result["chargingGraphPower"] = 0.0
+        result["chargingGraphKilometersChargedPerHour"] = 0.0
 
     return result

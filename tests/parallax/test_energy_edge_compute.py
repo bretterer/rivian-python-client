@@ -82,17 +82,17 @@ def test_charge_session_breakdown() -> None:
     )
     assert result == {
         "totalChargedEnergy": pytest.approx(6.3),
-        "power": pytest.approx(11.1),
+        "chargeSessionPower": pytest.approx(11.1),
         "rangeAddedThisSession": 38.0,
         "kilometersChargedPerHour": 41.0,
-        "timeToEndOfCharge": 12,
+        "chargeSessionTimeToEndOfCharge": 12,
         "activeChargingTime": 36,
         "packEnergy": pytest.approx(6.2),
         "thermalEnergy": 0.0,
         "outletsEnergy": 0.0,
         "systemEnergy": pytest.approx(0.1),
         "isFreeSession": True,
-        "chargerState": "charging_active",
+        "chargeSessionChargerState": "charging_active",
     }
 
 
@@ -120,10 +120,10 @@ def test_charge_session_breakdown_fresh_session() -> None:
     )
     assert result == {
         "totalChargedEnergy": 0.0,
-        "power": 0.0,
+        "chargeSessionPower": 0.0,
         "rangeAddedThisSession": 0.0,
         "kilometersChargedPerHour": 0.0,
-        "timeToEndOfCharge": 0,
+        "chargeSessionTimeToEndOfCharge": 0,
         "activeChargingTime": 0,
         "packEnergy": 0.0,
         "thermalEnergy": 0.0,
@@ -160,7 +160,7 @@ def test_charging_graph_global_active() -> None:
     result = _graph(_segment(_T0, _T0 + 60_000, charging.CHARGING_ACTIVE, 5.8))
     assert result["startTime"] == epoch(_T0)
     assert result["timeElapsed"] == 60
-    assert result["power"] == pytest.approx(5.8)
+    assert result["chargingGraphPower"] == pytest.approx(5.8)
 
 
 def test_charging_graph_global_stopped_and_resumed() -> None:
@@ -171,12 +171,12 @@ def test_charging_graph_global_stopped_and_resumed() -> None:
 
     result = _graph(charged, stopped)
     assert result["timeElapsed"] == 60
-    assert result["power"] == 0.0
-    assert result["kilometersChargedPerHour"] == 0.0
+    assert result["chargingGraphPower"] == 0.0
+    assert result["chargingGraphKilometersChargedPerHour"] == 0.0
 
     result = _graph(charged, stopped, resumed)
     assert result["timeElapsed"] == 180
-    assert result["power"] == pytest.approx(5.8)
+    assert result["chargingGraphPower"] == pytest.approx(5.8)
 
 
 def test_charging_graph_global_empty() -> None:
