@@ -27,18 +27,27 @@ enum CostumeEffectTrigger {
   COSTUME_EFFECT_TRIGGER_MOTION = 2;
 }
 
-// holiday_celebration.car_costume.state -- enum types unknown.
+// holiday_celebration.car_costume.state -- int enum types unknown.
 message CarCostumeState {
-  int32 car_costume_availability = 1;
-  int32 costume_theme = 2;
+  int32 car_costume_availability = 1; // the app's enum (class stripped)
+  CarCostumeTheme costume_theme = 2;
   bool motion_trigger_detected = 3;
   Timestamp costume_start_time = 4;
-  int32 active_costume_effect = 6;
+  int32 active_costume_effect = 6; // the app's enum (class stripped)
 
   message Timestamp {
     int64 seconds = 1;
     int32 nanos = 2;
   }
+}
+
+// Inferred: the app's reportedCostume wire values (its proto's class was
+// stripped).
+enum CarCostumeTheme {
+  CAR_COSTUME_THEME_UNSPECIFIED = 0;
+  CAR_COSTUME_THEME_NONE = 1;
+  CAR_COSTUME_THEME_GHOSTBUSTERS = 2;
+  CAR_COSTUME_THEME_GHOSTBUSTERS_DISPLAY = 3;
 }
 
 // holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings

@@ -12,16 +12,17 @@ message ClosuresState {
     int32 open_position_percent = 3;
     // Unset on doors and windows; briefly GENERAL while re-reporting.
     ClosureFault fault = 4;
-    optional WindowsNextAction windows_next_action = 5; // on GROUP_WINDOWS
-
-    // One field per closure type. Briefly SNA / not-available while the
+    // One member per closure type. Briefly SNA / not-available while the
     // vehicle re-reports after an app command.
-    optional FrunkNextAction frunk_next_action = 6;
-    optional LiftgateNextAction liftgate_next_action = 7;
-    optional SideBinNextAction side_bin_next_action = 8;
-    optional TailgateNextAction tailgate_next_action = 9;
-    optional ChargePortDoorNextAction charge_port_door_next_action = 10;
-    int32 tonneau_next_action = 11; // enum type unknown
+    oneof next_action {
+      WindowsNextAction windows_next_action = 5; // on GROUP_WINDOWS
+      FrunkNextAction frunk_next_action = 6;
+      LiftgateNextAction liftgate_next_action = 7;
+      SideBinNextAction side_bin_next_action = 8;
+      TailgateNextAction tailgate_next_action = 9;
+      ChargePortDoorNextAction charge_port_door_next_action = 10;
+      int32 tonneau_next_action = 11; // the app's enum (class stripped)
+    }
   }
   repeated Closure closure = 1;
 }

@@ -31,7 +31,7 @@ message VehicleWheels {
   repeated Wheel wheel = 1;
 
   message Wheel {
-    int32 wheel_package = 1;
+    int32 wheel_package = 1; // the app's enum (class stripped)
     int64 tire_odometer = 2; // meters
     int64 saved_tire_odometer_delta = 3; // meters; only on an uninstalled wheel
     int64 odometer_at_last_rotation = 4; // meters
@@ -39,7 +39,7 @@ message VehicleWheels {
     int64 rotation_reminder_interval = 6; // meters
     bool is_installed = 7;
     UpdatedAt updated_at = 8; // changes with the rotation interval
-    int32 tires = 9;
+    int32 tires = 9; // the app's enum (class stripped)
     int64 current_odometer = 10; // meters
 
     message UpdatedAt {

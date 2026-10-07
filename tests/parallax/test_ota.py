@@ -13,8 +13,8 @@ def test_ota_deployment_state() -> None:
     version = deployment.Version(
         version_string="2026.36.1",
         version_year=2026,
-        version_build=36,
-        build_id="0a1b2c3d",
+        version_week=36,
+        git_hash="0a1b2c3d",
     )
 
     idle = decode(

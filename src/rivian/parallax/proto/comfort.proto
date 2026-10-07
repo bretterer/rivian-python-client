@@ -59,7 +59,7 @@ message CabinTemperatures {
   optional float driver_set_point = 4; // °C
 
   message ZoneTemperature {
-    int32 seat = 1;
+    int32 seat = 1; // the app's enum (class stripped)
     float temperature = 2; // °C
   }
 }

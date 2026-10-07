@@ -195,6 +195,11 @@ def decode_range(m: dynamics_pb2.Range) -> dict[str, Any]:
     }
 
 
+# The app's enum class for tire validity was stripped; only 0 and 1 are known.
+_TIRE_VALID: Final = 0
+_TIRE_VALIDITY_MAP: Final[dict[int, str]] = {_TIRE_VALID: "valid", 1: "invalid"}
+
+
 @RVMDecoder.register("dynamics.tires.state", dynamics_pb2.TiresState)
 def decode_tires(m: dynamics_pb2.TiresState) -> dict[str, Any]:
     """dynamics.tires.state — per-tire pressure, status and validity.
@@ -203,7 +208,8 @@ def decode_tires(m: dynamics_pb2.TiresState) -> dict[str, Any]:
         tirePressureFrontLeft, tirePressureFrontRight, etc.: float (bar)
         tirePressureStatusFrontLeft, etc.: str ("OK" | "warning_hard" |
             "warning_soft" | "warning_puncture")
-        tirePressureStatusValidFrontLeft, etc.: str ("valid" | "invalid")
+        tirePressureStatusValidFrontLeft, etc.: str ("valid" | "invalid"),
+            or the raw int for an unmapped validity
     """
     result: dict[str, Any] = {}
     for s in m.tire:
@@ -212,10 +218,11 @@ def decode_tires(m: dynamics_pb2.TiresState) -> dict[str, Any]:
             continue
         suffix = _TIRE_POSITION_MAP[s.pos]
 
-        # Pressure and status are stale while invalid.
-        valid = not s.invalid
-        result[f"tirePressureStatusValid{suffix}"] = "valid" if valid else "invalid"
-        if not valid:
+        # Pressure and status are stale unless valid.
+        result[f"tirePressureStatusValid{suffix}"] = _enum(
+            _TIRE_VALIDITY_MAP, s.validity, what="tire validity"
+        )
+        if s.validity != _TIRE_VALID:
             continue
 
         if (pressure := _present(s, "pressure")) is not None:

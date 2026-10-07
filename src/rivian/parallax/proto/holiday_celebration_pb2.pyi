@@ -11,9 +11,20 @@ class CostumeEffectTrigger(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     COSTUME_EFFECT_TRIGGER_UNSPECIFIED: _ClassVar[CostumeEffectTrigger]
     COSTUME_EFFECT_TRIGGER_MANUAL: _ClassVar[CostumeEffectTrigger]
     COSTUME_EFFECT_TRIGGER_MOTION: _ClassVar[CostumeEffectTrigger]
+
+class CarCostumeTheme(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CAR_COSTUME_THEME_UNSPECIFIED: _ClassVar[CarCostumeTheme]
+    CAR_COSTUME_THEME_NONE: _ClassVar[CarCostumeTheme]
+    CAR_COSTUME_THEME_GHOSTBUSTERS: _ClassVar[CarCostumeTheme]
+    CAR_COSTUME_THEME_GHOSTBUSTERS_DISPLAY: _ClassVar[CarCostumeTheme]
 COSTUME_EFFECT_TRIGGER_UNSPECIFIED: CostumeEffectTrigger
 COSTUME_EFFECT_TRIGGER_MANUAL: CostumeEffectTrigger
 COSTUME_EFFECT_TRIGGER_MOTION: CostumeEffectTrigger
+CAR_COSTUME_THEME_UNSPECIFIED: CarCostumeTheme
+CAR_COSTUME_THEME_NONE: CarCostumeTheme
+CAR_COSTUME_THEME_GHOSTBUSTERS: CarCostumeTheme
+CAR_COSTUME_THEME_GHOSTBUSTERS_DISPLAY: CarCostumeTheme
 
 class HolidayCelebrationEnabled(_message.Message):
     __slots__ = ()
@@ -56,11 +67,11 @@ class CarCostumeState(_message.Message):
     COSTUME_START_TIME_FIELD_NUMBER: _ClassVar[int]
     ACTIVE_COSTUME_EFFECT_FIELD_NUMBER: _ClassVar[int]
     car_costume_availability: int
-    costume_theme: int
+    costume_theme: CarCostumeTheme
     motion_trigger_detected: bool
     costume_start_time: CarCostumeState.Timestamp
     active_costume_effect: int
-    def __init__(self, car_costume_availability: _Optional[int] = ..., costume_theme: _Optional[int] = ..., motion_trigger_detected: bool = ..., costume_start_time: _Optional[_Union[CarCostumeState.Timestamp, _Mapping]] = ..., active_costume_effect: _Optional[int] = ...) -> None: ...
+    def __init__(self, car_costume_availability: _Optional[int] = ..., costume_theme: _Optional[_Union[CarCostumeTheme, str]] = ..., motion_trigger_detected: bool = ..., costume_start_time: _Optional[_Union[CarCostumeState.Timestamp, _Mapping]] = ..., active_costume_effect: _Optional[int] = ...) -> None: ...
 
 class HalloweenCelebrationSettings(_message.Message):
     __slots__ = ("costume_theme", "sound_volume", "music_enabled", "music_type", "sound_effect", "exterior_sound_effect", "exterior_sounds_muted", "light_show_enabled", "interior_overhead_lights_enabled", "exterior_light_show_enabled", "lights_color", "car_costume_availability", "motion_light_sound_enabled")

@@ -59,13 +59,13 @@ def test_car_costume_state() -> None:
         rvm,
         state(
             car_costume_availability=1,
-            costume_theme=2,
+            costume_theme=holiday_celebration.CAR_COSTUME_THEME_GHOSTBUSTERS,
             costume_start_time=state.Timestamp(seconds=1790553420),
         ),
     )
     assert result == {
         "carCostumeAvailability": 1,
-        "costumeTheme": 2,
+        "costumeTheme": "ghostbusters",
         "costumeMotionTriggerDetected": False,
         "activeCostumeEffect": 0,
         "costumeStartTime": epoch(1790553420_000),

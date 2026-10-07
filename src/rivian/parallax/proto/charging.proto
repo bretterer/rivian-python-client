@@ -21,6 +21,8 @@ message ScheduleTimeWindow {
     DayOfWeek end_day = 7;
   }
 
+  // The app's proto has uint32 days; its ChargingSmartDayOfWeek.fromInt maps
+  // them as below (unlike SmartChargingDay, which starts on Monday).
   enum DayOfWeek {
     DAY_OF_WEEK_UNSPECIFIED = 0;
     SUNDAY = 1;

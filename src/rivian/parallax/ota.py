@@ -56,8 +56,8 @@ def _decode_version(
     for field, key in (
         ("version_string", "Version"),
         ("version_year", "VersionYear"),
-        ("version_build", "VersionWeek"),
-        ("build_id", "VersionGitHash"),
+        ("version_week", "VersionWeek"),
+        ("git_hash", "VersionGitHash"),
     ):
         if (v := _present(version, field)) is not None:
             result[f"{prefix}{key}"] = v

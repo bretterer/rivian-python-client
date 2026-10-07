@@ -105,7 +105,7 @@ message TiresState {
     TirePosition pos = 1;
     optional TirePressureStatus status = 2;
     optional double pressure = 3; // bar
-    bool invalid = 4;
+    int32 validity = 4; // the app's enum (class stripped); 0 valid, 1 invalid
     int64 timestamp = 5; // epoch milliseconds
   }
   repeated Tire tire = 2;

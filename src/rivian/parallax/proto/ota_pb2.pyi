@@ -85,20 +85,20 @@ class DeploymentState(_message.Message):
         progress_wrapper: DeploymentState.ProgressWrapper
         def __init__(self, software_category: _Optional[_Union[DeploymentState.SoftwareCategory, str]] = ..., version: _Optional[_Union[DeploymentState.Version, _Mapping]] = ..., deployment_id: _Optional[str] = ..., progress_wrapper: _Optional[_Union[DeploymentState.ProgressWrapper, _Mapping]] = ...) -> None: ...
     class Version(_message.Message):
-        __slots__ = ("version_string", "software_version_id", "version_year", "version_build", "version_number", "build_id")
+        __slots__ = ("version_string", "software_version_id", "version_year", "version_week", "version_number", "git_hash")
         VERSION_STRING_FIELD_NUMBER: _ClassVar[int]
         SOFTWARE_VERSION_ID_FIELD_NUMBER: _ClassVar[int]
         VERSION_YEAR_FIELD_NUMBER: _ClassVar[int]
-        VERSION_BUILD_FIELD_NUMBER: _ClassVar[int]
+        VERSION_WEEK_FIELD_NUMBER: _ClassVar[int]
         VERSION_NUMBER_FIELD_NUMBER: _ClassVar[int]
-        BUILD_ID_FIELD_NUMBER: _ClassVar[int]
+        GIT_HASH_FIELD_NUMBER: _ClassVar[int]
         version_string: str
         software_version_id: str
         version_year: int
-        version_build: int
+        version_week: int
         version_number: int
-        build_id: str
-        def __init__(self, version_string: _Optional[str] = ..., software_version_id: _Optional[str] = ..., version_year: _Optional[int] = ..., version_build: _Optional[int] = ..., version_number: _Optional[int] = ..., build_id: _Optional[str] = ...) -> None: ...
+        git_hash: str
+        def __init__(self, version_string: _Optional[str] = ..., software_version_id: _Optional[str] = ..., version_year: _Optional[int] = ..., version_week: _Optional[int] = ..., version_number: _Optional[int] = ..., git_hash: _Optional[str] = ...) -> None: ...
     class ProgressWrapper(_message.Message):
         __slots__ = ("deployment_id", "target_version", "ota_type", "deployment_context", "progress", "install_time", "install_tod", "skip_count", "skip_allowed", "deployment_intent", "is_active")
         class DeploymentContext(_message.Message):

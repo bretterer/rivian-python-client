@@ -26,16 +26,16 @@ message DeploymentState {
     optional string version_string = 1; // year.week.number
     optional string software_version_id = 2;
     optional int32 version_year = 3;
-    optional int32 version_build = 4; // week
+    optional int32 version_week = 4;
     optional int32 version_number = 5;
-    optional string build_id = 6; // 8-char git hash
+    optional string git_hash = 6; // 8 characters
   }
 
   // The available OTA. Always present; deployment_id is absent at rest.
   message ProgressWrapper {
     optional string deployment_id = 1; // UUID; only while an update is in flight
     Version target_version = 2; // version being installed
-    optional int32 ota_type = 3; // enum type unknown
+    optional int32 ota_type = 3; // the app's enum (class stripped)
     DeploymentContext deployment_context = 4;
     Progress progress = 5;
     int64 install_time = 6; // epoch seconds
@@ -69,7 +69,7 @@ message DeploymentState {
     // Seconds; counts down during INSTALL_COUNTDOWN, a static default otherwise.
     int32 time_remaining = 6;
     bool install_ready = 7;
-    int32 status_acknowledge = 8;
+    int32 status_acknowledge = 8; // the app's enum (class stripped)
     int32 install_duration = 9; // minutes
 
     message Progress100 {

@@ -35,22 +35,22 @@ class Timestamp(_message.Message):
     def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
 
 class GpsFix(_message.Message):
-    __slots__ = ("location", "speed", "heading", "offroad", "time", "altitude", "accuracy")
+    __slots__ = ("location", "speed", "bearing", "offroad", "time", "altitude", "accuracy")
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     SPEED_FIELD_NUMBER: _ClassVar[int]
-    HEADING_FIELD_NUMBER: _ClassVar[int]
+    BEARING_FIELD_NUMBER: _ClassVar[int]
     OFFROAD_FIELD_NUMBER: _ClassVar[int]
     TIME_FIELD_NUMBER: _ClassVar[int]
     ALTITUDE_FIELD_NUMBER: _ClassVar[int]
     ACCURACY_FIELD_NUMBER: _ClassVar[int]
     location: GeoCoordinate
     speed: float
-    heading: float
+    bearing: float
     offroad: bool
     time: int
     altitude: float
     accuracy: float
-    def __init__(self, location: _Optional[_Union[GeoCoordinate, _Mapping]] = ..., speed: _Optional[float] = ..., heading: _Optional[float] = ..., offroad: bool = ..., time: _Optional[int] = ..., altitude: _Optional[float] = ..., accuracy: _Optional[float] = ...) -> None: ...
+    def __init__(self, location: _Optional[_Union[GeoCoordinate, _Mapping]] = ..., speed: _Optional[float] = ..., bearing: _Optional[float] = ..., offroad: bool = ..., time: _Optional[int] = ..., altitude: _Optional[float] = ..., accuracy: _Optional[float] = ...) -> None: ...
 
 class TripInfo(_message.Message):
     __slots__ = ("trip_id", "origin", "trip", "route_preferences", "origin_soc", "next_waypoint_departure", "faster_route")

@@ -20,6 +20,12 @@ def decode_holiday_celebration_enabled(
     return {}
 
 
+_COSTUME_THEME_MAP: Final[dict[int, str]] = {
+    holiday_celebration_pb2.CAR_COSTUME_THEME_NONE: "none",
+    holiday_celebration_pb2.CAR_COSTUME_THEME_GHOSTBUSTERS: "ghostbusters",
+    holiday_celebration_pb2.CAR_COSTUME_THEME_GHOSTBUSTERS_DISPLAY: "ghostbusters_display",
+}
+
 _COSTUME_EFFECT_TRIGGER_MAP: Final[dict[int, str]] = {
     holiday_celebration_pb2.COSTUME_EFFECT_TRIGGER_MANUAL: "manual",
     holiday_celebration_pb2.COSTUME_EFFECT_TRIGGER_MOTION: "motion",
@@ -81,14 +87,19 @@ def decode_car_costume_state(
 
     Fields:
         carCostumeAvailability: int
-        costumeTheme: int
+        costumeTheme: str | None ("none" | "ghostbusters" |
+            "ghostbusters_display"; inferred), None when unset
         costumeMotionTriggerDetected: bool
         activeCostumeEffect: int
         costumeStartTime: datetime, only when sent
     """
     result: dict[str, Any] = {
         "carCostumeAvailability": m.car_costume_availability,
-        "costumeTheme": m.costume_theme,
+        "costumeTheme": (
+            _enum(_COSTUME_THEME_MAP, m.costume_theme, what="costume theme")
+            if m.costume_theme
+            else None
+        ),
         "costumeMotionTriggerDetected": m.motion_trigger_detected,
         "activeCostumeEffect": m.active_costume_effect,
     }

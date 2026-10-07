@@ -107,7 +107,7 @@ def test_tires() -> None:
                     pos=dynamics.TIRE_FRONT_RIGHT,
                     status=dynamics.TIRE_PRESSURE_STATUS_WARNING_SOFT,
                     pressure=2.1,
-                    invalid=True,
+                    validity=1,
                 ),
                 tire(
                     pos=dynamics.TIRE_REAR_LEFT,

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1frivian/parallax/proto/ota.proto\x12\x13rivian.parallax.ota\"\x88\x19\n\x0f\x44\x65ploymentState\x12\x43\n\ndeployment\x18\x01 \x03(\x0b\x32/.rivian.parallax.ota.DeploymentState.Deployment\x1a\xb6\x02\n\nDeployment\x12U\n\x11software_category\x18\x01 \x01(\x0e\x32\x35.rivian.parallax.ota.DeploymentState.SoftwareCategoryH\x00\x88\x01\x01\x12=\n\x07version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12\x1a\n\rdeployment_id\x18\x03 \x01(\tH\x01\x88\x01\x01\x12N\n\x10progress_wrapper\x18\x04 \x01(\x0b\x32\x34.rivian.parallax.ota.DeploymentState.ProgressWrapperB\x14\n\x12_software_categoryB\x10\n\x0e_deployment_id\x1a\xa1\x02\n\x07Version\x12\x1b\n\x0eversion_string\x18\x01 \x01(\tH\x00\x88\x01\x01\x12 \n\x13software_version_id\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x19\n\x0cversion_year\x18\x03 \x01(\x05H\x02\x88\x01\x01\x12\x1a\n\rversion_build\x18\x04 \x01(\x05H\x03\x88\x01\x01\x12\x1b\n\x0eversion_number\x18\x05 \x01(\x05H\x04\x88\x01\x01\x12\x15\n\x08\x62uild_id\x18\x06 \x01(\tH\x05\x88\x01\x01\x42\x11\n\x0f_version_stringB\x16\n\x14_software_version_idB\x0f\n\r_version_yearB\x10\n\x0e_version_buildB\x11\n\x0f_version_numberB\x0b\n\t_build_id\x1a\xde\x04\n\x0fProgressWrapper\x12\x1a\n\rdeployment_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x44\n\x0etarget_version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12\x15\n\x08ota_type\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12\x62\n\x12\x64\x65ployment_context\x18\x04 \x01(\x0b\x32\x46.rivian.parallax.ota.DeploymentState.ProgressWrapper.DeploymentContext\x12?\n\x08progress\x18\x05 \x01(\x0b\x32-.rivian.parallax.ota.DeploymentState.Progress\x12\x14\n\x0cinstall_time\x18\x06 \x01(\x03\x12\x18\n\x0binstall_tod\x18\x07 \x01(\x05H\x02\x88\x01\x01\x12\x12\n\nskip_count\x18\x08 \x01(\x05\x12\x14\n\x0cskip_allowed\x18\t \x01(\x08\x12P\n\x11\x64\x65ployment_intent\x18\n \x01(\x0e\x32\x35.rivian.parallax.ota.DeploymentState.DeploymentIntent\x12\x16\n\tis_active\x18\x0b \x01(\x08H\x03\x88\x01\x01\x1a,\n\x11\x44\x65ploymentContext\x12\x17\n\x0f\x64ownload_policy\x18\x01 \x01(\x05\x42\x10\n\x0e_deployment_idB\x0b\n\t_ota_typeB\x0e\n\x0c_install_todB\x0c\n\n_is_active\x1a\x9e\x07\n\x08Progress\x12\x41\n\x05phase\x18\x01 \x01(\x0e\x32-.rivian.parallax.ota.DeploymentState.OtaPhaseH\x00\x88\x01\x01\x12J\n\x0e\x63urrent_status\x18\x02 \x01(\x0e\x32\x32.rivian.parallax.ota.DeploymentState.CurrentStatus\x12T\n\x11\x64ownload_progress\x18\x03 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12S\n\x10install_progress\x18\x04 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12U\n\x0fpending_reasons\x18\x05 \x01(\x0b\x32<.rivian.parallax.ota.DeploymentState.Progress.PendingReasons\x12\x16\n\x0etime_remaining\x18\x06 \x01(\x05\x12\x15\n\rinstall_ready\x18\x07 \x01(\x08\x12\x1a\n\x12status_acknowledge\x18\x08 \x01(\x05\x12\x18\n\x10install_duration\x18\t \x01(\x05\x1a\x8e\x01\n\x0bProgress100\x12K\n\nstarted_at\x18\x01 \x01(\x0b\x32\x37.rivian.parallax.ota.DeploymentState.Progress.Timestamp\x12\x1d\n\x10progress_percent\x18\x02 \x01(\x05H\x00\x88\x01\x01\x42\x13\n\x11_progress_percent\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\xd3\x01\n\x0ePendingReasons\x12\x13\n\x0b\x61\x63tive_mode\x18\x01 \x01(\x08\x12\x15\n\rfast_charging\x18\x02 \x01(\x08\x12\x13\n\x0bhv_batt_low\x18\x03 \x01(\x08\x12\x0f\n\x07lv_batt\x18\x04 \x01(\x08\x12\x13\n\x0blv_temp_low\x18\x05 \x01(\x08\x12\x12\n\nnot_parked\x18\x06 \x01(\x08\x12\r\n\x05other\x18\x07 \x01(\x08\x12\x11\n\ttransport\x18\x08 \x01(\x08\x12\x11\n\tunplugged\x18\t \x01(\x08\x12\x11\n\tcamp_mode\x18\n \x01(\x08\x42\x08\n\x06_phase\"\x9a\x01\n\x10SoftwareCategory\x12!\n\x1dSOFTWARE_CATEGORY_UNSPECIFIED\x10\x00\x12\x1e\n\x1aSOFTWARE_CATEGORY_FIRMWARE\x10\x01\x12\x1d\n\x19SOFTWARE_CATEGORY_HD_MAPS\x10\x02\x12$\n SOFTWARE_CATEGORY_VEHICLE_CONFIG\x10\x03\"\xce\x01\n\x10\x44\x65ploymentIntent\x12!\n\x1d\x44\x45PLOYMENT_INTENT_UNSPECIFIED\x10\x00\x12)\n%DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE\x10\x01\x12\x1d\n\x19\x44\x45PLOYMENT_INTENT_BUG_FIX\x10\x02\x12%\n!DEPLOYMENT_INTENT_SECURITY_UPDATE\x10\x03\x12&\n\"DEPLOYMENT_INTENT_FEATURE_ADDITION\x10\x04\"\xa2\x01\n\rCurrentStatus\x12\x1e\n\x1a\x43URRENT_STATUS_UNSPECIFIED\x10\x00\x12\"\n\x1e\x43URRENT_STATUS_INSTALL_SUCCESS\x10\x01\x12!\n\x1d\x43URRENT_STATUS_INSTALL_FAILED\x10\x02\x12*\n&CURRENT_STATUS_INSTALL_UNABLE_TO_START\x10\x03\"\xbd\x03\n\x08OtaPhase\x12\x19\n\x15OTA_PHASE_UNSPECIFIED\x10\x00\x12\x12\n\x0eOTA_PHASE_IDLE\x10\x01\x12\x1f\n\x1bOTA_PHASE_READY_TO_DOWNLOAD\x10\x02\x12\x13\n\x0fOTA_PHASE_FAULT\x10\x03\x12\x1d\n\x19OTA_PHASE_CONNECTION_LOST\x10\x04\x12\x1f\n\x1bOTA_PHASE_INSTALL_COUNTDOWN\x10\x05\x12\x17\n\x13OTA_PHASE_PREPARING\x10\x06\x12\x19\n\x15OTA_PHASE_DOWNLOADING\x10\x07\x12\x1e\n\x1aOTA_PHASE_READY_TO_INSTALL\x10\x08\x12\"\n\x1eOTA_PHASE_SCHEDULED_TO_INSTALL\x10\t\x12\x1e\n\x1aOTA_PHASE_AWAITING_INSTALL\x10\n\x12\x18\n\x14OTA_PHASE_INSTALLING\x10\x0b\x12\x1d\n\x19OTA_PHASE_INSTALL_SUCCESS\x10\x0c\x12\x1d\n\x19OTA_PHASE_DOWNLOAD_FAILED\x10\r\x12\x1c\n\x18OTA_PHASE_INSTALL_FAILED\x10\x0e\"\xb2\x05\n\tOtaConfig\x12\x39\n\x08schedule\x18\x01 \x03(\x0b\x32\'.rivian.parallax.ota.OtaConfig.Schedule\x12<\n\nupdated_at\x18\x02 \x01(\x0b\x32(.rivian.parallax.ota.OtaConfig.UpdatedAt\x1a\xd5\x01\n\x08Schedule\x12\x0f\n\x02id\x18\x01 \x01(\tH\x01\x88\x01\x01\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\x12\x44\n\rrepeats_daily\x18\x03 \x01(\x0b\x32+.rivian.parallax.ota.OtaConfig.RepeatsDailyH\x00\x12L\n\x11single_occurrence\x18\x04 \x01(\x0b\x32/.rivian.parallax.ota.OtaConfig.SingleOccurrenceH\x00\x42\x0c\n\noccurrenceB\x05\n\x03_id\x1ao\n\x0cRepeatsDaily\x12\x16\n\tstarts_at\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x39\n\x08location\x18\x02 \x01(\x0b\x32\'.rivian.parallax.ota.OtaConfig.LocationB\x0c\n\n_starts_at\x1a&\n\x08Location\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_name\x1a\x8d\x01\n\x10SingleOccurrence\x12K\n\tstarts_at\x18\x01 \x01(\x0b\x32\x38.rivian.parallax.ota.OtaConfig.SingleOccurrence.StartsAt\x1a,\n\x08StartsAt\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_seconds\x1a+\n\tUpdatedAt\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\"\xa7\x01\n\x0fVehicleOtaState\x12\x0c\n\x04name\x18\x01 \x01(\t\x12P\n\x11scheduled_install\x18\x02 \x01(\x0b\x32\x35.rivian.parallax.ota.VehicleOtaState.ScheduledInstall\x1a\x34\n\x10ScheduledInstall\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_secondsb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1frivian/parallax/proto/ota.proto\x12\x13rivian.parallax.ota\"\x86\x19\n\x0f\x44\x65ploymentState\x12\x43\n\ndeployment\x18\x01 \x03(\x0b\x32/.rivian.parallax.ota.DeploymentState.Deployment\x1a\xb6\x02\n\nDeployment\x12U\n\x11software_category\x18\x01 \x01(\x0e\x32\x35.rivian.parallax.ota.DeploymentState.SoftwareCategoryH\x00\x88\x01\x01\x12=\n\x07version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12\x1a\n\rdeployment_id\x18\x03 \x01(\tH\x01\x88\x01\x01\x12N\n\x10progress_wrapper\x18\x04 \x01(\x0b\x32\x34.rivian.parallax.ota.DeploymentState.ProgressWrapperB\x14\n\x12_software_categoryB\x10\n\x0e_deployment_id\x1a\x9f\x02\n\x07Version\x12\x1b\n\x0eversion_string\x18\x01 \x01(\tH\x00\x88\x01\x01\x12 \n\x13software_version_id\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x19\n\x0cversion_year\x18\x03 \x01(\x05H\x02\x88\x01\x01\x12\x19\n\x0cversion_week\x18\x04 \x01(\x05H\x03\x88\x01\x01\x12\x1b\n\x0eversion_number\x18\x05 \x01(\x05H\x04\x88\x01\x01\x12\x15\n\x08git_hash\x18\x06 \x01(\tH\x05\x88\x01\x01\x42\x11\n\x0f_version_stringB\x16\n\x14_software_version_idB\x0f\n\r_version_yearB\x0f\n\r_version_weekB\x11\n\x0f_version_numberB\x0b\n\t_git_hash\x1a\xde\x04\n\x0fProgressWrapper\x12\x1a\n\rdeployment_id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x44\n\x0etarget_version\x18\x02 \x01(\x0b\x32,.rivian.parallax.ota.DeploymentState.Version\x12\x15\n\x08ota_type\x18\x03 \x01(\x05H\x01\x88\x01\x01\x12\x62\n\x12\x64\x65ployment_context\x18\x04 \x01(\x0b\x32\x46.rivian.parallax.ota.DeploymentState.ProgressWrapper.DeploymentContext\x12?\n\x08progress\x18\x05 \x01(\x0b\x32-.rivian.parallax.ota.DeploymentState.Progress\x12\x14\n\x0cinstall_time\x18\x06 \x01(\x03\x12\x18\n\x0binstall_tod\x18\x07 \x01(\x05H\x02\x88\x01\x01\x12\x12\n\nskip_count\x18\x08 \x01(\x05\x12\x14\n\x0cskip_allowed\x18\t \x01(\x08\x12P\n\x11\x64\x65ployment_intent\x18\n \x01(\x0e\x32\x35.rivian.parallax.ota.DeploymentState.DeploymentIntent\x12\x16\n\tis_active\x18\x0b \x01(\x08H\x03\x88\x01\x01\x1a,\n\x11\x44\x65ploymentContext\x12\x17\n\x0f\x64ownload_policy\x18\x01 \x01(\x05\x42\x10\n\x0e_deployment_idB\x0b\n\t_ota_typeB\x0e\n\x0c_install_todB\x0c\n\n_is_active\x1a\x9e\x07\n\x08Progress\x12\x41\n\x05phase\x18\x01 \x01(\x0e\x32-.rivian.parallax.ota.DeploymentState.OtaPhaseH\x00\x88\x01\x01\x12J\n\x0e\x63urrent_status\x18\x02 \x01(\x0e\x32\x32.rivian.parallax.ota.DeploymentState.CurrentStatus\x12T\n\x11\x64ownload_progress\x18\x03 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12S\n\x10install_progress\x18\x04 \x01(\x0b\x32\x39.rivian.parallax.ota.DeploymentState.Progress.Progress100\x12U\n\x0fpending_reasons\x18\x05 \x01(\x0b\x32<.rivian.parallax.ota.DeploymentState.Progress.PendingReasons\x12\x16\n\x0etime_remaining\x18\x06 \x01(\x05\x12\x15\n\rinstall_ready\x18\x07 \x01(\x08\x12\x1a\n\x12status_acknowledge\x18\x08 \x01(\x05\x12\x18\n\x10install_duration\x18\t \x01(\x05\x1a\x8e\x01\n\x0bProgress100\x12K\n\nstarted_at\x18\x01 \x01(\x0b\x32\x37.rivian.parallax.ota.DeploymentState.Progress.Timestamp\x12\x1d\n\x10progress_percent\x18\x02 \x01(\x05H\x00\x88\x01\x01\x42\x13\n\x11_progress_percent\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\xd3\x01\n\x0ePendingReasons\x12\x13\n\x0b\x61\x63tive_mode\x18\x01 \x01(\x08\x12\x15\n\rfast_charging\x18\x02 \x01(\x08\x12\x13\n\x0bhv_batt_low\x18\x03 \x01(\x08\x12\x0f\n\x07lv_batt\x18\x04 \x01(\x08\x12\x13\n\x0blv_temp_low\x18\x05 \x01(\x08\x12\x12\n\nnot_parked\x18\x06 \x01(\x08\x12\r\n\x05other\x18\x07 \x01(\x08\x12\x11\n\ttransport\x18\x08 \x01(\x08\x12\x11\n\tunplugged\x18\t \x01(\x08\x12\x11\n\tcamp_mode\x18\n \x01(\x08\x42\x08\n\x06_phase\"\x9a\x01\n\x10SoftwareCategory\x12!\n\x1dSOFTWARE_CATEGORY_UNSPECIFIED\x10\x00\x12\x1e\n\x1aSOFTWARE_CATEGORY_FIRMWARE\x10\x01\x12\x1d\n\x19SOFTWARE_CATEGORY_HD_MAPS\x10\x02\x12$\n SOFTWARE_CATEGORY_VEHICLE_CONFIG\x10\x03\"\xce\x01\n\x10\x44\x65ploymentIntent\x12!\n\x1d\x44\x45PLOYMENT_INTENT_UNSPECIFIED\x10\x00\x12)\n%DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE\x10\x01\x12\x1d\n\x19\x44\x45PLOYMENT_INTENT_BUG_FIX\x10\x02\x12%\n!DEPLOYMENT_INTENT_SECURITY_UPDATE\x10\x03\x12&\n\"DEPLOYMENT_INTENT_FEATURE_ADDITION\x10\x04\"\xa2\x01\n\rCurrentStatus\x12\x1e\n\x1a\x43URRENT_STATUS_UNSPECIFIED\x10\x00\x12\"\n\x1e\x43URRENT_STATUS_INSTALL_SUCCESS\x10\x01\x12!\n\x1d\x43URRENT_STATUS_INSTALL_FAILED\x10\x02\x12*\n&CURRENT_STATUS_INSTALL_UNABLE_TO_START\x10\x03\"\xbd\x03\n\x08OtaPhase\x12\x19\n\x15OTA_PHASE_UNSPECIFIED\x10\x00\x12\x12\n\x0eOTA_PHASE_IDLE\x10\x01\x12\x1f\n\x1bOTA_PHASE_READY_TO_DOWNLOAD\x10\x02\x12\x13\n\x0fOTA_PHASE_FAULT\x10\x03\x12\x1d\n\x19OTA_PHASE_CONNECTION_LOST\x10\x04\x12\x1f\n\x1bOTA_PHASE_INSTALL_COUNTDOWN\x10\x05\x12\x17\n\x13OTA_PHASE_PREPARING\x10\x06\x12\x19\n\x15OTA_PHASE_DOWNLOADING\x10\x07\x12\x1e\n\x1aOTA_PHASE_READY_TO_INSTALL\x10\x08\x12\"\n\x1eOTA_PHASE_SCHEDULED_TO_INSTALL\x10\t\x12\x1e\n\x1aOTA_PHASE_AWAITING_INSTALL\x10\n\x12\x18\n\x14OTA_PHASE_INSTALLING\x10\x0b\x12\x1d\n\x19OTA_PHASE_INSTALL_SUCCESS\x10\x0c\x12\x1d\n\x19OTA_PHASE_DOWNLOAD_FAILED\x10\r\x12\x1c\n\x18OTA_PHASE_INSTALL_FAILED\x10\x0e\"\xb2\x05\n\tOtaConfig\x12\x39\n\x08schedule\x18\x01 \x03(\x0b\x32\'.rivian.parallax.ota.OtaConfig.Schedule\x12<\n\nupdated_at\x18\x02 \x01(\x0b\x32(.rivian.parallax.ota.OtaConfig.UpdatedAt\x1a\xd5\x01\n\x08Schedule\x12\x0f\n\x02id\x18\x01 \x01(\tH\x01\x88\x01\x01\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\x12\x44\n\rrepeats_daily\x18\x03 \x01(\x0b\x32+.rivian.parallax.ota.OtaConfig.RepeatsDailyH\x00\x12L\n\x11single_occurrence\x18\x04 \x01(\x0b\x32/.rivian.parallax.ota.OtaConfig.SingleOccurrenceH\x00\x42\x0c\n\noccurrenceB\x05\n\x03_id\x1ao\n\x0cRepeatsDaily\x12\x16\n\tstarts_at\x18\x01 \x01(\x05H\x00\x88\x01\x01\x12\x39\n\x08location\x18\x02 \x01(\x0b\x32\'.rivian.parallax.ota.OtaConfig.LocationB\x0c\n\n_starts_at\x1a&\n\x08Location\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_name\x1a\x8d\x01\n\x10SingleOccurrence\x12K\n\tstarts_at\x18\x01 \x01(\x0b\x32\x38.rivian.parallax.ota.OtaConfig.SingleOccurrence.StartsAt\x1a,\n\x08StartsAt\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_seconds\x1a+\n\tUpdatedAt\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\"\xa7\x01\n\x0fVehicleOtaState\x12\x0c\n\x04name\x18\x01 \x01(\t\x12P\n\x11scheduled_install\x18\x02 \x01(\x0b\x32\x35.rivian.parallax.ota.VehicleOtaState.ScheduledInstall\x1a\x34\n\x10ScheduledInstall\x12\x14\n\x07seconds\x18\x01 \x01(\x03H\x00\x88\x01\x01\x42\n\n\x08_secondsb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,47 +32,47 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rivian.parallax.proto.ota_p
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_DEPLOYMENTSTATE']._serialized_start=57
-  _globals['_DEPLOYMENTSTATE']._serialized_end=3265
+  _globals['_DEPLOYMENTSTATE']._serialized_end=3263
   _globals['_DEPLOYMENTSTATE_DEPLOYMENT']._serialized_start=146
   _globals['_DEPLOYMENTSTATE_DEPLOYMENT']._serialized_end=456
   _globals['_DEPLOYMENTSTATE_VERSION']._serialized_start=459
-  _globals['_DEPLOYMENTSTATE_VERSION']._serialized_end=748
-  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER']._serialized_start=751
-  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER']._serialized_end=1357
-  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER_DEPLOYMENTCONTEXT']._serialized_start=1252
-  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER_DEPLOYMENTCONTEXT']._serialized_end=1296
-  _globals['_DEPLOYMENTSTATE_PROGRESS']._serialized_start=1360
-  _globals['_DEPLOYMENTSTATE_PROGRESS']._serialized_end=2286
-  _globals['_DEPLOYMENTSTATE_PROGRESS_PROGRESS100']._serialized_start=1875
-  _globals['_DEPLOYMENTSTATE_PROGRESS_PROGRESS100']._serialized_end=2017
-  _globals['_DEPLOYMENTSTATE_PROGRESS_TIMESTAMP']._serialized_start=2019
-  _globals['_DEPLOYMENTSTATE_PROGRESS_TIMESTAMP']._serialized_end=2062
-  _globals['_DEPLOYMENTSTATE_PROGRESS_PENDINGREASONS']._serialized_start=2065
-  _globals['_DEPLOYMENTSTATE_PROGRESS_PENDINGREASONS']._serialized_end=2276
-  _globals['_DEPLOYMENTSTATE_SOFTWARECATEGORY']._serialized_start=2289
-  _globals['_DEPLOYMENTSTATE_SOFTWARECATEGORY']._serialized_end=2443
-  _globals['_DEPLOYMENTSTATE_DEPLOYMENTINTENT']._serialized_start=2446
-  _globals['_DEPLOYMENTSTATE_DEPLOYMENTINTENT']._serialized_end=2652
-  _globals['_DEPLOYMENTSTATE_CURRENTSTATUS']._serialized_start=2655
-  _globals['_DEPLOYMENTSTATE_CURRENTSTATUS']._serialized_end=2817
-  _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_start=2820
-  _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_end=3265
-  _globals['_OTACONFIG']._serialized_start=3268
-  _globals['_OTACONFIG']._serialized_end=3958
-  _globals['_OTACONFIG_SCHEDULE']._serialized_start=3403
-  _globals['_OTACONFIG_SCHEDULE']._serialized_end=3616
-  _globals['_OTACONFIG_REPEATSDAILY']._serialized_start=3618
-  _globals['_OTACONFIG_REPEATSDAILY']._serialized_end=3729
-  _globals['_OTACONFIG_LOCATION']._serialized_start=3731
-  _globals['_OTACONFIG_LOCATION']._serialized_end=3769
-  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_start=3772
-  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_end=3913
-  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_start=3869
-  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_end=3913
-  _globals['_OTACONFIG_UPDATEDAT']._serialized_start=3915
-  _globals['_OTACONFIG_UPDATEDAT']._serialized_end=3958
-  _globals['_VEHICLEOTASTATE']._serialized_start=3961
-  _globals['_VEHICLEOTASTATE']._serialized_end=4128
-  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_start=4076
-  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_end=4128
+  _globals['_DEPLOYMENTSTATE_VERSION']._serialized_end=746
+  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER']._serialized_start=749
+  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER']._serialized_end=1355
+  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER_DEPLOYMENTCONTEXT']._serialized_start=1250
+  _globals['_DEPLOYMENTSTATE_PROGRESSWRAPPER_DEPLOYMENTCONTEXT']._serialized_end=1294
+  _globals['_DEPLOYMENTSTATE_PROGRESS']._serialized_start=1358
+  _globals['_DEPLOYMENTSTATE_PROGRESS']._serialized_end=2284
+  _globals['_DEPLOYMENTSTATE_PROGRESS_PROGRESS100']._serialized_start=1873
+  _globals['_DEPLOYMENTSTATE_PROGRESS_PROGRESS100']._serialized_end=2015
+  _globals['_DEPLOYMENTSTATE_PROGRESS_TIMESTAMP']._serialized_start=2017
+  _globals['_DEPLOYMENTSTATE_PROGRESS_TIMESTAMP']._serialized_end=2060
+  _globals['_DEPLOYMENTSTATE_PROGRESS_PENDINGREASONS']._serialized_start=2063
+  _globals['_DEPLOYMENTSTATE_PROGRESS_PENDINGREASONS']._serialized_end=2274
+  _globals['_DEPLOYMENTSTATE_SOFTWARECATEGORY']._serialized_start=2287
+  _globals['_DEPLOYMENTSTATE_SOFTWARECATEGORY']._serialized_end=2441
+  _globals['_DEPLOYMENTSTATE_DEPLOYMENTINTENT']._serialized_start=2444
+  _globals['_DEPLOYMENTSTATE_DEPLOYMENTINTENT']._serialized_end=2650
+  _globals['_DEPLOYMENTSTATE_CURRENTSTATUS']._serialized_start=2653
+  _globals['_DEPLOYMENTSTATE_CURRENTSTATUS']._serialized_end=2815
+  _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_start=2818
+  _globals['_DEPLOYMENTSTATE_OTAPHASE']._serialized_end=3263
+  _globals['_OTACONFIG']._serialized_start=3266
+  _globals['_OTACONFIG']._serialized_end=3956
+  _globals['_OTACONFIG_SCHEDULE']._serialized_start=3401
+  _globals['_OTACONFIG_SCHEDULE']._serialized_end=3614
+  _globals['_OTACONFIG_REPEATSDAILY']._serialized_start=3616
+  _globals['_OTACONFIG_REPEATSDAILY']._serialized_end=3727
+  _globals['_OTACONFIG_LOCATION']._serialized_start=3729
+  _globals['_OTACONFIG_LOCATION']._serialized_end=3767
+  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_start=3770
+  _globals['_OTACONFIG_SINGLEOCCURRENCE']._serialized_end=3911
+  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_start=3867
+  _globals['_OTACONFIG_SINGLEOCCURRENCE_STARTSAT']._serialized_end=3911
+  _globals['_OTACONFIG_UPDATEDAT']._serialized_start=3913
+  _globals['_OTACONFIG_UPDATEDAT']._serialized_end=3956
+  _globals['_VEHICLEOTASTATE']._serialized_start=3959
+  _globals['_VEHICLEOTASTATE']._serialized_end=4126
+  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_start=4074
+  _globals['_VEHICLEOTASTATE_SCHEDULEDINSTALL']._serialized_end=4126
 # @@protoc_insertion_point(module_scope)

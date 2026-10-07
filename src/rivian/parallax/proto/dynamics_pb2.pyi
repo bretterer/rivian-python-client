@@ -190,18 +190,18 @@ class Range(_message.Message):
 class TiresState(_message.Message):
     __slots__ = ("tpms_monitor_status", "tire")
     class Tire(_message.Message):
-        __slots__ = ("pos", "status", "pressure", "invalid", "timestamp")
+        __slots__ = ("pos", "status", "pressure", "validity", "timestamp")
         POS_FIELD_NUMBER: _ClassVar[int]
         STATUS_FIELD_NUMBER: _ClassVar[int]
         PRESSURE_FIELD_NUMBER: _ClassVar[int]
-        INVALID_FIELD_NUMBER: _ClassVar[int]
+        VALIDITY_FIELD_NUMBER: _ClassVar[int]
         TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
         pos: TirePosition
         status: TirePressureStatus
         pressure: float
-        invalid: bool
+        validity: int
         timestamp: int
-        def __init__(self, pos: _Optional[_Union[TirePosition, str]] = ..., status: _Optional[_Union[TirePressureStatus, str]] = ..., pressure: _Optional[float] = ..., invalid: bool = ..., timestamp: _Optional[int] = ...) -> None: ...
+        def __init__(self, pos: _Optional[_Union[TirePosition, str]] = ..., status: _Optional[_Union[TirePressureStatus, str]] = ..., pressure: _Optional[float] = ..., validity: _Optional[int] = ..., timestamp: _Optional[int] = ...) -> None: ...
     TPMS_MONITOR_STATUS_FIELD_NUMBER: _ClassVar[int]
     TIRE_FIELD_NUMBER: _ClassVar[int]
     tpms_monitor_status: int

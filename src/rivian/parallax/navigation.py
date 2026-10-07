@@ -85,7 +85,7 @@ def _decode_origin(origin: navigation_pb2.GpsFix) -> dict[str, Any]:
     result = _decode_geocoordinate(
         _present(origin, "location"), "originLatitude", "originLongitude"
     )
-    result["originHeading"] = origin.heading
+    result["originBearing"] = origin.bearing
     if (origin_epoch := _present(origin, "time")) is not None:
         result["originTime"] = from_epoch(origin_epoch)
     return result
@@ -282,7 +282,7 @@ def decode_trip_info(m: navigation_pb2.TripInfo) -> dict[str, Any]:
         tripId: str — changes on every route computation, so it can't
             correlate messages
         originLatitude, originLongitude: float
-        originHeading: float (degrees)
+        originBearing: float (degrees)
         originTime: datetime
         originStateOfCharge: float (percent)
         distance, duration: float — driving totals (meters, seconds),
@@ -354,7 +354,7 @@ def decode_trip_progress(m: navigation_pb2.TripProgress) -> dict[str, Any]:
             (meters, seconds)
         latitude, longitude: float
         speed: float (m/s)
-        heading: float (degrees)
+        bearing: float (degrees)
         locationTime: datetime — time of the position fix
     """
     result: dict[str, Any] = {}
@@ -371,7 +371,7 @@ def decode_trip_progress(m: navigation_pb2.TripProgress) -> dict[str, Any]:
             _decode_geocoordinate(_present(fix, "location"), "latitude", "longitude")
         )
         result["speed"] = fix.speed
-        result["heading"] = fix.heading
+        result["bearing"] = fix.bearing
         if (fix_epoch := _present(fix, "time")) is not None:
             result["locationTime"] = from_epoch(fix_epoch)
     return result

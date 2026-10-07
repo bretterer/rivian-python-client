@@ -178,6 +178,6 @@ def test_trip_progress() -> None:
         "latitude": 33.4,
         "longitude": -80.8,
         "speed": 10.5,
-        "heading": 0.0,
+        "bearing": 0.0,
         "locationTime": epoch(1790553428211),
     }

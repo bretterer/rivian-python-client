@@ -71,31 +71,81 @@ class VasKeyperDevices(_message.Message):
         vehicle_response_required: int
         def __init__(self, mapped_identity_id: _Optional[str] = ..., hrid: _Optional[str] = ..., profile_id: _Optional[str] = ..., public_key: _Optional[str] = ..., revision: _Optional[int] = ..., vehicle_response_required: _Optional[int] = ...) -> None: ...
     class Credentials(_message.Message):
-        __slots__ = ("info", "card", "fob", "phone", "key_type", "device_oem")
+        __slots__ = ("info", "signed_cloud", "owner", "friend", "card", "fob", "phone", "fob2", "key_type", "device_oem")
         class Info(_message.Message):
-            __slots__ = ("a", "c", "status", "b")
+            __slots__ = ("a", "created_at", "expires_at", "c", "status", "b", "permissions")
             A_FIELD_NUMBER: _ClassVar[int]
+            CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+            EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
             C_FIELD_NUMBER: _ClassVar[int]
             STATUS_FIELD_NUMBER: _ClassVar[int]
             B_FIELD_NUMBER: _ClassVar[int]
+            PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
             a: int
+            created_at: int
+            expires_at: int
             c: int
             status: VasKeyperDevices.KeyStatus
             b: int
-            def __init__(self, a: _Optional[int] = ..., c: _Optional[int] = ..., status: _Optional[_Union[VasKeyperDevices.KeyStatus, str]] = ..., b: _Optional[int] = ...) -> None: ...
+            permissions: int
+            def __init__(self, a: _Optional[int] = ..., created_at: _Optional[int] = ..., expires_at: _Optional[int] = ..., c: _Optional[int] = ..., status: _Optional[_Union[VasKeyperDevices.KeyStatus, str]] = ..., b: _Optional[int] = ..., permissions: _Optional[int] = ...) -> None: ...
+        class SignedCloud(_message.Message):
+            __slots__ = ("payload",)
+            PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+            payload: str
+            def __init__(self, payload: _Optional[str] = ...) -> None: ...
+        class OwnerKey(_message.Message):
+            __slots__ = ("spake_w0", "spake_l", "salt", "id", "credential")
+            SPAKE_W0_FIELD_NUMBER: _ClassVar[int]
+            SPAKE_L_FIELD_NUMBER: _ClassVar[int]
+            SALT_FIELD_NUMBER: _ClassVar[int]
+            ID_FIELD_NUMBER: _ClassVar[int]
+            CREDENTIAL_FIELD_NUMBER: _ClassVar[int]
+            spake_w0: bytes
+            spake_l: bytes
+            salt: bytes
+            id: bytes
+            credential: bytes
+            def __init__(self, spake_w0: _Optional[bytes] = ..., spake_l: _Optional[bytes] = ..., salt: _Optional[bytes] = ..., id: _Optional[bytes] = ..., credential: _Optional[bytes] = ...) -> None: ...
+        class FriendKey(_message.Message):
+            __slots__ = ("id", "credential")
+            ID_FIELD_NUMBER: _ClassVar[int]
+            CREDENTIAL_FIELD_NUMBER: _ClassVar[int]
+            id: bytes
+            credential: bytes
+            def __init__(self, id: _Optional[bytes] = ..., credential: _Optional[bytes] = ...) -> None: ...
+        class DualKey(_message.Message):
+            __slots__ = ("ble_id", "ble_credential", "nfc_id", "nfc_credential")
+            BLE_ID_FIELD_NUMBER: _ClassVar[int]
+            BLE_CREDENTIAL_FIELD_NUMBER: _ClassVar[int]
+            NFC_ID_FIELD_NUMBER: _ClassVar[int]
+            NFC_CREDENTIAL_FIELD_NUMBER: _ClassVar[int]
+            ble_id: bytes
+            ble_credential: bytes
+            nfc_id: bytes
+            nfc_credential: bytes
+            def __init__(self, ble_id: _Optional[bytes] = ..., ble_credential: _Optional[bytes] = ..., nfc_id: _Optional[bytes] = ..., nfc_credential: _Optional[bytes] = ...) -> None: ...
         INFO_FIELD_NUMBER: _ClassVar[int]
+        SIGNED_CLOUD_FIELD_NUMBER: _ClassVar[int]
+        OWNER_FIELD_NUMBER: _ClassVar[int]
+        FRIEND_FIELD_NUMBER: _ClassVar[int]
         CARD_FIELD_NUMBER: _ClassVar[int]
         FOB_FIELD_NUMBER: _ClassVar[int]
         PHONE_FIELD_NUMBER: _ClassVar[int]
+        FOB2_FIELD_NUMBER: _ClassVar[int]
         KEY_TYPE_FIELD_NUMBER: _ClassVar[int]
         DEVICE_OEM_FIELD_NUMBER: _ClassVar[int]
         info: VasKeyperDevices.Credentials.Info
+        signed_cloud: VasKeyperDevices.Credentials.SignedCloud
+        owner: VasKeyperDevices.Credentials.OwnerKey
+        friend: VasKeyperDevices.Credentials.FriendKey
         card: VasKeyperDevices.KeyMaterial
         fob: VasKeyperDevices.KeyMaterial
         phone: VasKeyperDevices.KeyMaterial
+        fob2: VasKeyperDevices.Credentials.DualKey
         key_type: VasKeyperDevices.KeyType
         device_oem: VasKeyperDevices.DeviceOem
-        def __init__(self, info: _Optional[_Union[VasKeyperDevices.Credentials.Info, _Mapping]] = ..., card: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., phone: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., device_oem: _Optional[_Union[VasKeyperDevices.DeviceOem, str]] = ...) -> None: ...
+        def __init__(self, info: _Optional[_Union[VasKeyperDevices.Credentials.Info, _Mapping]] = ..., signed_cloud: _Optional[_Union[VasKeyperDevices.Credentials.SignedCloud, _Mapping]] = ..., owner: _Optional[_Union[VasKeyperDevices.Credentials.OwnerKey, _Mapping]] = ..., friend: _Optional[_Union[VasKeyperDevices.Credentials.FriendKey, _Mapping]] = ..., card: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., phone: _Optional[_Union[VasKeyperDevices.KeyMaterial, _Mapping]] = ..., fob2: _Optional[_Union[VasKeyperDevices.Credentials.DualKey, _Mapping]] = ..., key_type: _Optional[_Union[VasKeyperDevices.KeyType, str]] = ..., device_oem: _Optional[_Union[VasKeyperDevices.DeviceOem, str]] = ...) -> None: ...
     class KeyMaterial(_message.Message):
         __slots__ = ("id", "credential")
         ID_FIELD_NUMBER: _ClassVar[int]

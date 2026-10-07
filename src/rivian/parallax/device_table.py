@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Any, Final
 
+from ..utils import from_epoch
 from .core import RVMDecoder, _enum, _present
 from .proto import device_table_pb2
 
@@ -59,9 +60,14 @@ def decode_vas_keyper_devices(m: device_table_pb2.VasKeyperDevices) -> dict[str,
         infoC: int — 1 while active, 2147483647 while inactive, else the
             pairing attempt number
         infoA, infoB: int — unknown
+        keyPermissions: int — raw
+        keyCreatedAt, keyExpiresAt: datetime — when sent and non-zero
+        keyMaterial: str — which key material is set ("owner" | "friend" |
+            "card" | "fob" | "phone" | "fob2")
         deviceId: str — hex; for a key card, the GraphQL `devices[].id`
+        nfcDeviceId: str — hex; fob2's NFC id (deviceId is its BLE id)
         phoneId: str — the phone's UUID; phone keys
-        credentialHex: str — hex; likely key material
+        credentialHex: str — hex; the wrapped shared secret
         deviceOem: str ("unknown" | "rivian" | "apple" | "google" |
             "samsung" | "vw") — the device maker
     """
@@ -100,17 +106,29 @@ def decode_vas_keyper_devices(m: device_table_pb2.VasKeyperDevices) -> dict[str,
                 result[key] = v
         if (v := _present(credentials.info, "status")) is not None:
             result["keyStatus"] = _enum(_KEY_STATUS_MAP, v, what="key status")
-    for field in ("card", "fob", "phone"):
-        if not credentials.HasField(field):
-            continue
+        if (v := _present(credentials.info, "permissions")) is not None:
+            result["keyPermissions"] = v
+        for field, key in (
+            ("created_at", "keyCreatedAt"),
+            ("expires_at", "keyExpiresAt"),
+        ):
+            if v := _present(credentials.info, field):
+                result[key] = from_epoch(v)
+    if (field := credentials.WhichOneof("material")) is not None:
+        result["keyMaterial"] = field
         material = getattr(credentials, field)
-        if (ident := _present(material, "id")) is not None:
+        id_field, cred_field = (
+            ("ble_id", "ble_credential") if field == "fob2" else ("id", "credential")
+        )
+        if (ident := _present(material, id_field)) is not None:
             if field == "phone" and len(ident) == 16:
                 result["phoneId"] = str(uuid.UUID(bytes=ident))
             else:
                 result["deviceId"] = ident.hex()
-        if (cred := _present(material, "credential")) is not None:
+        if (cred := _present(material, cred_field)) is not None:
             result["credentialHex"] = cred.hex()
+        if field == "fob2" and (ident := _present(material, "nfc_id")) is not None:
+            result["nfcDeviceId"] = ident.hex()
     if (v := _present(credentials, "key_type")) is not None:
         result["keyType"] = _enum(_KEY_TYPE_MAP, v, what="key type")
     if (v := _present(credentials, "device_oem")) is not None:
