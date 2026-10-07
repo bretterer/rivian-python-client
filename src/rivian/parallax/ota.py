@@ -27,24 +27,23 @@ _OTA_STATUS_MAP: Final[dict[int, str]] = {
 
 
 _Deployment = ota_pb2.DeploymentState
-# The app's GraphQL-style strings.
 _CURRENT_STATUS_MAP: Final[dict[int, str]] = {
-    _Deployment.CURRENT_STATUS_INSTALL_SUCCESS: "Install_Success",
-    _Deployment.CURRENT_STATUS_INSTALL_FAILED: "Install_Failed",
-    _Deployment.CURRENT_STATUS_INSTALL_UNABLE_TO_START: "Install_Unable_To_Start",
+    _Deployment.CURRENT_STATUS_INSTALL_SUCCESS: "install_success",
+    _Deployment.CURRENT_STATUS_INSTALL_FAILED: "install_failed",
+    _Deployment.CURRENT_STATUS_INSTALL_UNABLE_TO_START: "install_unable_to_start",
 }
 
 _DEPLOYMENT_INTENT_MAP: Final[dict[int, str]] = {
-    _Deployment.DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE: "Performance_Upgrade",
-    _Deployment.DEPLOYMENT_INTENT_BUG_FIX: "Bug_Fix",
-    _Deployment.DEPLOYMENT_INTENT_SECURITY_UPDATE: "Security_Update",
-    _Deployment.DEPLOYMENT_INTENT_FEATURE_ADDITION: "Feature_Addition",
+    _Deployment.DEPLOYMENT_INTENT_PERFORMANCE_UPGRADE: "performance_upgrade",
+    _Deployment.DEPLOYMENT_INTENT_BUG_FIX: "bug_fix",
+    _Deployment.DEPLOYMENT_INTENT_SECURITY_UPDATE: "security_update",
+    _Deployment.DEPLOYMENT_INTENT_FEATURE_ADDITION: "feature_addition",
 }
 
 _SOFTWARE_CATEGORY_MAP: Final[dict[int, str]] = {
-    _Deployment.SOFTWARE_CATEGORY_FIRMWARE: "Firmware",
-    _Deployment.SOFTWARE_CATEGORY_HD_MAPS: "HD_Maps",
-    _Deployment.SOFTWARE_CATEGORY_VEHICLE_CONFIG: "Vehicle_Config",
+    _Deployment.SOFTWARE_CATEGORY_FIRMWARE: "firmware",
+    _Deployment.SOFTWARE_CATEGORY_HD_MAPS: "hd_maps",
+    _Deployment.SOFTWARE_CATEGORY_VEHICLE_CONFIG: "vehicle_config",
 }
 
 
@@ -80,7 +79,7 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         otaCurrentVersionYear, otaCurrentVersionWeek,
             otaCurrentVersionNumber: int
         otaCurrentVersionGitHash: str
-        otaSoftwareCategory: str ("Firmware" | "HD_Maps" | "Vehicle_Config")
+        otaSoftwareCategory: str ("firmware" | "hd_maps" | "vehicle_config")
         otaUpdateInProgress: bool
         otaDeploymentId: str — UUID, only while an update is in flight
         otaAvailableVersion, otaAvailableVersionYear,
@@ -94,13 +93,13 @@ def decode_deployment_state(m: ota_pb2.DeploymentState) -> dict[str, Any]:
         otaDownloadProgress, otaInstallProgress: int (0-100)
         otaTimeRemaining: int (seconds; counts down during
             "install_countdown", a static default otherwise)
-        otaCurrentStatus: str | None ("Install_Success" | "Install_Failed" |
-            "Install_Unable_To_Start") — the last install's result
+        otaCurrentStatus: str | None ("install_success" | "install_failed" |
+            "install_unable_to_start") — the last install's result
         otaInstallReady: str ("ota_available" | "ota_not_available")
         otaInstallDuration: int (minutes)
         otaInstallTimeOfDay: int (minutes after local midnight), when set
-        otaDeploymentIntent: str | None ("Performance_Upgrade" | "Bug_Fix" |
-            "Security_Update" | "Feature_Addition")
+        otaDeploymentIntent: str | None ("performance_upgrade" | "bug_fix" |
+            "security_update" | "feature_addition")
         otaSkipAllowed: bool, otaSkipCount: int
         otaPendingReasons: list[str] — what's blocking an install, e.g.
             "not_parked", "unplugged", "lv_batt"

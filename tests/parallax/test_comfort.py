@@ -72,8 +72,8 @@ def test_defrost() -> None:
     rvm = "comfort.cabin.defrost_defog_status"
     active = comfort.DefrostDefogStatus(status=comfort.DEFROST_ACTIVE)
     off = comfort.DefrostDefogStatus(status=comfort.DEFROST_OFF)
-    assert decode(rvm, active) == {"defrostDefogStatus": "Defrost"}
-    assert decode(rvm, off) == {"defrostDefogStatus": "Off"}
+    assert decode(rvm, active) == {"defrostDefogStatus": "defrost"}
+    assert decode(rvm, off) == {"defrostDefogStatus": "off"}
     assert decode(rvm) == {"defrostDefogStatus": None}
 
 
@@ -133,10 +133,10 @@ def test_seat_conditioning() -> None:
         ),
     )
     assert result == {
-        "seatFrontLeftHeat": "Level_2",
-        "steeringWheelHeat": "Level_1",
-        "seatThirdRowRightHeat": "Level_3",
-        "seatRearLeftHeat": "Off",
+        "seatFrontLeftHeat": "level_2",
+        "steeringWheelHeat": "level_1",
+        "seatThirdRowRightHeat": "level_3",
+        "seatRearLeftHeat": "off",
     }
 
 

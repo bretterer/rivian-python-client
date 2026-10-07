@@ -12,28 +12,28 @@ _Schedules = departure_pb2.DepartureSchedules
 
 # Days field -> gateway WeekDay value.
 _WEEKDAYS = (
-    ("monday", "Monday"),
-    ("tuesday", "Tuesday"),
-    ("wednesday", "Wednesday"),
-    ("thursday", "Thursday"),
-    ("friday", "Friday"),
-    ("saturday", "Saturday"),
-    ("sunday", "Sunday"),
+    ("monday", "monday"),
+    ("tuesday", "tuesday"),
+    ("wednesday", "wednesday"),
+    ("thursday", "thursday"),
+    ("friday", "friday"),
+    ("saturday", "saturday"),
+    ("sunday", "sunday"),
 )
 
 _DEFOG_DEFROST = {
-    departure_pb2.DEFOG_DEFROST_OFF: "Off",
-    departure_pb2.DEFOG_DEFROST_DEFOG: "Defog",
-    departure_pb2.DEFOG_DEFROST_DEFROST: "Defrost",
+    departure_pb2.DEFOG_DEFROST_OFF: "off",
+    departure_pb2.DEFOG_DEFROST_DEFOG: "defog",
+    departure_pb2.DEFOG_DEFROST_DEFROST: "defrost",
 }
 _SURFACE_LEVEL = {
-    departure_pb2.SURFACE_OFF: "Off",
-    departure_pb2.SURFACE_HEAT_1: "Heat1",
-    departure_pb2.SURFACE_HEAT_2: "Heat2",
-    departure_pb2.SURFACE_HEAT_3: "Heat3",
-    departure_pb2.SURFACE_VENT_1: "Vent1",
-    departure_pb2.SURFACE_VENT_2: "Vent2",
-    departure_pb2.SURFACE_VENT_3: "Vent3",
+    departure_pb2.SURFACE_OFF: "off",
+    departure_pb2.SURFACE_HEAT_1: "heat_1",
+    departure_pb2.SURFACE_HEAT_2: "heat_2",
+    departure_pb2.SURFACE_HEAT_3: "heat_3",
+    departure_pb2.SURFACE_VENT_1: "vent_1",
+    departure_pb2.SURFACE_VENT_2: "vent_2",
+    departure_pb2.SURFACE_VENT_3: "vent_3",
 }
 _SURFACES = (
     ("front_left_seat", "frontLeftSeat"),
@@ -86,14 +86,14 @@ def decode_departure_schedules(m: departure_pb2.DepartureSchedules) -> dict[str,
     Fields:
         departureSchedules: list[dict] — the gateway's DepartureSchedule shape:
             id: str, name: str, isEnabled: bool
-            occurrence: {"days": list[str] ("Monday" ... "Sunday"; order
+            occurrence: {"days": list[str] ("monday" ... "sunday"; order
                 inferred), "startsAtMin": int (minutes after local midnight)}
             departureSettings: {"shouldOverrideChargeSchedule": bool,
                 "comfortSettings": {"cabinTempCelsius": float,
-                "frontDefogDefrost": "Off" | "Defog" | "Defrost",
+                "frontDefogDefrost": "off" | "defog" | "defrost",
                 "surfaceHeatVentLevels": {frontLeftSeat, frontRightSeat,
-                rearLeftSeat, rearRightSeat, steeringWheel: "Off" |
-                "Heat1" ... "Vent3"}}}
+                rearLeftSeat, rearRightSeat, steeringWheel: "off" |
+                "heat_1" ... "vent_3"}}}
         departureSchedulesUpdatedAt: datetime
     """
     result: dict[str, Any] = {

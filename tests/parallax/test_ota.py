@@ -31,7 +31,7 @@ def test_ota_deployment_state() -> None:
             ]
         ),
     )
-    assert idle["otaSoftwareCategory"] == "Firmware"
+    assert idle["otaSoftwareCategory"] == "firmware"
     assert idle["otaCurrentVersion"] == "2026.36.1"
     assert idle["otaCurrentVersionYear"] == 2026
     assert idle["otaCurrentVersionWeek"] == 36
@@ -94,8 +94,8 @@ def test_ota_progress_details() -> None:
         ),
     )
     assert result["otaInstallTimeOfDay"] == 180
-    assert result["otaDeploymentIntent"] == "Bug_Fix"
-    assert result["otaCurrentStatus"] == "Install_Success"
+    assert result["otaDeploymentIntent"] == "bug_fix"
+    assert result["otaCurrentStatus"] == "install_success"
     assert result["otaInstallReady"] == "ota_available"
     assert result["otaInstallDuration"] == 50
     assert result["otaPendingReasons"] == ["not_parked", "unplugged"]
@@ -205,5 +205,5 @@ def test_ota_deployment_state_picks_firmware() -> None:
             ]
         ),
     )
-    assert result["otaSoftwareCategory"] == "Firmware"
+    assert result["otaSoftwareCategory"] == "firmware"
     assert result["otaCurrentVersion"] == "2026.36.1"

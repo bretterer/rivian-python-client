@@ -120,7 +120,7 @@ def test_tires() -> None:
     assert result == {
         "tirePressureStatusValidFrontLeft": "valid",
         "tirePressureFrontLeft": 3.48,
-        "tirePressureStatusFrontLeft": "OK",
+        "tirePressureStatusFrontLeft": "ok",
         "tirePressureStatusValidFrontRight": "invalid",
         "tirePressureStatusValidRearLeft": "valid",
         "tirePressureRearLeft": 1.2,

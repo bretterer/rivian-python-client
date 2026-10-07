@@ -63,10 +63,10 @@ _CLIMATE_HOLD_UNAVAILABILITY_REASON_MAP: Final[dict[int, str]] = {
 }
 
 _DEFROST_MAP: Final[dict[int, str]] = {
-    comfort_pb2.DEFROST_DEFOG: "Defog",
-    comfort_pb2.DEFROST_ACTIVE: "Defrost",
-    comfort_pb2.DEFROST_DEFOG_DEFROST: "Defog_Defrost",
-    comfort_pb2.DEFROST_OFF: "Off",
+    comfort_pb2.DEFROST_DEFOG: "defog",
+    comfort_pb2.DEFROST_ACTIVE: "defrost",
+    comfort_pb2.DEFROST_DEFOG_DEFROST: "defog_defrost",
+    comfort_pb2.DEFROST_OFF: "off",
 }
 
 # GraphQL's cabinPreconditioningStatus / cabinPreconditioningType values.
@@ -132,10 +132,10 @@ _CABIN_SURFACE_MAP: Final[dict[int, str]] = {
 }
 
 _CONDITIONING_LEVEL_MAP: Final[dict[int | None, str]] = {
-    None: "Off",
-    comfort_pb2.CONDITIONING_LEVEL_1: "Level_1",
-    comfort_pb2.CONDITIONING_LEVEL_2: "Level_2",
-    comfort_pb2.CONDITIONING_LEVEL_3: "Level_3",
+    None: "off",
+    comfort_pb2.CONDITIONING_LEVEL_1: "level_1",
+    comfort_pb2.CONDITIONING_LEVEL_2: "level_2",
+    comfort_pb2.CONDITIONING_LEVEL_3: "level_3",
 }
 
 _CONDITIONING_TYPE_MAP: Final[dict[int, str]] = {
@@ -248,8 +248,8 @@ def decode_defrost_status(m: comfort_pb2.DefrostDefogStatus) -> dict[str, Any]:
     """comfort.cabin.defrost_defog_status — windshield defrost state.
 
     Fields:
-        defrostDefogStatus: str | None ("Defog" | "Defrost" | "Defog_Defrost"
-            | "Off")
+        defrostDefogStatus: str | None ("defog" | "defrost" | "defog_defrost"
+            | "off")
     """
     return {
         "defrostDefogStatus": _enum(
@@ -293,8 +293,8 @@ def decode_seat_conditioning(m: comfort_pb2.SeatConditioningStatus) -> dict[str,
         seatFrontLeftHeat, seatFrontLeftVent, seatFrontRightHeat,
         seatFrontRightVent, seatRearLeftHeat, seatRearRightHeat,
         seatThirdRowLeftHeat, seatThirdRowRightHeat: str
-            ("Off" | "Level_1" | "Level_2" | "Level_3")
-        steeringWheelHeat: str ("Off" | "Level_1")
+            ("off" | "level_1" | "level_2" | "level_3")
+        steeringWheelHeat: str ("off" | "level_1")
         plus <surface>Heat/Vent for any other surface sent (middle seats,
         rearGlass, frontGlass, sideviewMirrors, wiperArea)
 

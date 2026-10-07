@@ -126,8 +126,8 @@ _WINDOW_MAP: Final[dict[int, str]] = {
 
 # GraphQL's windowXCalibrated values.
 _CALIBRATION_MAP: Final[dict[int, str]] = {
-    body_pb2.CALIBRATION_STATUS_CALIBRATED: "Calibrated",
-    body_pb2.CALIBRATION_STATUS_NOT_CALIBRATED: "Not_Calibrated",
+    body_pb2.CALIBRATION_STATUS_CALIBRATED: "calibrated",
+    body_pb2.CALIBRATION_STATUS_NOT_CALIBRATED: "not_calibrated",
 }
 
 _TRAILER_PRESENCE_MAP: Final[dict[int, str]] = {
@@ -204,7 +204,7 @@ def decode_windows(m: body_pb2.WindowsState) -> dict[str, Any]:
     Fields:
         windowFrontLeftCalibrated, windowFrontRightCalibrated,
         windowRearLeftCalibrated, windowRearRightCalibrated,
-        windowRearCalibrated: str ("Calibrated" | "Not_Calibrated")
+        windowRearCalibrated: str ("calibrated" | "not_calibrated")
     """
     return {
         _WINDOW_MAP[w.instance]: _enum(

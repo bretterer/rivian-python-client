@@ -53,9 +53,8 @@ _TEMPERATURE_IMPACT_MAP: Final[dict[int, str]] = {
     dynamics_pb2.TEMPERATURE_COLD_IMPACT: "cold_impact",
 }
 
-# "OK" is the GraphQL value for normal.
 _TIRE_PRESSURE_STATUS_MAP: Final[dict[int, str]] = {
-    dynamics_pb2.TIRE_PRESSURE_STATUS_NORMAL: "OK",
+    dynamics_pb2.TIRE_PRESSURE_STATUS_NORMAL: "ok",
     dynamics_pb2.TIRE_PRESSURE_STATUS_WARNING_HARD: "warning_hard",
     dynamics_pb2.TIRE_PRESSURE_STATUS_WARNING_SOFT: "warning_soft",
     dynamics_pb2.TIRE_PRESSURE_STATUS_WARNING_PUNCTURE: "warning_puncture",
@@ -206,7 +205,7 @@ def decode_tires(m: dynamics_pb2.TiresState) -> dict[str, Any]:
 
     Fields:
         tirePressureFrontLeft, tirePressureFrontRight, etc.: float (bar)
-        tirePressureStatusFrontLeft, etc.: str ("OK" | "warning_hard" |
+        tirePressureStatusFrontLeft, etc.: str ("ok" | "warning_hard" |
             "warning_soft" | "warning_puncture")
         tirePressureStatusValidFrontLeft, etc.: str ("valid" | "invalid"),
             or the raw int for an unmapped validity

@@ -151,8 +151,8 @@ def test_window_calibration() -> None:
         ),
     )
     assert result == {
-        "windowFrontLeftCalibrated": "Calibrated",
-        "windowRearCalibrated": "Not_Calibrated",
+        "windowFrontLeftCalibrated": "calibrated",
+        "windowRearCalibrated": "not_calibrated",
     }
 
 
