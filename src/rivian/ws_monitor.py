@@ -58,7 +58,7 @@ class WebSocketMonitor:
 
         self._connection_ack: asyncio.Event = asyncio.Event()
         self._disconnect = False
-        self._rate_limited = False
+        self._backoff_reason: str | None = None
         self._rate_limit_attempt = 0
         self._ws: ClientWebSocketResponse[bool] | None = None
         self._monitor_task: asyncio.Task | None = None
@@ -90,11 +90,16 @@ class WebSocketMonitor:
         """Return the monitor task."""
         return self._monitor_task
 
+    @property
+    def backing_off(self) -> bool:
+        """Return `True` while waiting to reconnect after a failed connection."""
+        return self._backoff_reason is not None
+
     async def new_connection(self, start_monitor: bool = False) -> None:
         """Create a new connection and, optionally, start the monitor."""
         await cancel_task(self._receiver_task)
         self._disconnect = False
-        self._rate_limited = False
+        self._connection_ack.clear()
         # pylint: disable=protected-access
         assert self._account._session
         self._ws = await self._account._session.ws_connect(
@@ -145,15 +150,20 @@ class WebSocketMonitor:
         """Receive a message from a web socket."""
         if not (websocket := self._ws):
             return
+        loop = asyncio.get_running_loop()
+        ack_deadline = loop.time() + self._account.request_timeout
         while not websocket.closed:
+            acknowledged = self._connection_ack.is_set()
             try:
-                msg = await websocket.receive(timeout=60)
+                msg = await websocket.receive(
+                    timeout=60 if acknowledged else max(ack_deadline - loop.time(), 0)
+                )
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     self._log_message(msg)
                     if msg.extra == "Unauthenticated":
                         self._disconnect = True
                     elif msg.extra == RATE_LIMITED:
-                        self._rate_limited = True
+                        self._backoff_reason = "was rate limited"
                     break
                 self._last_received = datetime.now(timezone.utc)
                 if msg.type == WSMsgType.TEXT:
@@ -174,6 +184,10 @@ class WebSocketMonitor:
                     self._log_message(msg, True)
                     continue
             except asyncio.TimeoutError:
+                if not acknowledged:
+                    self._backoff_reason = "was not acknowledged"
+                    await websocket.close()
+                    break
                 # The connection has stayed open, so any rate limit has passed
                 self._rate_limit_attempt = 0
                 await self._resubscribe_all()
@@ -189,8 +203,8 @@ class WebSocketMonitor:
                     # Need to restart the receiver
                     self._receiver_task = asyncio.ensure_future(self._receiver())
                 await asyncio.sleep(1)
-            if self._rate_limited:
-                await self._rate_limit_backoff()
+            if self._backoff_reason:
+                await self._backoff()
                 if self._disconnect or self.connected:
                     continue
             if not self._disconnect:
@@ -206,9 +220,8 @@ class WebSocketMonitor:
                 self._log_message("web socket connection reopened")
                 await self._resubscribe_all()
 
-    async def _rate_limit_backoff(self) -> None:
-        """Wait before reconnecting after the server closed the connection due to rate limiting."""
-        self._rate_limited = False
+    async def _backoff(self) -> None:
+        """Wait before reconnecting after a rate limit or a missing connection_ack."""
         delay = min(
             RATE_LIMIT_BACKOFF_MIN * 2**self._rate_limit_attempt
             + uniform(0, RATE_LIMIT_BACKOFF_MIN),
@@ -216,10 +229,14 @@ class WebSocketMonitor:
         )
         self._rate_limit_attempt += 1
         _LOGGER.warning(
-            "Web socket connection was rate limited, reconnecting in %.0f seconds",
+            "Web socket connection %s, reconnecting in %.0f seconds",
+            self._backoff_reason,
             delay,
         )
-        await asyncio.sleep(delay)
+        try:
+            await asyncio.sleep(delay)
+        finally:
+            self._backoff_reason = None
 
     async def start_monitor(self) -> None:
         """Start or restart the monitor task."""
@@ -233,6 +250,7 @@ class WebSocketMonitor:
     async def close(self) -> None:
         """Close the web socket."""
         self._disconnect = True
+        self._backoff_reason = None
         if self._ws:
             await self._ws.close()
         await cancel_task(self._monitor_task, self._receiver_task)

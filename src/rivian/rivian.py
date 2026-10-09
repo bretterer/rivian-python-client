@@ -707,6 +707,8 @@ class Rivian:
                 self, GRAPHQL_WEBSOCKET, connection_init
             )
         ws_monitor = self._ws_monitor
+        if ws_monitor.backing_off:
+            raise RivianApiException("Web socket is waiting to reconnect")
         if ws_monitor.websocket is None or ws_monitor.websocket.closed:
             await ws_monitor.new_connection(True)
             assert ws_monitor.websocket
