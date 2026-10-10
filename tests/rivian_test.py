@@ -3,11 +3,17 @@
 # pylint: disable=protected-access
 from __future__ import annotations
 
+import json
+
 import aiohttp
 import pytest
 from aresponses import ResponsesMockServer
 
 from rivian import Rivian
+from rivian.const import (
+    VEHICLE_STATE_PROPERTIES,
+    VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES,
+)
 from rivian.exceptions import (
     RivianApiException,
     RivianApiRateLimitError,
@@ -177,6 +183,35 @@ async def test_get_vehicle_state(aresponses: ResponsesMockServer) -> None:
         assert response.status == 200
         assert len(response_json["data"]["vehicleState"]) == 72
         await rivian.close()
+
+
+async def test_get_vehicle_state_default_query(aresponses: ResponsesMockServer) -> None:
+    """Test the default vehicleState query only requests queryable fields"""
+    queries: list[str] = []
+
+    async def handler(request: aiohttp.web.Request) -> aiohttp.web.Response:
+        queries.append((await request.json())["query"])
+        return aresponses.Response(
+            text=json.dumps(VEHICLE_STATE_RESPONSE), content_type="application/json"
+        )
+
+    aresponses.add("rivian.com", "/api/gql/gateway/graphql", "POST", response=handler)
+    async with aiohttp.ClientSession():
+        rivian = Rivian(app_session_token="token", user_session_token="token")
+        await rivian.get_vehicle_state("vin")
+        await rivian.close()
+
+    assert not VEHICLE_STATE_PROPERTIES & VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES
+    assert "gnssLocation { latitude longitude timeStamp }" in queries[0]
+    assert "isAuthorized" not in queries[0]
+    for subscription_only in VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES:
+        assert f"{subscription_only} " not in queries[0]
+
+
+def test_vehicle_state_subscription_fragment() -> None:
+    """Test the vehicleState subscription fragment keeps `isAuthorized`"""
+    fragment = Rivian()._build_vehicle_state_fragment({"gnssLocation"})
+    assert fragment == "{ gnssLocation { latitude longitude timeStamp isAuthorized } }"
 
 
 async def test_get_live_charging_session(aresponses: ResponsesMockServer) -> None:

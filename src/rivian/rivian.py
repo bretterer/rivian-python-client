@@ -63,6 +63,8 @@ BASE_HEADERS = {
 
 CLOUD_CONNECTION_TEMPLATE = "{ lastSync isOnline }"
 LOCATION_TEMPLATE = "{ latitude longitude timeStamp isAuthorized }"
+# `isAuthorized` is only available when subscribing
+QUERY_LOCATION_TEMPLATE = "{ latitude longitude timeStamp }"
 LOCATION_ERROR_TEMPLATE = (
     "{ timeStamp positionVertical positionHorizontal speed bearing }"
 )
@@ -72,6 +74,7 @@ TEMPLATE_MAP = {
     "gnssLocation": LOCATION_TEMPLATE,
     "gnssError": LOCATION_ERROR_TEMPLATE,
 }
+QUERY_TEMPLATE_MAP = TEMPLATE_MAP | {"gnssLocation": QUERY_LOCATION_TEMPLATE}
 
 LIVE_SESSION_VALUE_RECORD_KEYS = {
     "current",
@@ -437,7 +440,9 @@ class Rivian:
         }
 
         graphql_query = "query GetVehicleState($vehicleID: String!) {\n  vehicleState(id: $vehicleID) "
-        graphql_query += self._build_vehicle_state_fragment(properties)
+        graphql_query += self._build_vehicle_state_fragment(
+            properties, QUERY_TEMPLATE_MAP
+        )
         graphql_query += "}"
 
         graphql_json = {
@@ -794,9 +799,11 @@ class Rivian:
         """
         await self.close()
 
-    def _build_vehicle_state_fragment(self, properties: set[str]) -> str:
+    def _build_vehicle_state_fragment(
+        self, properties: set[str], template_map: dict[str, str] = TEMPLATE_MAP
+    ) -> str:
         """Build GraphQL vehicle state fragment from properties."""
         frag = " ".join(
-            f"{p} {TEMPLATE_MAP.get(p, VALUE_TEMPLATE)}" for p in properties
+            f"{p} {template_map.get(p, VALUE_TEMPLATE)}" for p in properties
         )
         return f"{{ {frag} }}"
