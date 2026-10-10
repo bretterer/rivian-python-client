@@ -14,10 +14,27 @@ from .proto import holiday_celebration_pb2
     holiday_celebration_pb2.HolidayCelebrationEnabled,
 )
 def decode_holiday_celebration_enabled(
-    _m: holiday_celebration_pb2.HolidayCelebrationEnabled,
+    m: holiday_celebration_pb2.HolidayCelebrationEnabled,
 ) -> dict[str, Any]:
-    """holiday_celebration.car_costume.holiday_celebration_enabled — unmapped."""
-    return {}
+    """holiday_celebration.car_costume.holiday_celebration_enabled.
+
+    The names are inferred; the app has no class for this topic.
+
+    Fields:
+        holidayCelebrationAvailable: bool — the (seasonal) feature is offered
+        holidayCelebrationEnabled: bool — the user's on/off switch
+    """
+    return {
+        "holidayCelebrationAvailable": m.available,
+        "holidayCelebrationEnabled": m.enabled,
+    }
+
+
+# Best guess; 2 hasn't been seen.
+_CAR_COSTUME_AVAILABILITY_MAP: Final[dict[int, str]] = {
+    1: "available",
+    3: "unavailable",
+}
 
 
 _COSTUME_THEME_MAP: Final[dict[int, str]] = {
@@ -51,7 +68,7 @@ def decode_car_costume_settings(
         costumeInteriorLightShowEnabled: bool
         costumeInteriorOverheadLightsEnabled: bool
         costumeLightsColor: int
-        costumeEffect: int
+        costumeEffect: int (1 none, 3 the display show; inferred)
         costumeEffectTrigger: str ("manual" | "motion"), None when unset
     """
     return {
@@ -86,15 +103,20 @@ def decode_car_costume_state(
     Names come from the app; the int values are unmapped enums.
 
     Fields:
-        carCostumeAvailability: int
+        carCostumeAvailability: str | int ("available" | "unavailable"; a
+            best guess), the raw int when unmapped
         costumeTheme: str | None ("none" | "ghostbusters" |
             "ghostbusters_display"; inferred), None when unset
         costumeMotionTriggerDetected: bool
-        activeCostumeEffect: int
+        activeCostumeEffect: int (1 none, 3 the display show; inferred)
         costumeStartTime: datetime, only when sent
     """
     result: dict[str, Any] = {
-        "carCostumeAvailability": m.car_costume_availability,
+        "carCostumeAvailability": _enum(
+            _CAR_COSTUME_AVAILABILITY_MAP,
+            m.car_costume_availability,
+            what="car costume availability",
+        ),
         "costumeTheme": (
             _enum(_COSTUME_THEME_MAP, m.costume_theme, what="costume theme")
             if m.costume_theme

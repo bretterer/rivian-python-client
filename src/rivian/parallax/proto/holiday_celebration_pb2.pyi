@@ -27,8 +27,12 @@ CAR_COSTUME_THEME_GHOSTBUSTERS: CarCostumeTheme
 CAR_COSTUME_THEME_GHOSTBUSTERS_DISPLAY: CarCostumeTheme
 
 class HolidayCelebrationEnabled(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("available", "enabled")
+    AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    ENABLED_FIELD_NUMBER: _ClassVar[int]
+    available: bool
+    enabled: bool
+    def __init__(self, available: bool = ..., enabled: bool = ...) -> None: ...
 
 class CarCostumeSettings(_message.Message):
     __slots__ = ("celebration_sound_volume", "interior_music_enabled", "interior_music_type", "motion_exterior_light_sound_effect", "interior_light_show_enabled", "interior_overhead_lights_enabled", "lights_color", "costume_effect", "effect_trigger")

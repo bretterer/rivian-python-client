@@ -374,7 +374,7 @@ def decode_energy_state(m: charging_pb2.EnergyState) -> dict[str, Any]:
         energyChargerState, energyConnectionState: str — as
             charging.session.status's chargerState / connectionState, which
             these can lag
-        _field3: int — raw
+        _field3, _field8: int — raw
     """
     result: dict[str, Any] = {}
     if (v := _present(m, "charging_state")) is not None:
@@ -389,6 +389,8 @@ def decode_energy_state(m: charging_pb2.EnergyState) -> dict[str, Any]:
         result["chargerStatus"] = _enum(_CHARGER_STATUS_MAP, v, what="charger status")
     if (v := _present(m, "field_3")) is not None:
         result["_field3"] = v
+    if (v := _present(m, "field_8")) is not None:
+        result["_field8"] = v
     return result
 
 

@@ -64,10 +64,26 @@ def test_car_costume_state() -> None:
         ),
     )
     assert result == {
-        "carCostumeAvailability": 1,
+        "carCostumeAvailability": "available",
         "costumeTheme": "ghostbusters",
         "costumeMotionTriggerDetected": False,
         "activeCostumeEffect": 0,
         "costumeStartTime": epoch(1790553420_000),
     }
     assert "costumeStartTime" not in decode(rvm)
+
+
+def test_holiday_celebration_enabled() -> None:
+    """The availability flag and the on/off switch."""
+    rvm = "holiday_celebration.car_costume.holiday_celebration_enabled"
+    result = decode(
+        rvm, holiday_celebration.HolidayCelebrationEnabled(available=True, enabled=True)
+    )
+    assert result == {
+        "holidayCelebrationAvailable": True,
+        "holidayCelebrationEnabled": True,
+    }
+    assert decode(rvm) == {
+        "holidayCelebrationAvailable": False,
+        "holidayCelebrationEnabled": False,
+    }

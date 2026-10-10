@@ -156,6 +156,7 @@ def test_energy_state() -> None:
             charging_state=charging.CHARGING_COMPLETE,
             charger_status=charging.CHARGER_STATUS_CONNECTED_NO_CHARGE,
             field_3=1,
+            field_8=1,
             connection_state=charging.CONNECTION_STATE_CONNECTED,
         ),
     )
@@ -164,6 +165,7 @@ def test_energy_state() -> None:
         "energyConnectionState": "connected",
         "chargerStatus": "chrgr_sts_connected_no_chrg",
         "_field3": 1,
+        "_field8": 1,
     }
 
 

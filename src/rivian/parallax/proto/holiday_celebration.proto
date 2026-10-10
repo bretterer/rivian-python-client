@@ -5,8 +5,11 @@ package rivian.parallax.holiday_celebration;
 // Reverse-engineered `holiday_celebration.*` RVM payloads; see ../holiday_celebration.py.
 
 // holiday_celebration.car_costume.holiday_celebration_enabled
-// Unmapped.
-message HolidayCelebrationEnabled {}
+// No app class; names are inferred.
+message HolidayCelebrationEnabled {
+  bool available = 1; // the feature is offered (seasonal)
+  bool enabled = 2;   // the user's on/off switch
+}
 
 // holiday_celebration.car_costume.settings -- int enum types unknown.
 message CarCostumeSettings {
@@ -17,7 +20,7 @@ message CarCostumeSettings {
   bool interior_light_show_enabled = 6;
   bool interior_overhead_lights_enabled = 7;
   int32 lights_color = 9;
-  int32 costume_effect = 11;
+  int32 costume_effect = 11; // the app's enum (class stripped); 1 none, 3 display show (inferred)
   CostumeEffectTrigger effect_trigger = 12;
 }
 
@@ -29,11 +32,12 @@ enum CostumeEffectTrigger {
 
 // holiday_celebration.car_costume.state -- int enum types unknown.
 message CarCostumeState {
-  int32 car_costume_availability = 1; // the app's enum (class stripped)
+  // The app's enum (class stripped); best guess 1 available, 3 unavailable.
+  int32 car_costume_availability = 1;
   CarCostumeTheme costume_theme = 2;
   bool motion_trigger_detected = 3;
   Timestamp costume_start_time = 4;
-  int32 active_costume_effect = 6; // the app's enum (class stripped)
+  int32 active_costume_effect = 6; // as CarCostumeSettings.costume_effect
 
   message Timestamp {
     int64 seconds = 1;

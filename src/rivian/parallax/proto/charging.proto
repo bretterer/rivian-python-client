@@ -219,6 +219,9 @@ message EnergyState {
   optional ChargerStatus charger_status = 2; // inferred
   optional int32 field_3 = 3; // unknown
   float power = 4; // kW; same as charging.session.power
+  // Unknown; sent with remote_command's start_available as the vehicle sleeps
+  // with a user-stopped session.
+  optional int32 field_8 = 8;
   string field_10 = 10; // unknown
   optional ConnectionState connection_state = 11;
 }
