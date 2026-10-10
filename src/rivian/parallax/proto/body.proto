@@ -1,0 +1,268 @@
+syntax = "proto3";
+
+package rivian.parallax.body;
+
+// Reverse-engineered `body.*` RVM payloads; see ../body.py.
+
+// body.closures.states
+message ClosuresState {
+  message Closure {
+    ClosureId id = 1;
+    optional ClosureState state = 2;
+    int32 open_position_percent = 3;
+    // Unset on doors and windows; briefly GENERAL while re-reporting.
+    ClosureFault fault = 4;
+    // One member per closure type. Briefly SNA / not-available while the
+    // vehicle re-reports after an app command.
+    oneof next_action {
+      WindowsNextAction windows_next_action = 5; // on GROUP_WINDOWS
+      FrunkNextAction frunk_next_action = 6;
+      LiftgateNextAction liftgate_next_action = 7;
+      SideBinNextAction side_bin_next_action = 8;
+      TailgateNextAction tailgate_next_action = 9;
+      ChargePortDoorNextAction charge_port_door_next_action = 10;
+      int32 tonneau_next_action = 11; // the app's enum (class stripped)
+    }
+  }
+  repeated Closure closure = 1;
+}
+
+enum ClosureId {
+  CLOSURE_ID_UNSPECIFIED = 0;
+  DOOR_FRONT_LEFT = 1;
+  DOOR_FRONT_RIGHT = 2;
+  DOOR_REAR_LEFT = 3;
+  DOOR_REAR_RIGHT = 4;
+  FRUNK = 5;
+  TAILGATE = 6;
+  LIFTGATE = 7;
+  SIDE_BIN_LEFT = 8;
+  SIDE_BIN_RIGHT = 9;
+  CHARGE_PORT = 10;
+  TONNEAU = 11;
+  WINDOW_FRONT_LEFT = 12;
+  WINDOW_FRONT_RIGHT = 13;
+  WINDOW_REAR_LEFT = 14;
+  WINDOW_REAR_RIGHT = 15;
+  WINDOW_REAR = 16;
+  GROUP_WINDOWS = 10000; // all windows together
+}
+
+enum ClosureState {
+  CLOSURE_STATE_UNSPECIFIED = 0;
+  CLOSURE_STATE_OPEN = 1;
+  CLOSURE_STATE_CLOSED = 2;
+  CLOSURE_STATE_AJAR = 3;
+  CLOSURE_STATE_OPENING = 4;
+  CLOSURE_STATE_CLOSING = 5;
+}
+
+// body.locks.states
+message LocksState {
+  message Lock {
+    LockId id = 1;
+    // Briefly absent (with fault set) while the vehicle re-reports after
+    // waking or an app command.
+    optional LockState state = 2;
+    LockFault fault = 3;
+  }
+  repeated Lock lock = 1;
+}
+
+enum LockId {
+  LOCK_ID_UNSPECIFIED = 0;
+  LOCK_DOOR_FRONT_LEFT = 1;
+  LOCK_DOOR_FRONT_RIGHT = 2;
+  LOCK_DOOR_REAR_LEFT = 3;
+  LOCK_DOOR_REAR_RIGHT = 4;
+  LOCK_FRUNK = 5;
+  LOCK_TAILGATE = 6;
+  LOCK_LIFTGATE = 7;
+  LOCK_SIDE_BIN_LEFT = 8;
+  LOCK_SIDE_BIN_RIGHT = 9;
+  LOCK_CHARGE_PORT = 10;
+  LOCK_TRUNK_SECURITY = 11;
+  LOCK_CENTER_CONSOLE = 12;
+  LOCK_GLOVE_BOX = 13;
+  LOCK_GEAR_GUARD = 14; // the Gear Guard cable lock
+  LOCK_TONNEAU = 15;
+}
+
+enum LockState {
+  LOCK_STATE_UNSPECIFIED = 0;
+  LOCK_STATE_LOCKED = 1;
+  LOCK_STATE_UNLOCKED = 2;
+  LOCK_STATE_PARTIALLY_UNLOCKED = 3;
+}
+
+enum LockFault {
+  LOCK_FAULT_UNSPECIFIED = 0;
+  LOCK_FAULT_FAULTED = 1;
+}
+
+// body.windows.states -- unmapped.
+message WindowsState {
+  repeated Window window = 1;
+
+  message Window {
+    WindowInstance instance = 1;
+    CalibrationStatus calibration_status = 2;
+  }
+}
+
+enum WindowInstance {
+  WINDOW_INSTANCE_UNSPECIFIED = 0;
+  WINDOW_INSTANCE_FRONT_LEFT = 1;
+  WINDOW_INSTANCE_FRONT_RIGHT = 2;
+  WINDOW_INSTANCE_REAR_LEFT = 3;
+  WINDOW_INSTANCE_REAR_RIGHT = 4;
+  WINDOW_INSTANCE_REAR = 5;
+}
+
+enum CalibrationStatus {
+  CALIBRATION_STATUS_UNSPECIFIED = 0;
+  CALIBRATION_STATUS_CALIBRATED = 1;
+  CALIBRATION_STATUS_NOT_CALIBRATED = 2;
+}
+
+// body.trailer.state
+message TrailerState {
+  optional TrailerPresence presence = 1;
+  RearHitchStatus rear_hitch_status = 2;
+}
+
+enum RearHitchStatus {
+  REAR_HITCH_STATUS_UNSPECIFIED = 0;
+  REAR_HITCH_STATUS_NOT_PRESENT = 1;
+  REAR_HITCH_STATUS_ACCESSORY = 2;
+  REAR_HITCH_STATUS_TRAILER1 = 3;
+  REAR_HITCH_STATUS_TRAILER2 = 4;
+  REAR_HITCH_STATUS_TRAILER3 = 5;
+}
+
+enum ClosureFault {
+  CLOSURE_FAULT_UNSPECIFIED = 0;
+  CLOSURE_FAULT_NO_FAULT = 1;
+  CLOSURE_FAULT_GENERAL = 2;
+  CLOSURE_FAULT_NO_POWERED_OPERATION = 3;
+  CLOSURE_FAULT_OBSTRUCTED = 4;
+}
+
+enum TrailerPresence {
+  TRAILER_PRESENCE_UNSPECIFIED = 0;
+  TRAILER_NOT_PRESENT = 1;
+  TRAILER_PRESENT = 2;
+  TRAILER_PRESENT_WITH_BRAKES = 3;
+  TRAILER_INVALID = 4;
+}
+
+// Next actions: what each closure can do next. 0 is SNA (signal not
+// available).
+enum ChargePortDoorNextAction {
+  CHARGE_PORT_DOOR_SNA = 0;
+  CHARGE_PORT_DOOR_OPEN_ALLOWED = 1;       // door shut
+  CHARGE_PORT_DOOR_OPEN_NOT_AVAILABLE = 2;
+  CHARGE_PORT_DOOR_OPEN_NOT_ALLOWED_FAULTED = 3;
+  CHARGE_PORT_DOOR_OPENING = 4;
+  CHARGE_PORT_DOOR_CLOSE_ALLOWED = 5;      // door open, no plug
+  CHARGE_PORT_DOOR_OBSTRUCTED_WHILE_OPENING_CLOSE_ALLOWED = 6;
+  CHARGE_PORT_DOOR_OBSTRUCTED_WHILE_OPENING_OPEN_ALLOWED = 7;
+  CHARGE_PORT_DOOR_OBSTRUCTED_WHILE_CLOSING_CLOSE_ALLOWED = 8;
+  CHARGE_PORT_DOOR_CLOSE_NOT_AVAILABLE = 9; // plugged in
+  CHARGE_PORT_DOOR_CLOSE_NOT_ALLOWED_FAULTED = 10;
+  CHARGE_PORT_DOOR_CLOSING = 11;
+}
+
+enum FrunkNextAction {
+  FRUNK_SNA = 0;
+  FRUNK_OPEN_ALLOWED = 1;
+  FRUNK_CLOSE_ALLOWED = 2;
+  FRUNK_OPENING = 3;
+  FRUNK_CLOSING = 4;
+  FRUNK_OPEN_NOT_AVAILABLE = 5;
+  FRUNK_CLOSE_NOT_AVAILABLE = 6;
+  FRUNK_OPEN_NOT_ALLOWED_FAULTED = 7;
+  FRUNK_CLOSE_NOT_ALLOWED_FAULTED = 8;
+  FRUNK_OPEN_ALLOWED_NO_POWER_OPERATION = 9;
+  FRUNK_CLOSE_NOT_ALLOWED_NO_POWER_OPERATION = 10;
+  FRUNK_OBSTRUCTED_OPENING_CLOSE_ALLOWED = 11;
+  FRUNK_OBSTRUCTED_CLOSING_CLOSE_ALLOWED = 12;
+}
+
+enum LiftgateNextAction {
+  LIFTGATE_SNA = 0;
+  LIFTGATE_OPEN_ALLOWED = 1;
+  LIFTGATE_CLOSE_ALLOWED = 2;
+  LIFTGATE_OPENING = 3;
+  LIFTGATE_CLOSING = 4;
+  LIFTGATE_OPEN_NOT_AVAILABLE = 5;
+  LIFTGATE_CLOSE_NOT_AVAILABLE = 6;
+  LIFTGATE_OPEN_NOT_ALLOWED_FAULTED = 7;
+  LIFTGATE_CLOSE_NOT_ALLOWED_FAULTED = 8;
+  LIFTGATE_OPEN_ALLOWED_NO_POWER_OPERATION = 9;
+  LIFTGATE_CLOSE_NOT_ALLOWED_NO_POWER_OPERATION = 10;
+  LIFTGATE_OBSTRUCTED_OPENING_CLOSE_ALLOWED = 11;
+  LIFTGATE_OBSTRUCTED_CLOSING_CLOSE_ALLOWED = 12;
+  LIFTGATE_LOWER_GATE_OPEN_CLOSE_NOT_ALLOWED = 13;
+  LIFTGATE_OPENING_PAUSE_NOT_ALLOWED = 14;
+  LIFTGATE_CLOSING_PAUSE_NOT_ALLOWED = 15;
+  LIFTGATE_OPEN_ALLOWED_OBSTACLE_DETECTED = 16;
+  LIFTGATE_OPEN_ALLOWED_TRAILER_DETECTED = 17;
+  LIFTGATE_CLOSE_ALLOWED_OBSTACLE_DETECTED = 18;
+  LIFTGATE_CLOSE_ALLOWED_TRAILER_DETECTED = 19;
+  LIFTGATE_PROCESSING = 20;
+}
+
+enum SideBinNextAction {
+  SIDE_BIN_SNA = 0;
+  SIDE_BIN_OPEN_ALLOWED = 1;
+  SIDE_BIN_OPENING = 2;
+  SIDE_BIN_OPEN_NOT_AVAILABLE = 3;
+  SIDE_BIN_OPEN_NOT_ALLOWED_FAULTED = 4;
+  SIDE_BIN_STUCK_AJAR_WHILE_OPENING_OPEN_ALLOWED = 5;
+  SIDE_BIN_OPEN_ALREADY_NO_ACTION_AVAILABLE = 6;
+  SIDE_BIN_OPEN_ALLOWED_CONFIRM_VEHICLE_ANGLE = 7;
+}
+
+enum TailgateNextAction {
+  TAILGATE_SNA = 0;
+  TAILGATE_OPEN_ALLOWED = 1;
+  TAILGATE_OPENING = 2;
+  TAILGATE_OPEN_NOT_AVAILABLE = 3;
+  TAILGATE_OPEN_NOT_ALLOWED_FAULTED = 4;
+  TAILGATE_STUCK_AJAR_WHILE_OPENING_OPEN_ALLOWED = 5;
+  TAILGATE_OPEN_ALREADY_NO_ACTION_AVAILABLE = 6;
+  TAILGATE_OPEN_ALLOWED_CONFIRM_VEHICLE_ANGLE = 7;
+  TAILGATE_OPEN_ALLOWED_OBSTACLE_DETECTED = 8;
+  TAILGATE_OPEN_ALLOWED_TRAILER_DETECTED = 9;
+}
+
+enum WindowsNextAction {
+  WINDOWS_SNA = 0;
+  WINDOWS_OPEN_ALLOWED = 1;  // all closed
+  WINDOWS_CLOSE_ALLOWED = 2; // any open
+  WINDOWS_OPENING = 3;
+  WINDOWS_CLOSING = 4;
+  WINDOWS_MOVING = 5;
+  WINDOWS_OPEN_NOT_AVAILABLE = 6;
+  WINDOWS_CLOSE_NOT_AVAILABLE = 7;
+  WINDOWS_OPEN_NOT_ALLOWED_FAULTED = 8;
+  WINDOWS_CLOSE_NOT_ALLOWED_FAULTED = 9;
+  WINDOWS_OBSTRUCTED_WHILE_CLOSING_CLOSE_ALLOWED = 10;
+  WINDOWS_CLOSE_NOT_ALLOWED_UNCALIBRATED = 11;
+  WINDOWS_OPEN_NOT_ALLOWED_UNCALIBRATED = 12;
+}
+
+// body.wipers.fluid_level
+message WiperFluidLevel {
+  WiperFluidState state = 2;
+}
+
+// Best guess: the app's FluidLevelState values (the gateway's
+// wiperFluidState), numbered in the app's normal | low | empty order.
+enum WiperFluidState {
+  WIPER_FLUID_STATE_UNSPECIFIED = 0;
+  WIPER_FLUID_STATE_NORMAL = 1;
+  WIPER_FLUID_STATE_LOW = 2;
+  WIPER_FLUID_STATE_EMPTY = 3;
+}

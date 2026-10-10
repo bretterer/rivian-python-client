@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package rivian.parallax.security;
+
+// Reverse-engineered `security.*` RVM payloads; see ../security.py.
+
+// security.access.passive_entry -- unmapped.
+message PassiveEntry {}
+
+// security.access.btm
+// Fields 7-10 (error counters) aren't modeled.
+message Btm {
+  optional HardwareFailure ff = 1;
+  optional HardwareFailure ic = 2;
+  optional HardwareFailure lfd = 3;
+  optional HardwareFailure rf = 4;
+  optional HardwareFailure rfd = 5;
+  optional HardwareFailure oc = 6;
+  // Error counters.
+  int32 ffr_error = 7;
+  int32 rfr_error = 8;
+  int32 ffl_error = 9;
+  int32 rfl_error = 10;
+}
+
+enum HardwareFailure {
+  HARDWARE_FAILURE_UNSPECIFIED = 0;
+  HARDWARE_FAILURE_SET = 1;
+}
+
+// security.access.immobilizer_state
+message ImmobilizerState {
+  optional ImmobilizerStatus status = 1;
+}
+
+enum ImmobilizerStatus {
+  IMMOBILIZER_NOT_ASSIGNED = 0;
+  IMMOBILIZER_NOT_AUTHORIZED = 1;
+  IMMOBILIZER_AUTHORIZED_TO_DRIVE = 2;
+}
+
+// security.access.passive_entry_debug
+message PassiveEntryDebug {
+  optional PassiveEntryFailReason reason = 1;
+  LockFailNotification send_lock_fail_notification = 2;
+}
+
+enum LockFailNotification {
+  LOCK_FAIL_NOTIFICATION_SNA = 0;
+  LOCK_FAIL_NOTIFICATION_TRUE = 1;
+  LOCK_FAIL_NOTIFICATION_FALSE = 2;
+}
+
+enum PassiveEntryFailReason {
+  PASSIVE_ENTRY_FAIL_UNSPECIFIED = 0;
+  PASSIVE_ENTRY_NOT_IN_PARK = 1;
+  PASSIVE_ENTRY_AT_HOME_DISABLE = 2;
+  PASSIVE_ENTRY_PASSENGER_IN_SEAT = 3;
+  PASSIVE_ENTRY_DEVICE_NOT_ENABLED = 4;
+  PASSIVE_ENTRY_TRANSPORT_MODE = 5;
+  PASSIVE_ENTRY_CAR_WASH_MODE = 6;
+  PASSIVE_ENTRY_CAMP_MODE = 7;
+  PASSIVE_ENTRY_ACTIVE_OTA = 8;
+  PASSIVE_ENTRY_SHOW_AND_TELL_MODE = 9;
+  PASSIVE_ENTRY_RCVD_RSSI_PENDING = 10;
+  PASSIVE_ENTRY_LOCK_ONLY_AT_HOME = 11;
+  PASSIVE_ENTRY_CAR_COSTUME_MODE = 12;
+  PASSIVE_ENTRY_SLEPT_IMMEDIATE = 13;
+}
+
+// security.access.vas_fault
+message VasFault {
+  optional SecureElementFaulted secure_element = 1;
+  optional AccessCanFaulted access_can = 2;
+}
+
+enum SecureElementFaulted {
+  SECURE_ELEMENT_FAULT_UNSPECIFIED = 0;
+  SECURE_ELEMENT_NO_FAILURE = 1;
+  SECURE_ELEMENT_LOST_COMMUNICATION = 2;
+  SECURE_ELEMENT_APPLET_NOT_PROGRAMMED = 3;
+  SECURE_ELEMENT_NOT_CONFIGURED = 4;
+  SECURE_ELEMENT_ATTACK_COUNTER = 5;
+  SECURE_ELEMENT_URSK_DECRYPT_FAILURE = 6;
+}
+
+enum AccessCanFaulted {
+  ACCESS_CAN_FAULT_UNSPECIFIED = 0;
+  ACCESS_CAN_NO_FAILURE = 1;
+  ACCESS_CAN_FAILURE = 2;
+}
+
+// security.alarm.state
+message AlarmState {
+  optional AlarmSound sound_alarm = 1;
+  bool consecutive_alarm_disabled_notification = 2;
+}
+
+enum AlarmSound {
+  ALARM_SOUND_UNSPECIFIED = 0;
+  ALARM_SOUND_FALSE = 1;
+  ALARM_SOUND_TRUE = 2;
+  ALARM_SOUND_SIGNAL_NOT_AVAILABLE = 3;
+}
+
+// security.video_monitoring.state
+message VideoMonitoringState {
+  optional VideoMonitoringStatus status = 1;
+  optional VideoMode mode = 2;
+  optional TosAcceptance terms_accepted = 3;
+}
+
+enum VideoMonitoringStatus {
+  VIDEO_MONITORING_STATUS_UNSPECIFIED = 0;
+  VIDEO_MONITORING_DISABLED = 1;
+  VIDEO_MONITORING_ENABLED = 2;
+  VIDEO_MONITORING_ACTIVE = 3; // while the vehicle is locked
+  VIDEO_MONITORING_FAULTED = 4;
+}
+
+enum VideoMode {
+  VIDEO_MODE_NONE = 0;
+  VIDEO_MODE_EVERYWHERE = 1;
+  VIDEO_MODE_AWAY_FROM_HOME = 2;
+}
+
+enum TosAcceptance {
+  TOS_ACCEPTANCE_UNSPECIFIED = 0;
+  TOS_NOT_ACCEPTED = 1;
+  TOS_ACCEPTED = 2;
+}

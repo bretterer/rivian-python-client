@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package rivian.parallax.vehicle;
+
+// Reverse-engineered `vehicle.*` RVM payloads; see ../vehicle.py.
+
+// vehicle.profiles.active_user -- the active driver's profile id (as in
+// device_table.vas_keyper.devices). Changes with the key that unlocks.
+message ActiveUserProfile {
+  optional string active_user_profile_id = 1;
+}
+
+// vehicle.power.state
+message VehiclePowerState {
+  optional PowerState state = 1;
+}
+
+enum PowerState {
+  POWER_STATE_UNSPECIFIED = 0;
+  POWER_SLEEP = 1;
+  POWER_STANDBY = 2;
+  POWER_READY = 3;
+  POWER_GO = 4;
+  POWER_VEHICLE_RESET = 5;
+  POWER_OTA_UPDATE = 6;
+  POWER_SHUTDOWN = 7;
+}
+
+// vehicle.wheels.vehicle_wheels
+message VehicleWheels {
+  repeated Wheel wheel = 1;
+
+  message Wheel {
+    int32 wheel_package = 1; // the app's enum (class stripped)
+    int64 tire_odometer = 2; // meters
+    int64 saved_tire_odometer_delta = 3; // meters; only on an uninstalled wheel
+    int64 odometer_at_last_rotation = 4; // meters
+    int64 saved_odometer_at_last_rotation_delta = 5; // meters; ditto
+    int64 rotation_reminder_interval = 6; // meters
+    bool is_installed = 7;
+    UpdatedAt updated_at = 8; // changes with the rotation interval
+    int32 tires = 9; // the app's enum (class stripped)
+    int64 current_odometer = 10; // meters
+
+    message UpdatedAt {
+      int64 seconds = 1; // epoch seconds
+    }
+  }
+}
+
+// vehicle.network.state and vehicle.setting.network (same shape).
+// Signals are dBm; -255 means no reading.
+message NetworkState {
+  ActiveInterface active_interface = 1; // the default link
+  repeated InterfaceStatus interfaces = 2; // network routes
+  ConnectivityLevel connectivity_level = 3; // the default link's quality
+  Wifi wifi = 4;
+  Cellular cellular = 5;
+
+  message InterfaceStatus {
+    Route id = 1;
+    RouteState status = 2;
+  }
+
+  enum Route {
+    ROUTE_UNSPECIFIED = 0;
+    ROUTE_WIFI = 1;
+    ROUTE_CELLULAR_CORE = 2;
+    ROUTE_CELLULAR_MEDIA = 3;
+    ROUTE_CELLULAR_HOTSPOT = 4;
+  }
+
+  enum RouteState {
+    ROUTE_STATE_UNSPECIFIED = 0;
+    ROUTE_STATE_DOWN = 1;
+    ROUTE_STATE_UP = 2;
+  }
+
+  message Wifi {
+    WpaStatus wpa_status = 1;
+    ConnStatus conn_status = 2;
+    string ssid = 3;
+    optional string bssid = 4;       // access point MAC address
+    optional string mac_address = 5; // the vehicle's MAC address
+    repeated IpAddress ip_addresses = 6;
+    ConnectivityLevel antenna_bars = 7;
+    int32 signal = 8; // dBm
+    int32 link_speed = 9;
+    int32 freq = 10;
+    int32 bandwidth = 11;
+    WifiSecurity secure_status = 12;
+    Ternary secured = 13;
+    Ternary user_enabled = 14;
+  }
+
+  enum ConnStatus {
+    CONN_STATUS_UNSPECIFIED = 0;
+    CONN_STATUS_CHECKING = 1;
+    CONN_STATUS_SUCCESS = 2;
+    CONN_STATUS_UNSTABLE = 3;
+    CONN_STATUS_NO_NETWORK = 4;
+    CONN_STATUS_OUT_OF_SERVICE = 5;
+    CONN_STATUS_CAPTIVE_PORTAL = 6;
+    CONN_STATUS_DNS_ERROR = 7;
+    CONN_STATUS_DHCP_ERROR = 8;
+    CONN_STATUS_UNREACHABLE_UNKNOWN = 12;
+  }
+
+  enum Ternary {
+    TERNARY_UNSPECIFIED = 0;
+    TERNARY_FALSE = 1;
+    TERNARY_TRUE = 2;
+  }
+
+  message IpAddress {
+    string ipv4 = 1;
+    string ipv6 = 2;
+  }
+
+  message Cellular {
+    string carrier = 1;
+    string mode = 2;    // e.g. "LTE"
+    ConnectivityLevel antenna_bars = 3;
+    int32 signal_strength = 4; // dBm
+  }
+}
+
+enum ActiveInterface {
+  ACTIVE_INTERFACE_UNSPECIFIED = 0;
+  ACTIVE_INTERFACE_WIFI = 1;
+  ACTIVE_INTERFACE_CELLULAR = 2;
+}
+
+enum ConnectivityLevel {
+  CONNECTIVITY_LEVEL_UNSPECIFIED = 0;
+  CONNECTIVITY_LEVEL_0 = 1;
+  CONNECTIVITY_LEVEL_1 = 2;
+  CONNECTIVITY_LEVEL_2 = 3;
+  CONNECTIVITY_LEVEL_3 = 4;
+  CONNECTIVITY_LEVEL_4 = 5;
+}
+
+enum WifiSecurity {
+  WIFI_SECURITY_UNSPECIFIED = 0;
+  WIFI_OPEN = 1;
+  WIFI_WPA_PERSONAL = 2;
+  WIFI_WPA_ENTERPRISE = 3;
+  WIFI_WPA2_PERSONAL = 4;
+  WIFI_WPA2_ENTERPRISE = 5;
+  WIFI_WPA3_PERSONAL = 6;
+  WIFI_WPA3_ENTERPRISE = 7;
+  WIFI_ENHANCED_OPEN = 8;
+}
+
+enum WpaStatus {
+  WPA_STATUS_UNSPECIFIED = 0;
+  WPA_NOT_CONNECTED = 1;
+  WPA_CONNECTED = 2;
+  WPA_SCANNING = 3;
+  WPA_CONNECTING = 4;
+  WPA_DISCONNECTING = 5;
+  WPA_CONNECTION_FAILED = 6;
+  WPA_DISABLED = 7;
+  WPA_SCAN_FAILURE = 8;
+}

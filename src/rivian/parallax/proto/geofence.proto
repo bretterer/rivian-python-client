@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package rivian.parallax.geofence;
+
+// Reverse-engineered `geofence.*` RVM payloads; see ../geofence.py.
+
+// geofence.geofence_service.favoriteGeofences -- saved places.
+message FavoriteGeofences {
+  repeated Geofence geofence = 1;
+
+  message Geofence {
+    GeofenceType type = 1;
+    optional string name = 2;       // a name or street address
+  }
+}
+
+enum GeofenceType {
+  GEOFENCE_TYPE_CUSTOM = 0;
+  GEOFENCE_TYPE_HOME = 1;
+  GEOFENCE_TYPE_WORK = 2;
+}

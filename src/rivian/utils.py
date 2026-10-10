@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from base64 import b64decode, b64encode
+from datetime import datetime, timezone
 from typing import cast
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -97,3 +98,19 @@ def get_secret_key(private_key_str: str, public_key_str: str) -> bytes:
     secret = private_key.exchange(ec.ECDH(), public_key)
     hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b"")
     return hkdf.derive(secret)
+
+
+# Anything at or above this magnitude is treated as milliseconds rather
+# than seconds. A seconds-scale Unix epoch stays below 1e11 until the
+# year 5138; a milliseconds-scale one is already above 1e12 today. 1e11
+# sits comfortably in the gap between the two, with room on both sides.
+_MS_THRESHOLD = 1e11
+
+
+def from_epoch(epoch: float) -> datetime:
+    """Convert a Unix epoch value in either seconds or milliseconds to a
+    timezone-aware UTC `datetime`.
+    """
+    if abs(epoch) >= _MS_THRESHOLD:
+        epoch /= 1000
+    return datetime.fromtimestamp(epoch, timezone.utc)

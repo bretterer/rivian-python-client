@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package rivian.parallax.dynamics;
+
+// Reverse-engineered `dynamics.*` RVM payloads; see ../dynamics.py.
+
+// dynamics.vehicle.drive_mode
+message DriveMode {
+  optional DriveModeValue mode = 1;
+  bool limited_accel_cold = 8;
+  bool limited_regen_cold = 9;
+}
+
+enum DriveModeValue {
+  DRIVE_MODE_UNSPECIFIED = 0;
+  DRIVE_MODE_INIT = 1;
+  DRIVE_MODE_EVERYDAY = 2;
+  DRIVE_MODE_OFF_ROAD_SNOW_ICE = 3;
+  DRIVE_MODE_OFF_ROAD_SPORT_AUTO = 4;
+  DRIVE_MODE_OFF_ROAD_SPORT_DRIFT = 5;
+  DRIVE_MODE_SPORT_LAUNCH = 6;
+  DRIVE_MODE_FAULT = 7;
+  DRIVE_MODE_SPORT = 8;
+  DRIVE_MODE_DISTANCE = 9;
+  DRIVE_MODE_TOWING = 10;
+  DRIVE_MODE_OFF_ROAD_AUTO = 11;
+  DRIVE_MODE_OFF_ROAD_SAND = 12;
+  DRIVE_MODE_OFF_ROAD_ROCKS = 13;
+  DRIVE_MODE_OFF_ROAD_MUD = 14;
+  DRIVE_MODE_WINTER = 15;
+}
+
+// dynamics.vehicle.gear
+message Gear {
+  GearValue gear = 1;
+}
+
+enum GearValue {
+  GEAR_NOT_DEFINED = 0;
+  GEAR_PARK = 1;
+  GEAR_REVERSE = 2;
+  GEAR_NEUTRAL = 3;
+  GEAR_DRIVE = 4;
+}
+
+// dynamics.vehicle.gnss -- the doubles carry float32 precision.
+message Gnss {
+  double latitude = 1;
+  double longitude = 2;
+  double altitude = 3; // meters
+  float speed = 4; // m/s
+  float bearing = 5; // degrees
+  // The gateway's gnssError, in the same units.
+  float position_horizontal_error = 6; // meters
+  float position_vertical_error = 7;   // meters
+  float speed_error = 8;               // m/s
+  float bearing_error = 9;             // degrees
+  int64 time = 10; // epoch ms (Unix, or GPS on some vehicles); the whole fix
+}
+
+// dynamics.vehicle.location
+message KnownLocation {
+  optional KnownLocationValue location = 1;
+}
+
+enum KnownLocationValue {
+  KNOWN_LOCATION_UNSPECIFIED = 0;
+  KNOWN_LOCATION_UNKNOWN = 1;
+  KNOWN_LOCATION_HOME = 2;
+  KNOWN_LOCATION_WORK = 3;
+}
+
+// dynamics.vehicle.odometer
+message Odometer {
+  optional int64 distance = 1; // km
+}
+
+// dynamics.vehicle.range
+message Range {
+  int32 distance_to_empty = 1; // km
+  optional RangeThreshold threshold = 2;
+  optional TemperatureImpact temperature_impact = 3;
+}
+
+enum RangeThreshold {
+  RANGE_THRESHOLD_UNSPECIFIED = 0;
+  RANGE_THRESHOLD_NORMAL = 1;
+  RANGE_THRESHOLD_LOW = 2;
+  RANGE_THRESHOLD_RED = 3;
+  RANGE_THRESHOLD_CRITICALLY_LOW = 4;
+}
+
+enum TemperatureImpact {
+  TEMPERATURE_IMPACT_UNSPECIFIED = 0;
+  TEMPERATURE_NORMAL_RANGE = 1;
+  TEMPERATURE_COLD_MAY_IMPACT = 2;
+  TEMPERATURE_COLD_IMPACT = 3;
+}
+
+// dynamics.tires.state
+message TiresState {
+  int32 tpms_monitor_status = 1; // enum type unknown
+
+  message Tire {
+    TirePosition pos = 1;
+    optional TirePressureStatus status = 2;
+    optional double pressure = 3; // bar
+    int32 validity = 4; // the app's enum (class stripped); 0 valid, 1 invalid
+    int64 timestamp = 5; // epoch milliseconds
+  }
+  repeated Tire tire = 2;
+}
+
+enum TirePosition {
+  TIRE_POSITION_UNSPECIFIED = 0;
+  TIRE_FRONT_LEFT = 1;
+  TIRE_FRONT_RIGHT = 2;
+  TIRE_REAR_LEFT = 3;
+  TIRE_REAR_RIGHT = 4;
+}
+
+enum TirePressureStatus {
+  TIRE_PRESSURE_STATUS_UNSPECIFIED = 0;
+  TIRE_PRESSURE_STATUS_NORMAL = 1;
+  TIRE_PRESSURE_STATUS_WARNING_HARD = 2;
+  TIRE_PRESSURE_STATUS_WARNING_SOFT = 3;
+  TIRE_PRESSURE_STATUS_WARNING_PUNCTURE = 4;
+}
+
+// dynamics.vehicle.efficiency
+message Efficiency {
+  optional int32 efficiency = 1; // Wh/km; used for the parked-energy ranges
+  optional int32 field_2 = 2; // unmapped; same scale
+  repeated History history = 3;
+
+  message History {
+    int32 index = 1; // 1-10
+    int32 value = 2; // Wh/km
+  }
+}
+
+// dynamics.vehicle.mass_estimate
+message MassEstimate {
+  optional int32 mass = 1; // kg
+}
+
+// dynamics.brakes.fluid_level
+message BrakeFluidLevel {
+  BrakeFluidLow fluid_low = 1;
+}
+
+// Best guess: the app's FluidLevelLow values (the gateway's brakeFluidLow),
+// numbered like the other SNA / false / true enums.
+enum BrakeFluidLow {
+  BRAKE_FLUID_LOW_SIGNAL_NOT_AVAILABLE = 0;
+  BRAKE_FLUID_LOW_INACTIVE = 1;
+  BRAKE_FLUID_LOW_ACTIVE = 2;
+}

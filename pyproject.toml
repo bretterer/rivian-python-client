@@ -15,6 +15,7 @@ dependencies = [
     "cryptography (>=41.0.1)",
     "backports-strenum (>=1.2.4) ; python_version < '3.11'",
     "typing_extensions (>=4.14.1) ; python_version < '3.11'",
+    "protobuf>=6.31.1,<8",
 ]
 dynamic = ["version"]
 
@@ -33,7 +34,17 @@ dev = [
     "mypy>=1.7,<3.0",
     "ruff>=0.16,<0.17",
     "pre-commit>=4.6.1,<5",
+    "types-protobuf>=6.32.1.20260221",
+    "grpcio-tools==1.80.0",
+    "pytest-cov>=7.0,<8",
 ]
+
+[tool.coverage.run]
+source = ["rivian"]
+omit = ["*_pb2.py"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.hatch.build.hooks.version]
 path = "src/rivian/__version__.py"
@@ -56,6 +67,9 @@ cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true 
 
 [tool.uv-dynamic-versioning]
 pattern = "default-unprefixed"
+
+[tool.ruff]
+extend-exclude = ["*_pb2.py", "*_pb2.pyi"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

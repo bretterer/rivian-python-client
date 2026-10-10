@@ -1,0 +1,201 @@
+syntax = "proto3";
+
+package rivian.parallax.navigation;
+
+// Reverse-engineered `navigation.*` RVM payloads; see ../navigation.py.
+
+message GeoCoordinate {
+  optional double latitude = 1;
+  optional double longitude = 2;
+}
+
+// nanos is usually absent, so most times decode to whole seconds.
+message Timestamp {
+  optional int64 seconds = 1;
+  optional int32 nanos = 2;
+}
+
+// A position fix: the trip's origin, or the vehicle's live position.
+message GpsFix {
+  GeoCoordinate location = 1;
+  float speed = 2;   // m/s
+  float bearing = 3; // degrees
+  bool offroad = 4;
+  optional int64 time = 5; // epoch milliseconds
+  double altitude = 6; // meters
+  double accuracy = 7; // meters
+}
+
+enum StopStatus {
+  STOP_STATUS_STOPPING = 0;
+  STOP_STATUS_ARRIVED = 1;
+  STOP_STATUS_NEXT_STOP = 2;
+  STOP_STATUS_FUTURE = 3;
+}
+
+// navigation.navigation_service.trip_info
+message TripInfo {
+  // An integer as text; changes on every route computation.
+  optional string trip_id = 1;
+  GpsFix origin = 2;
+  Trip trip = 3;
+  RoutePreferences route_preferences = 4;
+  optional double origin_soc = 5; // percent
+  // waypoints[0]'s departure if it's a charging stop, else its arrival.
+  Timestamp next_waypoint_departure = 6;
+  FasterRoute faster_route = 7;
+
+  message Trip {
+    optional double distance = 1; // meters; driving only
+    optional double duration = 2; // seconds; driving only
+    repeated WaypointWrapper waypoint = 3;
+    repeated Leg leg = 4;
+    bool soc_is_below_limit = 5;
+    optional double final_soc = 6; // percent; same as the last waypoint's
+    optional double final_range = 7; // meters; same as the last waypoint's
+    GeoCoordinate battery_empty_location = 8;
+    double battery_empty_to_destination_distance = 9; // meters
+    optional string overview_polyline = 10; // Google-encoded, whole trip
+    repeated AlternativeRoute alternative_routes = 11;
+    int32 route_index = 12;
+    repeated AlternativeOverlap alternative_overlaps = 13;
+  }
+
+  message WaypointWrapper {
+    Place place = 1;
+    ChargingStop charging_stop = 2;
+  }
+
+  // A destination, including a charging station the user chose.
+  message Place {
+    GeoCoordinate location = 1;
+    GeoCoordinate snapped_location = 2; // the navigation coordinate
+    StopStatus status = 3;
+    optional string name = 4;
+    optional string place_id = 5; // Google Place ID, or a Rivian charger ID
+    double stop_duration = 6; // seconds
+    double soc = 7; // percent; projected on arrival
+    double range = 8; // meters; projected on arrival
+    Timestamp arrival = 9;
+  }
+
+  // A charging stop the route planner inserted.
+  message ChargingStop {
+    optional string station_id = 1;
+    optional string label = 2;
+    GeoCoordinate location = 3;
+    optional double charge_duration = 4; // seconds
+    ChargeDataAccuracy charge_data_accuracy = 5;
+    optional double arrival_soc = 6; // percent
+    optional double arrival_range = 7; // meters
+    optional double departure_soc = 8; // percent
+    optional double departure_range = 9; // meters
+    Timestamp departure_time = 10;
+    Timestamp arrival_time = 11;
+    bool is_system_added = 12;
+    bool compatible = 13;
+    bool adapter_required = 14;
+    double stop_duration = 16; // seconds
+    StopStatus status = 17;
+  }
+
+  enum ChargeDataAccuracy {
+    CHARGE_DATA_ACCURACY_OK = 0;
+    CHARGE_DATA_ACCURACY_CONSUMPTION_FAILED = 1;
+    CHARGE_DATA_ACCURACY_CHARGETIME_FAILED = 2;
+    CHARGE_DATA_ACCURACY_BOTH_FAILED = 3;
+  }
+
+  message Leg {
+    double distance = 1; // meters
+    double duration = 2; // seconds
+    optional string road_label = 3; // the leg summary: highway or street name
+    optional string polyline = 4;   // Google-encoded
+    // Packed (start, end) polyline index pairs.
+    repeated int32 traffic_slow = 5;
+    repeated int32 traffic_jam = 6;
+    repeated int32 traffic_severe = 7;
+    EnergyConsumption energy = 8;
+    repeated Incident incidents = 9;
+    repeated TrafficBlock traffic_blocks = 10;
+
+    // kWh, though the app names these Wh; only total has been sent.
+    message EnergyConsumption {
+      double total = 1;
+      double thermal = 2;
+      double lv = 3;
+      double hvac = 4;
+      double elevation = 5;
+    }
+
+    message Incident {
+      int32 polyline_first_index = 1;
+      int32 polyline_last_index = 2;
+      IncidentType type = 3;
+    }
+
+    enum IncidentType {
+      INCIDENT_UNKNOWN = 0;
+      INCIDENT_NONE = 1;
+      INCIDENT_CLOSURE = 2;
+      INCIDENT_CRASH = 3;
+      INCIDENT_CONSTRUCTION = 4;
+      INCIDENT_JAM = 5;
+      INCIDENT_POLICE_PRESENCE = 6;
+      INCIDENT_FIXED_SPEED_CAMERA = 7;
+    }
+
+    // Polyline index ranges; the fractions are 0-1 positions past a point.
+    message TrafficBlock {
+      int32 first_index = 1;
+      float first_index_fraction = 2;
+      int32 last_index = 3;
+      float last_index_fraction = 4;
+      int32 priority = 5; // the app's enum (class stripped)
+    }
+  }
+
+  message AlternativeRoute {
+    repeated Leg leg = 1;
+    string polyline = 2;
+    int32 route_index = 3;
+    repeated AlternativeOverlap alternative_overlaps = 4;
+  }
+
+  message AlternativeOverlap {
+    int32 alternative_index = 1;
+    repeated Segment not_overlapping_segments = 2;
+
+    message Segment {
+      int32 start_drive_leg_index = 1;
+      int32 start_polyline_index = 2;
+      int32 end_drive_leg_index = 3;
+      int32 end_polyline_index = 4;
+    }
+  }
+
+  message RoutePreferences {
+    optional float current_arrival_soc = 1; // fraction, 0-1
+    optional float default_arrival_soc = 2; // fraction, 0-1
+    // "switchName:true" / "switchName:false" strings.
+    repeated string road_avoidance = 3;           // e.g. "switchExcludeMotorway:false"
+    repeated string charging_network_filters = 4; // e.g. "switchRivianFilter:true"
+  }
+
+  message FasterRoute {
+    Trip route = 1;
+    double time_saved = 2; // seconds
+  }
+}
+
+// navigation.navigation_service.trip_progress
+message TripProgress {
+  Timestamp next_waypoint = 1; // live ETA
+  // Live ETA for the last waypoint; missing for one message after the
+  // waypoints change.
+  Timestamp final_destination = 2;
+  int32 next_stop_index = 3;
+  double distance_remaining = 4; // meters; this leg
+  double duration_remaining = 5; // seconds; this leg
+  GpsFix location_fix = 6;
+}

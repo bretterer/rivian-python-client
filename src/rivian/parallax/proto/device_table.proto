@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package rivian.parallax.device_table;
+
+// Reverse-engineered `device_table.*` RVM payloads; see ../device_table.py.
+
+// device_table.vas_keyper.devices -- one key per message, for every driver
+// on the vehicle. Sends partial updates (e.g. only credentials.info.status);
+// a deleted key stays, marked inactive.
+message VasKeyperDevices {
+  Label label = 1;
+  Device device = 2;
+  Credentials credentials = 3;
+
+  message Label {
+    optional string name = 1;     // set on phone keys, e.g. the phone's name
+    optional KeyType key_type = 3; // the app's devType; same as credentials.key_type
+    optional bool deletable = 4;
+    optional int32 wcc_version = 5; // the app's enum (class stripped)
+  }
+
+  message Device {
+    optional string mapped_identity_id = 1; // "NNN-<uuid>-<suffix>"
+    optional string hrid = 2;               // short human-readable id (key card)
+    optional string profile_id = 3;         // the driver profile the key belongs to
+    optional string public_key = 4;         // phone keys; 64 bytes as hex
+    optional int32 revision = 5;            // key table revision when last written
+    optional int32 vehicle_response_required = 6; // the app's enum (class stripped)
+  }
+
+  message Credentials {
+    Info info = 1;
+    SignedCloud signed_cloud = 2;
+    oneof material {
+      OwnerKey owner = 3;
+      FriendKey friend = 4;
+      KeyMaterial card = 5;  // key card; id is the GraphQL devices[].id
+      KeyMaterial fob = 6;   // key fob
+      KeyMaterial phone = 7; // phone keys; id is the phone's UUID
+      DualKey fob2 = 8;      // the app's keyfob2: separate BLE and NFC material
+    }
+    optional KeyType key_type = 9; // the app's formFactor
+    optional DeviceOem device_oem = 10;
+
+    message Info {
+      optional int32 a = 1; // unknown
+      optional int64 created_at = 2; // epoch milliseconds; the app's tsEpochMs
+      optional int64 expires_at = 3; // epoch milliseconds; the app's expirationEpochMs
+      // 1 while active, INT32_MAX while inactive, else the pairing attempt.
+      optional int32 c = 4;
+      optional KeyStatus status = 5;
+      optional int32 b = 6;
+      optional int32 permissions = 7;
+    }
+
+    message SignedCloud {
+      optional string payload = 1; // the app's somethingThatRequiresSigning
+    }
+
+    // The account owner's key: a SPAKE2+ verifier.
+    message OwnerKey {
+      optional bytes spake_w0 = 1;
+      optional bytes spake_l = 2;
+      optional bytes salt = 3;
+      optional bytes id = 4;
+      optional bytes credential = 5;
+    }
+
+    message FriendKey {
+      optional bytes id = 2;
+      optional bytes credential = 3;
+    }
+
+    message DualKey {
+      optional bytes ble_id = 1;
+      optional bytes ble_credential = 2;
+      optional bytes nfc_id = 3;
+      optional bytes nfc_credential = 4;
+    }
+  }
+
+  enum KeyStatus {
+    KEY_STATUS_UNSPECIFIED = 0;
+    KEY_STATUS_ACTIVE = 1;
+    KEY_STATUS_INACTIVE = 3;        // not paired, no longer paired, or deleted
+    KEY_STATUS_WAITING_TO_PAIR = 5;
+    KEY_STATUS_PAIRING = 7;         // a pairing attempt in progress
+  }
+
+  enum KeyType {
+    KEY_TYPE_UNSPECIFIED = 0;
+    KEY_TYPE_PHONE = 2;
+    KEY_TYPE_KEY_CARD = 3;
+    KEY_TYPE_KEY_FOB = 4; // inferred
+  }
+
+  enum DeviceOem {
+    DEVICE_OEM_UNKNOWN = 0;
+    DEVICE_OEM_RIVIAN = 1;
+    DEVICE_OEM_APPLE = 2;
+    DEVICE_OEM_GOOGLE = 3;
+    DEVICE_OEM_SAMSUNG = 4;
+    DEVICE_OEM_VW = 5;
+  }
+
+  // The app's uid and wrappedSharedSecret.
+  message KeyMaterial {
+    optional bytes id = 1;
+    optional bytes credential = 2;
+  }
+}

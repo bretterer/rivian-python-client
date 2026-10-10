@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package rivian.parallax.gearguard_streaming;
+
+// Reverse-engineered `gearguard_streaming.*` RVM payloads; see ../gearguard_streaming.py.
+
+// gearguard_streaming.privacy.gearguard_streaming_in_vehicle_consent
+message GearGuardStreamingConsent {
+  optional ConsentValue consent = 1;
+}
+
+enum ConsentValue {
+  CONSENT_UNKNOWN = 0;
+  CONSENT_NOT_APPLICABLE = 1;
+  CONSENT_CONSENTED = 2;
+  CONSENT_NOT_CONSENTED = 3;
+}
+
+// gearguard_streaming.privacy.gearguard_streaming_daily_limit
+message GearGuardStreamingDailyLimit {
+  optional DailyLimitValue limit = 1;
+  optional int64 limit_reset_time = 2; // epoch seconds; only while a limit is active
+}
+
+enum DailyLimitValue {
+  DAILY_LIMIT_UNDEFINED = 0;
+  DAILY_LIMIT_HIT = 1;
+  DAILY_LIMIT_NOT_HIT = 2;
+}

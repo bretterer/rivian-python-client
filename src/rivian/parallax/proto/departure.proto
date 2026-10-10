@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package rivian.parallax.departure;
+
+// Reverse-engineered `departure.*` RVM payloads; see ../departure.py.
+
+// departure.schedule.schedule -- precondition schedules, named after the
+// gateway's DepartureSchedule type.
+message DepartureSchedules {
+  repeated Schedule schedule = 1;
+  UpdatedAt updated_at = 2;
+
+  message Schedule {
+    optional string id = 1;
+    optional string name = 2;
+    bool is_enabled = 3;
+    Occurrence occurrence = 4;
+    DepartureSettings departure_settings = 6;
+  }
+
+  message Occurrence {
+    Days days = 1;
+    optional int32 starts_at = 2; // minutes after local midnight
+  }
+
+  // Gateway WeekDay order (inferred; only all-days schedules seen).
+  message Days {
+    bool monday = 1;
+    bool tuesday = 2;
+    bool wednesday = 3;
+    bool thursday = 4;
+    bool friday = 5;
+    bool saturday = 6;
+    bool sunday = 7;
+  }
+
+  message DepartureSettings {
+    ComfortSettings comfort_settings = 1;
+    bool should_override_charge_schedule = 2;
+  }
+
+  message ComfortSettings {
+    float cabin_temperature = 1; // °C
+    DefogDefrostLevel front_defog_defrost = 2;
+    SurfaceHeatVentLevels surface_heat_vent_levels = 3;
+  }
+
+  message SurfaceHeatVentLevels {
+    SurfaceHeatVentLevel front_left_seat = 1;
+    SurfaceHeatVentLevel front_right_seat = 2;
+    SurfaceHeatVentLevel rear_left_seat = 3;
+    SurfaceHeatVentLevel rear_right_seat = 4;
+    SurfaceHeatVentLevel steering_wheel = 5;
+  }
+
+  message UpdatedAt {
+    int64 seconds = 1; // epoch seconds
+    int32 nanos = 2;
+  }
+}
+
+// Gateway DefogDefrostLevel order.
+enum DefogDefrostLevel {
+  DEFOG_DEFROST_OFF = 0;
+  DEFOG_DEFROST_DEFOG = 1;
+  DEFOG_DEFROST_DEFROST = 2;
+}
+
+// Gateway SurfaceHeatVentLevel order.
+enum SurfaceHeatVentLevel {
+  SURFACE_OFF = 0;
+  SURFACE_HEAT_1 = 1;
+  SURFACE_HEAT_2 = 2;
+  SURFACE_HEAT_3 = 3;
+  SURFACE_VENT_1 = 4;
+  SURFACE_VENT_2 = 5;
+  SURFACE_VENT_3 = 6;
+}

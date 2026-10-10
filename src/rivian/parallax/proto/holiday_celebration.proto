@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package rivian.parallax.holiday_celebration;
+
+// Reverse-engineered `holiday_celebration.*` RVM payloads; see ../holiday_celebration.py.
+
+// holiday_celebration.car_costume.holiday_celebration_enabled
+// No app class; names are inferred.
+message HolidayCelebrationEnabled {
+  bool available = 1; // the feature is offered (seasonal)
+  bool enabled = 2;   // the user's on/off switch
+}
+
+// holiday_celebration.car_costume.settings -- int enum types unknown.
+message CarCostumeSettings {
+  int32 celebration_sound_volume = 1;
+  bool interior_music_enabled = 2;
+  int32 interior_music_type = 3;
+  int32 motion_exterior_light_sound_effect = 4;
+  bool interior_light_show_enabled = 6;
+  bool interior_overhead_lights_enabled = 7;
+  int32 lights_color = 9;
+  int32 costume_effect = 11; // the app's enum (class stripped); 1 none, 3 display show (inferred)
+  CostumeEffectTrigger effect_trigger = 12;
+}
+
+enum CostumeEffectTrigger {
+  COSTUME_EFFECT_TRIGGER_UNSPECIFIED = 0;
+  COSTUME_EFFECT_TRIGGER_MANUAL = 1;
+  COSTUME_EFFECT_TRIGGER_MOTION = 2;
+}
+
+// holiday_celebration.car_costume.state -- int enum types unknown.
+message CarCostumeState {
+  // The app's enum (class stripped); best guess 1 available, 3 unavailable.
+  int32 car_costume_availability = 1;
+  CarCostumeTheme costume_theme = 2;
+  bool motion_trigger_detected = 3;
+  Timestamp costume_start_time = 4;
+  int32 active_costume_effect = 6; // as CarCostumeSettings.costume_effect
+
+  message Timestamp {
+    int64 seconds = 1;
+    int32 nanos = 2;
+  }
+}
+
+// Inferred: the app's reportedCostume wire values (its proto's class was
+// stripped).
+enum CarCostumeTheme {
+  CAR_COSTUME_THEME_UNSPECIFIED = 0;
+  CAR_COSTUME_THEME_NONE = 1;
+  CAR_COSTUME_THEME_GHOSTBUSTERS = 2;
+  CAR_COSTUME_THEME_GHOSTBUSTERS_DISPLAY = 3;
+}
+
+// holiday_celebration.mobile_vehicle_settings.halloween_celebration_settings
+// Names from the app.
+message HalloweenCelebrationSettings {
+  CostumeTheme costume_theme = 1;
+  Int32Value sound_volume = 2;
+  BoolValue music_enabled = 3;
+  Int32Value music_type = 4;
+  StringValue sound_effect = 5;
+  optional int32 exterior_sound_effect = 6;
+  BoolValue exterior_sounds_muted = 7;
+  BoolValue light_show_enabled = 8;
+  BoolValue interior_overhead_lights_enabled = 9;
+  BoolValue exterior_light_show_enabled = 10;
+  Int32Value lights_color = 11;
+  StringValue car_costume_availability = 12;
+  optional bool motion_light_sound_enabled = 13;
+
+  message CostumeTheme {
+    optional string theme_name = 1;
+  }
+  message BoolValue {
+    optional bool value = 1;
+  }
+  message Int32Value {
+    optional int32 value = 1;
+  }
+  message StringValue {
+    optional string value = 1;
+  }
+}

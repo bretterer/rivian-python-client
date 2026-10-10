@@ -1,0 +1,239 @@
+syntax = "proto3";
+
+package rivian.parallax.charging;
+
+// Reverse-engineered `charging.*` RVM payloads; see ../charging.py.
+
+// charging.schedule.time_window
+// Empty when no schedule is set. The window is its current/next
+// occurrence, not its recurrence; duration is 10080 for an all-week window.
+message ScheduleTimeWindow {
+  bool enabled = 1;
+  Window window = 2;
+
+  message Window {
+    int32 start_time = 1; // minutes after local midnight
+    int32 end_time = 2; // minutes after local midnight
+    int32 duration = 3; // minutes
+    optional int32 amps = 4;    // current limit
+    GeoCoordinate location = 5; // where the schedule applies
+    DayOfWeek start_day = 6;
+    DayOfWeek end_day = 7;
+  }
+
+  // The app's proto has uint32 days; its ChargingSmartDayOfWeek.fromInt maps
+  // them as below (unlike SmartChargingDay, which starts on Monday).
+  enum DayOfWeek {
+    DAY_OF_WEEK_UNSPECIFIED = 0;
+    SUNDAY = 1;
+    MONDAY = 2;
+    TUESDAY = 3;
+    WEDNESDAY = 4;
+    THURSDAY = 5;
+    FRIDAY = 6;
+    SATURDAY = 7;
+  }
+
+  message GeoCoordinate {
+    double latitude = 1;
+    double longitude = 2;
+  }
+}
+
+// charging.session.notification
+message SessionNotification {
+  int32 unexpected_stop_reason = 1;
+  ChargerDerateStatus derate_status = 2;
+  FaultChime fault_chime = 3;
+}
+
+enum ChargerDerateStatus {
+  DERATE_STATUS_NONE = 0;
+  DERATE_STATUS_WARM_ADAPTER = 1;
+  DERATE_STATUS_DC_WARM_PLUG = 2;
+  DERATE_STATUS_AC_WARM_PLUG = 3;
+  DERATE_STATUS_EVSE_DERATING = 4;
+  DERATE_STATUS_NEARING_TOC = 5;
+  DERATE_STATUS_NEAR_TOC_LFP_BATT_CALIBRATING = 6;
+  DERATE_STATUS_HVAC_PRIORITIZED = 7;
+  DERATE_STATUS_BATTERY_HEATING = 8;
+  DERATE_STATUS_BATTERY_COOLING = 9;
+  DERATE_STATUS_CELL_THERMAL_LIM_COLD_NO_CURRENT = 10;
+  DERATE_STATUS_CELL_THERMAL_LIM_HOT_NO_CURRENT = 11;
+  DERATE_STATUS_CELL_THERMAL_LIM_COLD = 12;
+  DERATE_STATUS_CELL_THERMAL_LIM_HOT = 13;
+  DERATE_STATUS_PACK_HARDWARE_THERMAL_LIM = 14;
+  DERATE_STATUS_HIGH_SOC_SIGMA = 15;
+  DERATE_STATUS_HV_BATTERY_FAULT = 16;
+  DERATE_STATUS_DCAC_EXPORT = 17;
+}
+
+enum FaultChime {
+  FAULT_CHIME_NONE = 0;
+  FAULT_CHIME_CHARGING_DISABLED_ALL = 1;
+  FAULT_CHIME_CHARGING_DISABLED_DC = 2;
+  FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_DC = 3;
+  FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_GRADIENT_DC = 4;
+  FAULT_CHIME_CHARGING_DEGRADED_DC = 5;
+  FAULT_CHIME_CHARGING_DISABLED_AC = 6;
+  FAULT_CHIME_CHARGING_DISABLED_PIN_TEMP_AC = 7;
+  FAULT_CHIME_CHARGING_DEGRADED_AC = 8;
+  FAULT_CHIME_CHARGING_DISABLED_PARTIAL_CONNECTION = 9;
+  FAULT_CHIME_CHARGING_DISABLED_NOT_PARKED = 10;
+}
+
+// charging.session.remote_command -- whether a remote start (charge now) is
+// available.
+message SessionRemoteCommand {
+  StartAvailability start_available = 1;
+}
+
+enum StartAvailability {
+  START_AVAILABILITY_SNA = 0;
+  START_AVAILABILITY_FALSE = 1;
+  START_AVAILABILITY_TRUE = 2;
+}
+
+// charging.session.soc_slider
+message SocSlider {
+  optional int32 soc_limit = 1; // percent
+}
+
+// charging.session.trip_target -- unmapped.
+message TripTarget {
+  int32 soc_limit = 2; // percent; 0xFFFF when not set
+}
+
+// charging.smart_charging.settings -- not seen yet; the app's likely schema.
+message SmartChargingSettings {
+  repeated ReadyByTime ready_by_times = 1;
+  bool clean_energy_enabled = 2;
+
+  message ReadyByTime {
+    int32 hours = 1;
+    int32 minutes = 2;
+    repeated SmartChargingDay days = 3;
+  }
+}
+
+// charging.smart_charging.smart_charging_info -- not seen yet; the app's
+// likely schema.
+message SmartChargingInfo {
+  ResumeTime resume_time = 1;
+  SmartChargingNotification notification = 2;
+  int32 schedule_type = 3; // enum type unknown
+
+  message ResumeTime {
+    int64 seconds = 1;
+    int32 nanos = 2;
+  }
+}
+
+enum SmartChargingDay {
+  SMART_CHARGING_DAY_UNSPECIFIED = 0;
+  SMART_CHARGING_DAY_MONDAY = 1;
+  SMART_CHARGING_DAY_TUESDAY = 2;
+  SMART_CHARGING_DAY_WEDNESDAY = 3;
+  SMART_CHARGING_DAY_THURSDAY = 4;
+  SMART_CHARGING_DAY_FRIDAY = 5;
+  SMART_CHARGING_DAY_SATURDAY = 6;
+  SMART_CHARGING_DAY_SUNDAY = 7;
+}
+
+enum SmartChargingNotification {
+  SMART_CHARGING_NOTIFICATION_SNA = 0;
+  SMART_CHARGING_NOTIFICATION_CHARGING_WITH_CLEAN_ENERGY = 1;
+  SMART_CHARGING_NOTIFICATION_CHARGING_PAUSED = 2;
+  SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_NOT_ENOUGH_TIME = 3;
+  SMART_CHARGING_NOTIFICATION_CLEAN_ENERGY_FORECAST_UNAVAILABLE_OR_INCOMPLETE = 4;
+}
+
+// charging.smart_charging.weighted_charging_forecast -- unmapped.
+message WeightedChargingForecast {}
+
+// charging.session.status
+message SessionStatus {
+  optional ConnectionState connection_state = 1;
+  optional ChargingState charging_state = 2;
+  int32 evse_type = 3; // enum type unknown
+}
+
+// The app's PlugConnectionStatus.
+enum ConnectionState {
+  CONNECTION_STATE_INIT = 0;
+  CONNECTION_STATE_DISCONNECTED = 1; // unplugged
+  CONNECTION_STATE_CONNECTED = 2;
+  CONNECTION_STATE_ERROR = 3;
+  CONNECTION_STATE_V2L_CONNECTED = 4;
+}
+
+enum ChargingState {
+  CHARGING_STATE_UNSPECIFIED = 0;
+  CHARGING_READY = 1;      // no session yet (also while unplugged)
+  CHARGING_CONNECTING = 2; // a few seconds while power ramps up
+  CHARGING_ACTIVE = 3;
+  CHARGING_COMPLETE = 4;   // charge limit reached
+  CHARGING_SCHEDULED = 5;  // waiting for the scheduled window
+  CHARGING_VEHICLE_ERROR = 6;
+  CHARGING_STATION_ERROR = 7;
+  CHARGING_USER_STOPPED = 8; // stopped from the app
+  CHARGING_STATION_STOPPED = 9;
+  CHARGING_PAYMENT_ERROR = 10;
+  CHARGING_CERT_ERROR = 11;
+  CHARGING_TLS_ERROR = 12;
+  CHARGING_ERROR_AC_ADAPTER_USED_ON_DC = 13;
+  CHARGING_ERROR_DC_ADAPTER_USED_ON_AC = 14;
+  CHARGING_ERROR_INCOMPATIBLE_CHARGER = 15;
+  CHARGING_SD_COMPENSATION = 16;
+  WAITING_ON_CHARGER = 17;
+  CHARGER_NOT_READY_OR_INCOMPATIBLE = 18;
+  CHARGING_VEHICLE_STOPPED = 19;
+  CHARGING_PAYMENT_ERROR_START_RIVIAN_APP = 20;
+  CHARGING_TLS_ERROR_UNKNOWN_CHARGER = 21;
+  CHARGING_TLS_ERROR_UNEXPECTED_FAIL = 22;
+  CHARGING_TLS_ERROR_START_RIVIAN_APP = 23;
+  CHARGING_SMART_CHARGING_PAUSED = 24;
+  CHARGING_SMART_CHARGING_ACTIVE = 25;
+}
+
+// charging.session.time_estimation
+// Minutes to the charge limit; empty (zero) when not charging.
+message TimeEstimation {
+  TimeEstimationValidity validity = 1;
+  int32 estimated_time_remaining = 2; // minutes
+}
+
+enum TimeEstimationValidity {
+  TIME_ESTIMATION_VALIDITY_NONE = 0;
+  TIME_ESTIMATION_VALIDITY_VALID = 1;
+  TIME_ESTIMATION_VALIDITY_INVALID = 2;
+  TIME_ESTIMATION_VALIDITY_PACK_DISCHARGING = 3;
+}
+
+// charging.energy.state
+// Partial updates: most messages carry only power, and the states are sent
+// only when the plug state changes, so they can't be relied on. The states
+// match charging.session.status, give or take a message.
+message EnergyState {
+  optional ChargingState charging_state = 1;
+  optional ChargerStatus charger_status = 2; // inferred
+  optional int32 field_3 = 3; // unknown
+  float power = 4; // kW; same as charging.session.power
+  // Unknown; sent with remote_command's start_available as the vehicle sleeps
+  // with a user-stopped session.
+  optional int32 field_8 = 8;
+  string field_10 = 10; // unknown
+  optional ConnectionState connection_state = 11;
+}
+
+enum ChargerStatus {
+  CHARGER_STATUS_UNSPECIFIED = 0;
+  CHARGER_STATUS_NOT_CONNECTED = 1;
+  CHARGER_STATUS_CONNECTED_NO_CHARGE = 2;
+  CHARGER_STATUS_CONNECTED_CHARGING = 3;
+}
+
+// charging.session.power -- live charging power; empty when not charging.
+message SessionPower {
+  float power = 1; // kW
+}
