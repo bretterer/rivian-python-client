@@ -5,11 +5,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import socket
-import sys
 import time
 import uuid
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, Self
 from warnings import warn
 
 import aiohttp
@@ -35,14 +34,6 @@ from .exceptions import (
 )
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
-
-if sys.version_info >= (3, 11):
-    import asyncio as async_timeout
-    from typing import Self
-else:
-    import async_timeout
-    from typing_extensions import Self
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -641,7 +632,7 @@ class Rivian:
         try:
             await self._ws_connect()
             assert self._ws_monitor
-            async with async_timeout.timeout(self.request_timeout):
+            async with asyncio.timeout(self.request_timeout):
                 await self._ws_monitor.connection_ack.wait()
             payload = {
                 "operationName": "VehicleState",
@@ -671,7 +662,7 @@ class Rivian:
         try:
             await self._ws_connect()
             assert self._ws_monitor
-            async with async_timeout.timeout(self.request_timeout):
+            async with asyncio.timeout(self.request_timeout):
                 await self._ws_monitor.connection_ack.wait()
             variables: dict[str, Any] = {"vehicleId": vehicle_id}
             if rvms is not None:
@@ -732,14 +723,14 @@ class Rivian:
             headers["dc-cid"] = f"m-ios-{uuid.uuid4()}"
 
         try:
-            async with async_timeout.timeout(self.request_timeout):
+            async with asyncio.timeout(self.request_timeout):
                 response = await self._session.request(
                     "POST",
                     url,
                     json=body,
                     headers=headers,
                 )
-        except asyncio.TimeoutError as exception:
+        except TimeoutError as exception:
             raise RivianApiException(
                 "Timeout occurred while connecting to Rivian API."
             ) from exception

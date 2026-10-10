@@ -5,9 +5,8 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-import sys
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from json import loads
 from random import uniform
 from typing import TYPE_CHECKING, Any
@@ -15,11 +14,6 @@ from uuid import uuid4
 
 from aiohttp import ClientWebSocketResponse, WSMessage, WSMsgType
 from aiohttp.http_websocket import WSMessageTextBytes
-
-if sys.version_info >= (3, 11):
-    import asyncio as async_timeout
-else:
-    import async_timeout
 
 if TYPE_CHECKING:
     from .rivian import Rivian
@@ -133,9 +127,9 @@ class WebSocketMonitor:
     async def _resubscribe_all(self) -> None:
         """Resubscribe all subscriptions."""
         try:
-            async with async_timeout.timeout(self._account.request_timeout):
+            async with asyncio.timeout(self._account.request_timeout):
                 await self.connection_ack.wait()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.error("A timeout occurred while attempting to resubscribe")
             return
         for _id, (_, payload) in self._subscriptions.items():
@@ -155,7 +149,7 @@ class WebSocketMonitor:
                     elif msg.extra == RATE_LIMITED:
                         self._rate_limited = True
                     break
-                self._last_received = datetime.now(timezone.utc)
+                self._last_received = datetime.now(UTC)
                 if msg.type == WSMsgType.TEXT:
                     data = loads(msg.data)
                     if (data_type := data.get("type")) == "connection_ack":
@@ -173,7 +167,7 @@ class WebSocketMonitor:
                 elif msg.type == WSMsgType.ERROR:
                     self._log_message(msg, True)
                     continue
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # The connection has stayed open, so any rate limit has passed
                 self._rate_limit_attempt = 0
                 await self._resubscribe_all()

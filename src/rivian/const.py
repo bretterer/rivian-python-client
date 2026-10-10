@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-import sys
+from enum import StrEnum
 from typing import Final
-
-if sys.version_info >= (3, 11):
-    from enum import StrEnum
-else:
-    from backports.strenum import StrEnum
 
 LIVE_SESSION_PROPERTIES: Final[set[str]] = {
     "chargerId",
