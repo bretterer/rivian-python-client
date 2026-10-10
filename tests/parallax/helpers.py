@@ -8,7 +8,7 @@ its decoder agree on field numbers and wire types.
 from __future__ import annotations
 
 import base64
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from google.protobuf.message import Message
@@ -26,4 +26,4 @@ def decode(rvm: str, message: Message | None = None, **kwargs: Any) -> dict[str,
 
 def epoch(ms: int) -> datetime:
     """A UTC datetime from epoch milliseconds, as the decoders produce."""
-    return datetime.fromtimestamp(ms / 1000, timezone.utc)
+    return datetime.fromtimestamp(ms / 1000, UTC)

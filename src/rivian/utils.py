@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from base64 import b64decode, b64encode
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import cast
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -113,4 +113,4 @@ def from_epoch(epoch: float) -> datetime:
     """
     if abs(epoch) >= _MS_THRESHOLD:
         epoch /= 1000
-    return datetime.fromtimestamp(epoch, timezone.utc)
+    return datetime.fromtimestamp(epoch, UTC)

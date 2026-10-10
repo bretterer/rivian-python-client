@@ -72,7 +72,7 @@ async def monitor(server: FakeServer) -> AsyncIterator[WebSocketMonitor]:
 
 async def wait_for(condition: Any, timeout: float = 5) -> None:
     """Wait for a condition to be true."""
-    async with ws_monitor.async_timeout.timeout(timeout):
+    async with asyncio.timeout(timeout):
         while not condition():
             await asyncio.sleep(0.05)
 
