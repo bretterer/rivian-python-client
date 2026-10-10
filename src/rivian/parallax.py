@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import logging
 import struct
+import uuid
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
@@ -41,6 +42,22 @@ POWER_STATE_MAP = {
     2: "standby",
     3: "ready",
     4: "go",
+}
+
+CLIMATE_HOLD_SETTING_RVM = "comfort.cabin.climate_hold_setting"
+CLIMATE_HOLD_STATUS_RVM = "comfort.cabin.climate_hold_status"
+
+CLIMATE_HOLD_STATUS_MAP = {
+    1: "unavailable",
+    2: "off",
+    3: "on",
+    4: "fault",
+}
+
+CLIMATE_HOLD_AVAILABILITY_MAP = {
+    1: "available",
+    2: "controllable",
+    3: "unavailable",
 }
 
 TIRE_POSITION_MAP = {
@@ -105,6 +122,55 @@ def _decode_protobuf_fields(data: bytes) -> list[tuple[int, int, Any]]:
             break
 
     return fields
+
+
+def _encode_varint(value: int) -> bytes:
+    """Encode an unsigned integer as a protobuf varint."""
+    result = bytearray()
+    while value > 0x7F:
+        result.append((value & 0x7F) | 0x80)
+        value >>= 7
+    result.append(value)
+    return bytes(result)
+
+
+def _encode_varint_field(field_num: int, value: int) -> bytes:
+    """Encode a protobuf varint field."""
+    return _encode_varint(field_num << 3) + _encode_varint(value)
+
+
+def _encode_bytes_field(field_num: int, value: bytes) -> bytes:
+    """Encode a protobuf length-delimited field."""
+    return _encode_varint((field_num << 3) | 2) + _encode_varint(len(value)) + value
+
+
+def encode_climate_hold_setting(duration_seconds: int) -> bytes:
+    """Encode a comfort.cabin.climate_hold_setting payload."""
+    return _encode_varint_field(1, duration_seconds)
+
+
+def encode_vehicle_operation(
+    rvm: str,
+    payload: bytes = b"",
+    phone_id: bytes = bytes(16),
+    request_id: str | None = None,
+) -> str:
+    """Encode a `sendVehicleOperation` request as a base64 string.
+
+    An empty payload asks the vehicle to publish the current value of the RVM,
+    anything else writes it. The vehicle accepts an all-zero phone id.
+    """
+    phone_info = _encode_varint_field(1, 1) + _encode_bytes_field(2, phone_id)
+    metadata = _encode_bytes_field(1, phone_info) + _encode_bytes_field(
+        2, (request_id or str(uuid.uuid4())).encode("utf-8")
+    )
+    operation = _encode_bytes_field(1, rvm.encode("utf-8")) + _encode_varint_field(
+        2, 1 if payload else 0
+    )
+    if payload:
+        operation += _encode_bytes_field(4, payload)
+    request = _encode_bytes_field(1, metadata) + _encode_bytes_field(2, operation)
+    return base64.b64encode(request).decode("utf-8")
 
 
 def decode_battery_state(payload: str) -> dict[str, Any]:
@@ -350,6 +416,58 @@ def decode_closures(payload: str) -> dict[str, Any]:
         return {}
 
 
+def decode_climate_hold_setting(payload: str) -> dict[str, Any]:
+    """Decode comfort.cabin.climate_hold_setting.
+
+    Returns dict with keys:
+        - climateHoldDuration: int (seconds)
+    """
+    if not payload:
+        return {}
+    try:
+        data = base64.b64decode(payload)
+        fields = _decode_protobuf_fields(data)
+        result: dict[str, Any] = {}
+        for field_num, wire_type, value in fields:
+            if field_num == 1 and wire_type == 0:
+                result["climateHoldDuration"] = value
+        return result
+    except Exception:
+        _LOGGER.debug("Failed to decode climate hold setting payload", exc_info=True)
+        return {}
+
+
+def decode_climate_hold_status(payload: str) -> dict[str, Any]:
+    """Decode comfort.cabin.climate_hold_status.
+
+    An empty payload is a request for the status rather than a status, so it
+    decodes to an empty dict.
+
+    Returns dict with keys:
+        - climateHoldStatus: str ("unavailable", "off", "on", "fault")
+        - climateHoldAvailability: str ("available", "controllable", "unavailable")
+    """
+    if not payload:
+        return {}
+    try:
+        data = base64.b64decode(payload)
+        fields = _decode_protobuf_fields(data)
+        result: dict[str, Any] = {}
+        for field_num, wire_type, value in fields:
+            if field_num == 1 and wire_type == 0:
+                result["climateHoldStatus"] = CLIMATE_HOLD_STATUS_MAP.get(
+                    value, "unknown"
+                )
+            if field_num == 2 and wire_type == 0:
+                result["climateHoldAvailability"] = CLIMATE_HOLD_AVAILABILITY_MAP.get(
+                    value, "unknown"
+                )
+        return result
+    except Exception:
+        _LOGGER.debug("Failed to decode climate hold status payload", exc_info=True)
+        return {}
+
+
 def decode_defrost(payload: str) -> dict[str, Any]:
     """Decode comfort.cabin.defrost_defog_status.
 
@@ -589,6 +707,8 @@ RVM_DECODERS: dict[str, Callable[[str], dict[str, Any]]] = {
     "charging.session.time_estimation": decode_time_estimation,
     "comfort.cabin.cabin_preconditioning_status": decode_preconditioning,
     "comfort.cabin.cabin_temperatures": decode_cabin_temperatures,
+    CLIMATE_HOLD_SETTING_RVM: decode_climate_hold_setting,
+    CLIMATE_HOLD_STATUS_RVM: decode_climate_hold_status,
     "comfort.cabin.defrost_defog_status": decode_defrost,
     "dynamics.tires.state": decode_tires,
     "dynamics.vehicle.gnss": decode_gnss,

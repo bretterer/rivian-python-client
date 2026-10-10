@@ -33,7 +33,13 @@ from .exceptions import (
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
-from .parallax import PARALLAX_RVMS
+from .parallax import (
+    CLIMATE_HOLD_SETTING_RVM,
+    CLIMATE_HOLD_STATUS_RVM,
+    PARALLAX_RVMS,
+    encode_climate_hold_setting,
+    encode_vehicle_operation,
+)
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
@@ -487,6 +493,95 @@ class Rivian:
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def create_departure_schedule(
+        self, vehicle_id: str, schedule: dict[str, Any]
+    ) -> ClientResponse:
+        """Create a departure schedule for a vehicle.
+
+        The vehicle preconditions the cabin ahead of each departure, which also works
+        for vehicles without an enrolled phone. A schedule that departs within the next
+        few minutes starts preconditioning right away, and it runs until the departure time.
+
+        Example schedule:
+            {
+                "name": "Weekdays",
+                "isEnabled": True,
+                "repeatsWeekly": {"days": ["Monday"], "startsAtMin": 450, "skippedOn": []},
+                "departureSettings": {
+                    "shouldOverrideChargeSchedule": False,
+                    "comfortSettings": {
+                        "cabinTempCelsius": 21,
+                        "frontDefogDefrost": "Off",
+                        "surfaceHeatVentLevels": {
+                            "frontLeftSeat": "Off",
+                            "frontRightSeat": "Off",
+                            "rearLeftSeat": "Off",
+                            "rearRightSeat": "Off",
+                            "steeringWheel": "Off",
+                        },
+                    },
+                },
+            }
+
+        `startsAtMin` is the departure time in minutes after midnight, local to the vehicle.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "CreateDepartureSchedule",
+            "query": "mutation CreateDepartureSchedule($vehicleId: String!, $schedule: InputDepartureSchedule!) { createDepartureSchedule(vehicleId: $vehicleId, schedule: $schedule) { __typename success } }",
+            "variables": {"vehicleId": vehicle_id, "schedule": schedule},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def update_departure_schedule(
+        self, vehicle_id: str, schedule_id: str, schedule: dict[str, Any]
+    ) -> ClientResponse:
+        """Update a departure schedule for a vehicle.
+
+        See `create_departure_schedule` for the format of `schedule`.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "UpdateDepartureSchedule",
+            "query": "mutation UpdateDepartureSchedule($vehicleId: String!, $scheduleId: String!, $schedule: InputDepartureSchedule!) { updateDepartureSchedule(vehicleId: $vehicleId, scheduleId: $scheduleId, schedule: $schedule) { __typename success } }",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "scheduleId": schedule_id,
+                "schedule": schedule,
+            },
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def delete_departure_schedule(
+        self, vehicle_id: str, schedule_id: str
+    ) -> ClientResponse:
+        """Delete a departure schedule for a vehicle.
+
+        This does not stop preconditioning that the schedule has already started.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "DeleteDepartureSchedule",
+            "query": "mutation DeleteDepartureSchedule($vehicleId: String!, $scheduleId: String!) { deleteDepartureSchedule(vehicleId: $vehicleId, scheduleId: $scheduleId) { __typename success } }",
+            "variables": {"vehicleId": vehicle_id, "scheduleId": schedule_id},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
         url = GRAPHQL_GATEWAY
@@ -634,6 +729,67 @@ class Rivian:
                 return status.get("id")
         return None
 
+    async def send_vehicle_operation(
+        self,
+        vehicle_id: str,
+        rvm: str,
+        payload: bytes = b"",
+        *,
+        phone_id: bytes | None = None,
+    ) -> bool:
+        """Send a Parallax operation to the vehicle.
+
+        An empty payload asks the vehicle to publish the current value of the RVM,
+        anything else writes it. Either way the vehicle answers on the RVM, which can
+        be received via `subscribe_for_parallax_messages`. A return value of `True`
+        only means the request was accepted, not that the vehicle has applied it.
+
+        Unlike `send_vehicle_command`, this does not need an enrolled phone.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "SendVehicleOperation",
+            "query": "mutation SendVehicleOperation($vehicleId: String!, $payload: String!) { sendVehicleOperation(vehicleId: $vehicleId, payload: $payload) { __typename ... on SendVehicleOperationSuccess { success } } }",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "payload": encode_vehicle_operation(
+                    rvm, payload, phone_id or bytes(16)
+                ),
+            },
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return bool(
+                (data.get("data", {}).get("sendVehicleOperation") or {}).get("success")
+            )
+        return False
+
+    async def request_climate_hold_status(self, vehicle_id: str) -> bool:
+        """Ask the vehicle to publish its climate hold status."""
+        return await self.send_vehicle_operation(vehicle_id, CLIMATE_HOLD_STATUS_RVM)
+
+    async def set_climate_hold_duration(self, vehicle_id: str, minutes: int) -> bool:
+        """Set how long a climate hold lasts.
+
+        This changes the setting only, it does not start a climate hold.
+        """
+        if minutes < 1:
+            raise RivianBadRequestError(
+                "Climate hold duration must be at least 1 minute"
+            )
+        return await self.send_vehicle_operation(
+            vehicle_id,
+            CLIMATE_HOLD_SETTING_RVM,
+            encode_climate_hold_setting(minutes * 60),
+        )
+
     async def subscribe_for_vehicle_updates(
         self,
         vehicle_id: str,
@@ -656,6 +812,30 @@ class Rivian:
             }
             unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
             _LOGGER.debug("%s subscribed to updates", vehicle_id)
+            return unsubscribe
+        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
+            _LOGGER.error(ex)
+            return None
+
+    async def subscribe_for_departure_schedules(
+        self, vehicle_id: str, callback: Callable[[dict[str, Any]], None]
+    ) -> Callable[[], Awaitable[None]] | None:
+        """Open a web socket connection to receive departure schedules.
+
+        The current schedules are sent right after subscribing.
+        """
+        try:
+            await self._ws_connect()
+            assert self._ws_monitor
+            async with async_timeout.timeout(self.request_timeout):
+                await self._ws_monitor.connection_ack.wait()
+            payload = {
+                "operationName": "VehicleDepartureSchedules",
+                "query": "subscription VehicleDepartureSchedules($vehicleId: String!) { vehicleDepartureSchedules(vehicleId: $vehicleId) { id name isEnabled occurrence { __typename ... on RepeatsWeekly { days startsAtMin skippedOn } } departureSettings { shouldOverrideChargeSchedule comfortSettings { cabinTempCelsius frontDefogDefrost surfaceHeatVentLevels { frontLeftSeat frontRightSeat rearLeftSeat rearRightSeat steeringWheel } } } } }",
+                "variables": {"vehicleId": vehicle_id},
+            }
+            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
+            _LOGGER.debug("%s subscribed to departure schedules", vehicle_id)
             return unsubscribe
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             _LOGGER.error(ex)

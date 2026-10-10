@@ -18,6 +18,8 @@ from rivian.parallax import (
     decode_charge_session_breakdown,
     decode_charging_graph_global,
     decode_charging_session_status,
+    decode_climate_hold_setting,
+    decode_climate_hold_status,
     decode_closures,
     decode_defrost,
     decode_gnss,
@@ -28,6 +30,8 @@ from rivian.parallax import (
     decode_preconditioning,
     decode_time_estimation,
     decode_tires,
+    encode_climate_hold_setting,
+    encode_vehicle_operation,
 )
 
 
@@ -378,6 +382,66 @@ def test_decode_defrost() -> None:
     assert res_off.get("defrostDefogStatus") == "Off"
 
 
+def test_climate_hold_setting() -> None:
+    """Test comfort.cabin.climate_hold_setting encoder and decoder."""
+    raw = encode_climate_hold_setting(7200)
+    assert raw == b"\x08\xa0\x38"
+
+    res = decode_climate_hold_setting(base64.b64encode(raw).decode())
+    assert res.get("climateHoldDuration") == 7200
+
+    assert decode_climate_hold_setting("") == {}
+    assert decode_climate_hold_setting("corrupt") == {}
+
+
+def test_decode_climate_hold_status() -> None:
+    """Test comfort.cabin.climate_hold_status decoder."""
+    # status = 2 (off), availability = 1 (available)
+    raw_off = bytes.fromhex("0802100118012200")
+    res_off = decode_climate_hold_status(base64.b64encode(raw_off).decode())
+    assert res_off.get("climateHoldStatus") == "off"
+    assert res_off.get("climateHoldAvailability") == "available"
+
+    # status = 1 (unavailable), availability = 3 (unavailable)
+    raw_unavailable = bytes.fromhex("0801100318012200")
+    res_unavailable = decode_climate_hold_status(
+        base64.b64encode(raw_unavailable).decode()
+    )
+    assert res_unavailable.get("climateHoldStatus") == "unavailable"
+    assert res_unavailable.get("climateHoldAvailability") == "unavailable"
+
+    # An empty payload is a status request, not a status
+    assert decode_climate_hold_status("") == {}
+    assert decode_climate_hold_status("corrupt") == {}
+
+
+def test_encode_vehicle_operation() -> None:
+    """Test sendVehicleOperation request encoder."""
+    rvm = "comfort.cabin.climate_hold_setting"
+
+    # Write
+    request = base64.b64decode(
+        encode_vehicle_operation(rvm, b"\x08\xa0\x38", request_id="request-id")
+    )
+    (_, _, metadata), (_, _, operation) = _decode_protobuf_fields(request)
+    (_, _, phone_info), (_, _, request_id) = _decode_protobuf_fields(metadata)
+    assert _decode_protobuf_fields(phone_info) == [(1, 0, 1), (2, 2, bytes(16))]
+    assert request_id == b"request-id"
+    assert _decode_protobuf_fields(operation) == [
+        (1, 2, rvm.encode()),
+        (2, 0, 1),
+        (4, 2, b"\x08\xa0\x38"),
+    ]
+
+    # Read
+    request = base64.b64decode(encode_vehicle_operation(rvm, phone_id=b"\x01" * 16))
+    (_, _, metadata), (_, _, operation) = _decode_protobuf_fields(request)
+    (_, _, phone_info), (_, _, request_id) = _decode_protobuf_fields(metadata)
+    assert _decode_protobuf_fields(phone_info) == [(1, 0, 1), (2, 2, b"\x01" * 16)]
+    assert len(request_id) == 36
+    assert _decode_protobuf_fields(operation) == [(1, 2, rvm.encode()), (2, 0, 0)]
+
+
 def test_decode_parallax_message_dispatch() -> None:
     """Test decode_parallax_message dispatching."""
     # Known topic
@@ -431,3 +495,5 @@ def test_registered_charging_rvms() -> None:
     assert "dynamics.vehicle.gnss" in PARALLAX_RVMS
     assert "comfort.cabin.cabin_preconditioning_status" in PARALLAX_RVMS
     assert "comfort.cabin.defrost_defog_status" in PARALLAX_RVMS
+    assert "comfort.cabin.climate_hold_setting" in PARALLAX_RVMS
+    assert "comfort.cabin.climate_hold_status" in PARALLAX_RVMS

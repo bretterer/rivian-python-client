@@ -675,6 +675,26 @@ DISENROLL_PHONE_BAD_REQUEST_RESPONSE = {
 SET_CHARGING_SCHEDULES_RESPONSE = {"data": {"setChargingSchedules": {"success": True}}}
 
 
+CREATE_DEPARTURE_SCHEDULE_RESPONSE = {
+    "data": {"createDepartureSchedule": {"success": True}}
+}
+UPDATE_DEPARTURE_SCHEDULE_RESPONSE = {
+    "data": {"updateDepartureSchedule": {"success": True}}
+}
+DELETE_DEPARTURE_SCHEDULE_RESPONSE = {
+    "data": {"deleteDepartureSchedule": {"success": True}}
+}
+
+SEND_VEHICLE_OPERATION_RESPONSE = {
+    "data": {
+        "sendVehicleOperation": {
+            "__typename": "SendVehicleOperationSuccess",
+            "success": True,
+        }
+    }
+}
+
+
 VEHICLE_CHARGING_SCHEDULES_RESPONSE = {
     "data": {
         "getVehicle": {
