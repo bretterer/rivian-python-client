@@ -3,7 +3,10 @@
 # pylint: disable=protected-access
 from __future__ import annotations
 
+import asyncio
 import json
+from typing import Any
+from unittest.mock import AsyncMock, Mock
 
 import aiohttp
 import pytest
@@ -26,10 +29,13 @@ from rivian.exceptions import (
 from .responses import (
     AUTHENTICATION_OTP_RESPONSE,
     AUTHENTICATION_RESPONSE,
+    CREATE_DEPARTURE_SCHEDULE_RESPONSE,
     CSRF_TOKEN_RESPONSE,
+    DELETE_DEPARTURE_SCHEDULE_RESPONSE,
     LIVE_CHARGING_SESSION_RESPONSE,
     OTP_TOKEN_RESPONSE,
     SET_CHARGING_SCHEDULES_RESPONSE,
+    UPDATE_DEPARTURE_SCHEDULE_RESPONSE,
     USER_INFORMATION_RESPONSE,
     VEHICLE_CHARGING_SCHEDULES_RESPONSE,
     VEHICLE_STATE_RESPONSE,
@@ -292,6 +298,121 @@ async def test_set_charging_schedules(aresponses: ResponsesMockServer) -> None:
         assert response.status == 200
         assert response_json["data"]["setChargingSchedules"]["success"] is True
         await rivian.close()
+
+
+DEPARTURE_SCHEDULE = {
+    "name": "Weekdays",
+    "isEnabled": True,
+    "repeatsWeekly": {"days": ["Monday"], "startsAtMin": 450, "skippedOn": []},
+    "departureSettings": {
+        "shouldOverrideChargeSchedule": False,
+        "comfortSettings": {
+            "cabinTempCelsius": 21,
+            "frontDefogDefrost": "Off",
+            "surfaceHeatVentLevels": {
+                "frontLeftSeat": "Off",
+                "frontRightSeat": "Off",
+                "rearLeftSeat": "Off",
+                "rearRightSeat": "Off",
+                "steeringWheel": "Off",
+            },
+        },
+    },
+}
+
+
+def capture_requests(
+    aresponses: ResponsesMockServer, *responses: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Queue gateway responses and return a list that collects the request bodies."""
+    requests: list[dict[str, Any]] = []
+
+    def add(response: dict[str, Any]) -> None:
+        async def handler(request: aiohttp.web.Request) -> aiohttp.web.Response:
+            requests.append(await request.json())
+            return aresponses.Response(
+                text=json.dumps(response), content_type="application/json"
+            )
+
+        aresponses.add(
+            "rivian.com", "/api/gql/gateway/graphql", "POST", response=handler
+        )
+
+    for response in responses:
+        add(response)
+    return requests
+
+
+async def test_departure_schedules(aresponses: ResponsesMockServer) -> None:
+    """Test creating, updating and deleting a departure schedule."""
+    requests = capture_requests(
+        aresponses,
+        CREATE_DEPARTURE_SCHEDULE_RESPONSE,
+        UPDATE_DEPARTURE_SCHEDULE_RESPONSE,
+        DELETE_DEPARTURE_SCHEDULE_RESPONSE,
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+
+        response = await rivian.create_departure_schedule(
+            "vehicle_id", DEPARTURE_SCHEDULE
+        )
+        response_json = await response.json()
+        assert response_json["data"]["createDepartureSchedule"]["success"] is True
+        assert requests[0]["variables"] == {
+            "vehicleId": "vehicle_id",
+            "schedule": DEPARTURE_SCHEDULE,
+        }
+
+        response = await rivian.update_departure_schedule(
+            "vehicle_id", "schedule_id", DEPARTURE_SCHEDULE
+        )
+        response_json = await response.json()
+        assert response_json["data"]["updateDepartureSchedule"]["success"] is True
+        assert requests[1]["variables"] == {
+            "vehicleId": "vehicle_id",
+            "scheduleId": "schedule_id",
+            "schedule": DEPARTURE_SCHEDULE,
+        }
+
+        response = await rivian.delete_departure_schedule("vehicle_id", "schedule_id")
+        response_json = await response.json()
+        assert response_json["data"]["deleteDepartureSchedule"]["success"] is True
+        assert requests[2]["variables"] == {
+            "vehicleId": "vehicle_id",
+            "scheduleId": "schedule_id",
+        }
+        await rivian.close()
+
+
+async def test_subscribe_for_departure_schedules() -> None:
+    """Test subscribing to departure schedules."""
+    rivian = Rivian(user_session_token="token")
+    unsubscribe = AsyncMock()
+    monitor = Mock(connection_ack=asyncio.Event())
+    monitor.connection_ack.set()
+    monitor.start_subscription = AsyncMock(return_value=unsubscribe)
+    rivian._ws_monitor = monitor
+    rivian._ws_connect = AsyncMock()  # type: ignore[method-assign]
+    callback = Mock()
+
+    assert (
+        await rivian.subscribe_for_departure_schedules("vehicle_id", callback)
+        is unsubscribe
+    )
+    payload, subscribed_callback = monitor.start_subscription.call_args.args
+    assert "vehicleDepartureSchedules(vehicleId: $vehicleId)" in payload["query"]
+    assert payload["variables"] == {"vehicleId": "vehicle_id"}
+    assert subscribed_callback is callback
+
+    rivian._ws_connect.side_effect = aiohttp.ClientError
+    assert (
+        await rivian.subscribe_for_departure_schedules("vehicle_id", callback) is None
+    )
 
 
 async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
