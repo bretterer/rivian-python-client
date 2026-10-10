@@ -38,7 +38,6 @@ VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     "gnssLocation",
     "gnssError",
     # TimeStamped(String|[Nullable]Float|Int)
-    "activeDriverName",
     "alarmSoundStatus",
     "batteryCapacity",
     "batteryCellType",
