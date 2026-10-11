@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import AsyncIterator, Iterator
 from types import SimpleNamespace
 from typing import Any
@@ -25,6 +26,7 @@ class FakeServer:
         self.close_reasons: list[str] = []
         self.silent_connections = 0
         self.ping_connections = 0
+        self.ping_once_connections = 0
         self.connections = 0
         self.url = ""
 
@@ -49,6 +51,11 @@ class FakeServer:
                     continue
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     break
+        elif self.ping_once_connections:
+            # Never send connection_ack; send one ping, then wait for the client to close
+            self.ping_once_connections -= 1
+            await ws.send_json({"type": "ping"})
+            await ws.receive()
         elif self.close_reasons:
             await ws.close(code=4000, message=self.close_reasons.pop(0).encode())
         else:
@@ -180,6 +187,28 @@ async def test_messages_before_ack_do_not_extend_ack_timeout(
     server.ping_connections = 1
     await monitor.new_connection(start_monitor=True)
     await wait_for(lambda: monitor.connection_ack.is_set())
+
+    assert server.connections == 2
+    assert len(backoff.delays) == 1
+
+
+async def test_ack_deadline_passed_while_handling_a_message(
+    server: FakeServer, monitor: WebSocketMonitor, backoff: BackoffSleeps
+) -> None:
+    """Test the ack deadline still applies once it passes between two receives."""
+    server.ping_once_connections = 1
+    monitor._account.request_timeout = 0.2
+    log_message = monitor._log_message
+
+    def slow_log_message(message: Any, is_error: bool = False) -> None:
+        # Handling the ping takes until after the ack deadline
+        if getattr(message, "type", None) == WSMsgType.TEXT:
+            time.sleep(0.3)
+        log_message(message, is_error)
+
+    with patch.object(monitor, "_log_message", slow_log_message):
+        await monitor.new_connection(start_monitor=True)
+        await wait_for(lambda: monitor.connection_ack.is_set())
 
     assert server.connections == 2
     assert len(backoff.delays) == 1

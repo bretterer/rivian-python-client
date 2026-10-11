@@ -149,9 +149,12 @@ class WebSocketMonitor:
         while not websocket.closed:
             acknowledged = self._connection_ack.is_set()
             try:
-                msg = await websocket.receive(
-                    timeout=60 if acknowledged else max(ack_deadline - loop.time(), 0)
-                )
+                if acknowledged:
+                    timeout = 60.0
+                # aiohttp treats a timeout of 0 as no timeout, so time out here instead
+                elif (timeout := ack_deadline - loop.time()) <= 0:
+                    raise TimeoutError
+                msg = await websocket.receive(timeout=timeout)
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     self._log_message(msg)
                     if msg.extra == "Unauthenticated":
