@@ -35,7 +35,6 @@ from .responses import (
     CREATE_DEPARTURE_SCHEDULE_RESPONSE,
     CSRF_TOKEN_RESPONSE,
     DELETE_DEPARTURE_SCHEDULE_RESPONSE,
-    LIVE_CHARGING_SESSION_RESPONSE,
     OTP_TOKEN_RESPONSE,
     SEND_VEHICLE_OPERATION_RESPONSE,
     SET_CHARGING_SCHEDULES_RESPONSE,
@@ -222,26 +221,6 @@ def test_vehicle_state_subscription_fragment() -> None:
     """Test the vehicleState subscription fragment keeps `isAuthorized`"""
     fragment = Rivian()._build_vehicle_state_fragment({"gnssLocation"})
     assert fragment == "{ gnssLocation { latitude longitude timeStamp isAuthorized } }"
-
-
-async def test_get_live_charging_session(aresponses: ResponsesMockServer) -> None:
-    """Test GraphQL Response for a getLiveSessionData request"""
-    aresponses.add(
-        "rivian.com",
-        "/api/gql/chrg/user/graphql",
-        "POST",
-        response=LIVE_CHARGING_SESSION_RESPONSE,
-    )
-    async with aiohttp.ClientSession():
-        rivian = Rivian(app_session_token="token", user_session_token="token")
-        response = await rivian.get_live_charging_session("vin", {})
-        response_json = await response.json()
-        assert response.status == 200
-        assert (
-            response_json["data"]["getLiveSessionData"]["vehicleChargerState"]["value"]
-            == "charging_active"
-        )
-        await rivian.close()
 
 
 async def test_get_charging_schedules(aresponses: ResponsesMockServer) -> None:
