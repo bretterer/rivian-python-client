@@ -477,6 +477,95 @@ class Rivian:
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def create_departure_schedule(
+        self, vehicle_id: str, schedule: dict[str, Any]
+    ) -> ClientResponse:
+        """Create a departure schedule for a vehicle.
+
+        The vehicle preconditions the cabin ahead of each departure, which also works
+        for vehicles without an enrolled phone. A schedule that departs within the next
+        few minutes starts preconditioning right away, and it runs until the departure time.
+
+        Example schedule:
+            {
+                "name": "Weekdays",
+                "isEnabled": True,
+                "repeatsWeekly": {"days": ["Monday"], "startsAtMin": 450, "skippedOn": []},
+                "departureSettings": {
+                    "shouldOverrideChargeSchedule": False,
+                    "comfortSettings": {
+                        "cabinTempCelsius": 21,
+                        "frontDefogDefrost": "Off",
+                        "surfaceHeatVentLevels": {
+                            "frontLeftSeat": "Off",
+                            "frontRightSeat": "Off",
+                            "rearLeftSeat": "Off",
+                            "rearRightSeat": "Off",
+                            "steeringWheel": "Off",
+                        },
+                    },
+                },
+            }
+
+        `startsAtMin` is the departure time in minutes after midnight, local to the vehicle.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "CreateDepartureSchedule",
+            "query": "mutation CreateDepartureSchedule($vehicleId: String!, $schedule: InputDepartureSchedule!) { createDepartureSchedule(vehicleId: $vehicleId, schedule: $schedule) { __typename success } }",
+            "variables": {"vehicleId": vehicle_id, "schedule": schedule},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def update_departure_schedule(
+        self, vehicle_id: str, schedule_id: str, schedule: dict[str, Any]
+    ) -> ClientResponse:
+        """Update a departure schedule for a vehicle.
+
+        See `create_departure_schedule` for the format of `schedule`.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "UpdateDepartureSchedule",
+            "query": "mutation UpdateDepartureSchedule($vehicleId: String!, $scheduleId: String!, $schedule: InputDepartureSchedule!) { updateDepartureSchedule(vehicleId: $vehicleId, scheduleId: $scheduleId, schedule: $schedule) { __typename success } }",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "scheduleId": schedule_id,
+                "schedule": schedule,
+            },
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def delete_departure_schedule(
+        self, vehicle_id: str, schedule_id: str
+    ) -> ClientResponse:
+        """Delete a departure schedule for a vehicle.
+
+        This does not stop preconditioning that the schedule has already started.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "DeleteDepartureSchedule",
+            "query": "mutation DeleteDepartureSchedule($vehicleId: String!, $scheduleId: String!) { deleteDepartureSchedule(vehicleId: $vehicleId, scheduleId: $scheduleId) { __typename success } }",
+            "variables": {"vehicleId": vehicle_id, "scheduleId": schedule_id},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
         url = GRAPHQL_GATEWAY
@@ -646,6 +735,30 @@ class Rivian:
             }
             unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
             _LOGGER.debug("%s subscribed to updates", vehicle_id)
+            return unsubscribe
+        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
+            _LOGGER.error(ex)
+            return None
+
+    async def subscribe_for_departure_schedules(
+        self, vehicle_id: str, callback: Callable[[dict[str, Any]], None]
+    ) -> Callable[[], Awaitable[None]] | None:
+        """Open a web socket connection to receive departure schedules.
+
+        The current schedules are sent right after subscribing.
+        """
+        try:
+            await self._ws_connect()
+            assert self._ws_monitor
+            async with asyncio.timeout(self.request_timeout):
+                await self._ws_monitor.connection_ack.wait()
+            payload = {
+                "operationName": "VehicleDepartureSchedules",
+                "query": "subscription VehicleDepartureSchedules($vehicleId: String!) { vehicleDepartureSchedules(vehicleId: $vehicleId) { id name isEnabled occurrence { __typename ... on RepeatsWeekly { days startsAtMin skippedOn } } departureSettings { shouldOverrideChargeSchedule comfortSettings { cabinTempCelsius frontDefogDefrost surfaceHeatVentLevels { frontLeftSeat frontRightSeat rearLeftSeat rearRightSeat steeringWheel } } } } }",
+                "variables": {"vehicleId": vehicle_id},
+            }
+            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
+            _LOGGER.debug("%s subscribed to departure schedules", vehicle_id)
             return unsubscribe
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             _LOGGER.error(ex)
