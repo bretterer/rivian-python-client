@@ -7,6 +7,9 @@ Public API:
         Same, for a raw `subscribe_for_parallax_messages` message.
     PARALLAX_RVMS: list[str]  — every RVM with a registered decoder
     CHARGING_RVMS: list[str]  — the subset relevant to a charging session
+    encode_vehicle_operation(rvm, payload=b"", ...) -> str
+        Builds a `send_vehicle_operation` request; an empty payload reads
+        the RVM, anything else (e.g. `encode_climate_hold_setting`) writes it.
 
 Layout:
     core.py  - registry, payload parsing and shared helpers
@@ -41,11 +44,17 @@ from . import (  # noqa: F401  (imported to register their decoders)
     vehicle,
     vehicle_access,
 )
+from .comfort import (
+    CLIMATE_HOLD_SETTING_RVM,
+    CLIMATE_HOLD_STATUS_RVM,
+    encode_climate_hold_setting,
+)
 from .core import (
     RVMDecoder,
     decode_parallax_message,
     decode_parallax_subscription_message,
 )
+from .operation import encode_vehicle_operation
 
 PARALLAX_RVMS: list[str] = list(RVMDecoder.decoders)
 
@@ -64,7 +73,11 @@ CHARGING_RVMS: list[str] = [
 
 __all__ = [
     "CHARGING_RVMS",
+    "CLIMATE_HOLD_SETTING_RVM",
+    "CLIMATE_HOLD_STATUS_RVM",
     "PARALLAX_RVMS",
     "decode_parallax_message",
     "decode_parallax_subscription_message",
+    "encode_climate_hold_setting",
+    "encode_vehicle_operation",
 ]

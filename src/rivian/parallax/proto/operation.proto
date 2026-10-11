@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package rivian.parallax.operation;
+
+// Reverse-engineered `sendVehicleOperation` request; see ../operation.py.
+
+message VehicleOperationRequest {
+  Metadata metadata = 1;
+  Operation operation = 2;
+
+  message Metadata {
+    PhoneInfo phone_info = 1;
+    string request_id = 2; // a UUID
+
+    message PhoneInfo {
+      int32 field_1 = 1; // unknown; always 1
+      bytes phone_id = 2; // 16 bytes; the vehicle accepts all zeros
+    }
+  }
+
+  message Operation {
+    string rvm = 1;
+    optional OperationType type = 2; // always sent
+    bytes payload = 4; // the RVM's message; absent when reading
+  }
+}
+
+enum OperationType {
+  OPERATION_READ = 0;
+  OPERATION_WRITE = 1;
+}

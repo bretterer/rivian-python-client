@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 from typing import Any
 from unittest.mock import AsyncMock, Mock
@@ -20,11 +21,13 @@ from rivian.const import (
 from rivian.exceptions import (
     RivianApiException,
     RivianApiRateLimitError,
+    RivianBadRequestError,
     RivianDataError,
     RivianInvalidOTP,
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
+from rivian.parallax.proto import operation_pb2
 
 from .responses import (
     AUTHENTICATION_OTP_RESPONSE,
@@ -34,6 +37,7 @@ from .responses import (
     DELETE_DEPARTURE_SCHEDULE_RESPONSE,
     LIVE_CHARGING_SESSION_RESPONSE,
     OTP_TOKEN_RESPONSE,
+    SEND_VEHICLE_OPERATION_RESPONSE,
     SET_CHARGING_SCHEDULES_RESPONSE,
     UPDATE_DEPARTURE_SCHEDULE_RESPONSE,
     USER_INFORMATION_RESPONSE,
@@ -413,6 +417,62 @@ async def test_subscribe_for_departure_schedules() -> None:
     assert (
         await rivian.subscribe_for_departure_schedules("vehicle_id", callback) is None
     )
+
+
+def decode_vehicle_operation(
+    request: dict[str, Any],
+) -> operation_pb2.VehicleOperationRequest.Operation:
+    """Decode the operation of a sendVehicleOperation request."""
+    payload = base64.b64decode(request["variables"]["payload"])
+    return operation_pb2.VehicleOperationRequest.FromString(payload).operation
+
+
+async def test_send_vehicle_operation(aresponses: ResponsesMockServer) -> None:
+    """Test sending vehicle operations."""
+    requests = capture_requests(
+        aresponses,
+        SEND_VEHICLE_OPERATION_RESPONSE,
+        SEND_VEHICLE_OPERATION_RESPONSE,
+        {"data": {"sendVehicleOperation": None}},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+
+        assert await rivian.set_climate_hold_duration("vehicle_id", 120) is True
+        assert requests[0]["variables"]["vehicleId"] == "vehicle_id"
+        operation = decode_vehicle_operation(requests[0])
+        assert operation.rvm == "comfort.cabin.climate_hold_setting"
+        assert operation.type == operation_pb2.OPERATION_WRITE
+        assert operation.payload == b"\x08\xa0\x38"
+
+        assert await rivian.request_climate_hold_status("vehicle_id") is True
+        operation = decode_vehicle_operation(requests[1])
+        assert operation.rvm == "comfort.cabin.climate_hold_status"
+        assert operation.type == operation_pb2.OPERATION_READ
+        assert operation.payload == b""
+
+        assert await rivian.send_vehicle_operation("vehicle_id", "some.rvm") is False
+
+        aresponses.add(
+            "rivian.com",
+            "/api/gql/gateway/graphql",
+            "POST",
+            response=aresponses.Response(
+                status=500, text="{}", content_type="application/json"
+            ),
+        )
+        assert await rivian.send_vehicle_operation("vehicle_id", "some.rvm") is False
+
+        # Only the 15 minute steps from 2 to 8 hours are sent
+        for minutes in (0, 60, 105, 130, 495):
+            with pytest.raises(RivianBadRequestError):
+                await rivian.set_climate_hold_duration("vehicle_id", minutes)
+        assert len(requests) == 3
+        await rivian.close()
 
 
 async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:

@@ -685,6 +685,15 @@ DELETE_DEPARTURE_SCHEDULE_RESPONSE = {
     "data": {"deleteDepartureSchedule": {"success": True}}
 }
 
+SEND_VEHICLE_OPERATION_RESPONSE = {
+    "data": {
+        "sendVehicleOperation": {
+            "__typename": "SendVehicleOperationSuccess",
+            "success": True,
+        }
+    }
+}
+
 
 VEHICLE_CHARGING_SCHEDULES_RESPONSE = {
     "data": {
