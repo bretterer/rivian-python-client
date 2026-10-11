@@ -1,7 +1,6 @@
 type Query {
   chargepoint: ChargepointQuery
   getCompletedSessionSummaries($vehicleId: String): [ChargingSessionSummary]
-  getLiveSessionData(vehicleId: ID!): LiveSessionData
   getLiveSessionHistory(vehicleId: ID!): LiveSessionHistory
   getNonRivianUserSession: NonRivianUserSessionData
   getRegisteredWallboxes: [WallboxRecord]
@@ -70,26 +69,6 @@ type FloatValueRecord {
 
 type GetLinkedEmailForRivianIdResponse {
   email: String!
-}
-
-type LiveSessionData {
-  chargerId: String
-  current: FloatValueRecord
-  currentCurrency: String
-  currentMiles: FloatValueRecord
-  currentPrice: Float
-  isFreeSession: Boolean
-  isRivianCharger: Boolean
-  kilometersChargedPerHour: FloatValueRecord
-  locationId: String
-  power: FloatValueRecord
-  rangeAddedThisSession: FloatValueRecord
-  soc: FloatValueRecord
-  startTime: String
-  timeElapsed: Float
-  timeRemaining: StringValueRecord
-  totalChargedEnergy: FloatValueRecord
-  vehicleChargerState: StringValueRecord
 }
 
 type LiveSessionHistory {

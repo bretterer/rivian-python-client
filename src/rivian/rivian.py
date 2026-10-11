@@ -15,7 +15,6 @@ import aiohttp
 from aiohttp import ClientResponse, ClientWebSocketResponse
 
 from .const import (
-    LIVE_SESSION_PROPERTIES,
     VEHICLE_STATE_PROPERTIES,
     VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES,
     VEHICLE_STATES_SUBSCRIPTION_PROPERTIES,
@@ -74,19 +73,6 @@ QUERY_TEMPLATE_MAP = TEMPLATE_MAP | {"gnssLocation": QUERY_LOCATION_TEMPLATE}
 
 # Minutes; the durations the Rivian app offers
 CLIMATE_HOLD_DURATIONS = range(120, 481, 15)
-
-LIVE_SESSION_VALUE_RECORD_KEYS = {
-    "current",
-    "currentMiles",
-    "kilometersChargedPerHour",
-    "power",
-    "rangeAddedThisSession",
-    "soc",
-    "timeRemaining",
-    "totalChargedEnergy",
-    "vehicleChargerState",
-}
-VALUE_RECORD_TEMPLATE = "{ __typename value updatedAt }"
 
 ERROR_CODE_CLASS_MAP: dict[str, type[RivianApiException]] = {
     "BAD_CURRENT_PASSWORD": RivianInvalidCredentials,
@@ -589,36 +575,6 @@ class Rivian:
             "operationName": "getOTAUpdateDetails",
             "query": graphql_query,
             "variables": {"vehicleId": vehicle_id},
-        }
-
-        return await self.__graphql_query(headers, url, graphql_json)
-
-    async def get_live_charging_session(
-        self, vin: str, properties: set[str] | None = None
-    ) -> ClientResponse:
-        """Get live charging session data."""
-        if not properties:
-            properties = LIVE_SESSION_PROPERTIES
-
-        url = GRAPHQL_CHARGING
-        headers = BASE_HEADERS | {"U-Sess": self._user_session_token}
-
-        fragment = " ".join(
-            f"{p} {VALUE_RECORD_TEMPLATE if p in LIVE_SESSION_VALUE_RECORD_KEYS else ''}"
-            for p in properties
-        )
-        graphql_query = f"""
-            query getLiveSessionData($vehicleId: ID!) {{
-                getLiveSessionData(vehicleId: $vehicleId) {{
-                    __typename
-                    {fragment}
-                }}
-            }}"""
-
-        graphql_json = {
-            "operationName": "getLiveSessionData",
-            "query": graphql_query,
-            "variables": {"vehicleId": vin},
         }
 
         return await self.__graphql_query(headers, url, graphql_json)

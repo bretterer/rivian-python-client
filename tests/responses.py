@@ -35,48 +35,6 @@ CSRF_TOKEN_RESPONSE = {
         }
     }
 }
-LIVE_CHARGING_SESSION_RESPONSE = {
-    "data": {
-        "getLiveSessionData": {
-            "isRivianCharger": None,
-            "isFreeSession": None,
-            "vehicleChargerState": {
-                "__typename": "StringValueRecord",
-                "value": "charging_active",
-                "updatedAt": "2022-10-27T21:25:16.226Z",
-            },
-            "chargerId": None,
-            "startTime": "2022-10-27T20:48:27.222Z",
-            "timeElapsed": "2229",
-            "timeRemaining": {
-                "__typename": "StringValueRecord",
-                "value": "9651",
-                "updatedAt": "2022-10-27T21:25:27.222Z",
-            },
-            "kilometersChargedPerHour": {
-                "__typename": "FloatValueRecord",
-                "value": 32,
-                "updatedAt": "2022-10-27T21:25:25.149Z",
-            },
-            "power": {
-                "__typename": "FloatValueRecord",
-                "value": 9,
-                "updatedAt": "2022-10-27T21:25:16.226Z",
-            },
-            "rangeAddedThisSession": {
-                "__typename": "FloatValueRecord",
-                "value": 20,
-                "updatedAt": "2022-10-27T21:25:25.149Z",
-            },
-            "totalChargedEnergy": {
-                "__typename": "FloatValueRecord",
-                "value": 6,
-                "updatedAt": "2022-10-27T21:25:16.226Z",
-            },
-            "currentPrice": None,
-        }
-    }
-}
 OTP_TOKEN_RESPONSE = {
     "data": {
         "login": {

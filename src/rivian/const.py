@@ -5,26 +5,6 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Final
 
-LIVE_SESSION_PROPERTIES: Final[set[str]] = {
-    "chargerId",
-    "current",
-    "currentCurrency",
-    "currentMiles",
-    "currentPrice",
-    "isFreeSession",
-    "isRivianCharger",
-    "kilometersChargedPerHour",
-    "locationId",
-    "power",
-    "rangeAddedThisSession",
-    "soc",
-    "startTime",
-    "timeElapsed",
-    "timeRemaining",
-    "totalChargedEnergy",
-    "vehicleChargerState",
-}
-
 VEHICLE_STATE_PROPERTIES: Final[set[str]] = {
     # VehicleCloudConnection
     "cloudConnection",
