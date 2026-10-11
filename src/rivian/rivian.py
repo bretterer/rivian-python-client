@@ -899,15 +899,13 @@ class Rivian:
                         ("BAD_USER_INPUT", "INVALID_OTP"),
                         ("UNAUTHENTICATED", "OTP_TOKEN_EXPIRED"),
                     ):
-                        raise RivianInvalidOTP(
-                            response.status, response_json, headers, body
-                        )
+                        raise RivianInvalidOTP(response.status, response_json)
                     if (code, extensions.get("reason")) == (
                         "CONFLICT",
                         "ENROLL_PHONE_LIMIT_REACHED",
                     ):
                         raise RivianPhoneLimitReachedError(
-                            response.status, response_json, headers, body
+                            response.status, response_json
                         )
                     if err_cls := ERROR_CODE_CLASS_MAP.get(code):
                         if response_json.get("data") is not None:
@@ -915,13 +913,11 @@ class Rivian:
                                 "(%s, %s): %s", response.status, code, response_json
                             )
                             return response
-                        raise err_cls(response.status, response_json, headers, body)
+                        raise err_cls(response.status, response_json)
             raise RivianApiException(
                 "Error occurred while reading the graphql response from Rivian.",
                 response.status,
                 response_json,
-                headers,
-                body,
             )
 
         return response

@@ -24,6 +24,7 @@ from rivian.exceptions import (
     RivianBadRequestError,
     RivianDataError,
     RivianInvalidOTP,
+    RivianPhoneLimitReachedError,
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
@@ -495,6 +496,41 @@ async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
         with pytest.raises(RivianInvalidOTP):
             await rivian.authenticate("", "")
         await rivian.close()
+
+
+@pytest.mark.parametrize(
+    ("code", "reason", "exception"),
+    [
+        ("UNAUTHENTICATED", None, RivianUnauthenticated),
+        ("BAD_USER_INPUT", "INVALID_OTP", RivianInvalidOTP),
+        ("CONFLICT", "ENROLL_PHONE_LIMIT_REACHED", RivianPhoneLimitReachedError),
+        (None, None, RivianApiException),
+    ],
+)
+async def test_graphql_errors_do_not_include_secrets(
+    aresponses: ResponsesMockServer,
+    code: str | None,
+    reason: str | None,
+    exception: type[RivianApiException],
+) -> None:
+    """Test GraphQL error exceptions leave out request headers and body."""
+    response = error_response(code, reason)
+    aresponses.add("rivian.com", "/api/gql/gateway/graphql", "POST", response=response)
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="secret-csrf",
+            app_session_token="secret-app-session",
+            user_session_token="secret-user-session",
+        )
+        with pytest.raises(exception) as exc_info:
+            await rivian.authenticate("user@example.com", "secret-password")
+        await rivian.close()
+
+    for text in (str(exc_info.value), repr(exc_info.value)):
+        assert "secret" not in text
+        assert "user@example.com" not in text
+    # Status and response stay available to callers
+    assert exc_info.value.args[-2:] == (200, response)
 
 
 async def test_get_drivers_and_keys(aresponses: ResponsesMockServer) -> None:
