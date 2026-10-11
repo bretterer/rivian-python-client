@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from rivian.parallax import CLIMATE_HOLD_SETTING_RVM, encode_climate_hold_setting
 from rivian.parallax.proto import comfort_pb2 as comfort
 
 from .helpers import decode
@@ -75,6 +76,14 @@ def test_defrost() -> None:
     assert decode(rvm, active) == {"defrostDefogStatus": "defrost"}
     assert decode(rvm, off) == {"defrostDefogStatus": "off"}
     assert decode(rvm) == {"defrostDefogStatus": None}
+
+
+def test_climate_hold_setting() -> None:
+    """The encoder writes the duration the decoder reads."""
+    raw = encode_climate_hold_setting(7200)
+    assert raw == b"\x08\xa0\x38"
+    setting = comfort.ClimateHoldSetting.FromString(raw)
+    assert decode(CLIMATE_HOLD_SETTING_RVM, setting) == {"climateHoldDuration": 7200}
 
 
 def test_climate_hold_status() -> None:

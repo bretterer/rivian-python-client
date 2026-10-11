@@ -32,6 +32,12 @@ from .exceptions import (
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
+from .parallax import (
+    CLIMATE_HOLD_SETTING_RVM,
+    CLIMATE_HOLD_STATUS_RVM,
+    encode_climate_hold_setting,
+    encode_vehicle_operation,
+)
 from .utils import generate_vehicle_command_hmac
 from .ws_monitor import WebSocketMonitor
 
@@ -65,6 +71,9 @@ TEMPLATE_MAP = {
     "gnssError": LOCATION_ERROR_TEMPLATE,
 }
 QUERY_TEMPLATE_MAP = TEMPLATE_MAP | {"gnssLocation": QUERY_LOCATION_TEMPLATE}
+
+# Minutes; the durations the Rivian app offers
+CLIMATE_HOLD_DURATIONS = range(120, 481, 15)
 
 LIVE_SESSION_VALUE_RECORD_KEYS = {
     "current",
@@ -712,6 +721,72 @@ class Rivian:
             if status := data.get("data", {}).get("sendVehicleCommand", {}):
                 return status.get("id")
         return None
+
+    async def send_vehicle_operation(
+        self,
+        vehicle_id: str,
+        rvm: str,
+        payload: bytes = b"",
+        *,
+        phone_id: bytes | None = None,
+    ) -> bool:
+        """Send a Parallax operation to the vehicle.
+
+        An empty payload asks the vehicle to publish the current value of the RVM,
+        anything else writes it. The request itself appears on the RVM, as an empty
+        message for a read, followed by the vehicle's value once it answers; both can
+        be received via `subscribe_for_parallax_messages`. Writes have been answered
+        within seconds, reads not always. A return value of `True` only means the
+        request was accepted, not that the vehicle has applied it.
+
+        Unlike `send_vehicle_command`, this does not need an enrolled phone.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "SendVehicleOperation",
+            "query": "mutation SendVehicleOperation($vehicleId: String!, $payload: String!) { sendVehicleOperation(vehicleId: $vehicleId, payload: $payload) { __typename ... on SendVehicleOperationSuccess { success } } }",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "payload": encode_vehicle_operation(
+                    rvm, payload, phone_id or bytes(16)
+                ),
+            },
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return bool(
+                (data.get("data", {}).get("sendVehicleOperation") or {}).get("success")
+            )
+        return False
+
+    async def request_climate_hold_status(self, vehicle_id: str) -> bool:
+        """Ask the vehicle to publish its climate hold status."""
+        return await self.send_vehicle_operation(vehicle_id, CLIMATE_HOLD_STATUS_RVM)
+
+    async def set_climate_hold_duration(self, vehicle_id: str, minutes: int) -> bool:
+        """Set how long a climate hold lasts.
+
+        The duration must be 2 to 8 hours in 15 minute steps, which is what the
+        Rivian app offers; its Android version seems to crash on any other value.
+
+        This changes the setting only, it does not start a climate hold.
+        """
+        if minutes not in CLIMATE_HOLD_DURATIONS:
+            raise RivianBadRequestError(
+                "Climate hold duration must be 120 to 480 minutes in 15 minute steps"
+            )
+        return await self.send_vehicle_operation(
+            vehicle_id,
+            CLIMATE_HOLD_SETTING_RVM,
+            encode_climate_hold_setting(minutes * 60),
+        )
 
     async def subscribe_for_vehicle_updates(
         self,

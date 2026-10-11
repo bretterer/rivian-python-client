@@ -7,6 +7,9 @@ from typing import Any, Final
 from .core import _LOGGER, RVMDecoder, _enum, _present
 from .proto import comfort_pb2
 
+CLIMATE_HOLD_SETTING_RVM: Final = "comfort.cabin.climate_hold_setting"
+CLIMATE_HOLD_STATUS_RVM: Final = "comfort.cabin.climate_hold_status"
+
 
 @RVMDecoder.register(
     "comfort.cabin.hvac_settings_status", comfort_pb2.HvacSettingsStatus
@@ -200,9 +203,12 @@ def decode_cabin_ventilation(m: comfort_pb2.CabinVentilationSetting) -> dict[str
     return {"cabinVentilationEnabled": m.auto_cabin_ventilation_enabled}
 
 
-@RVMDecoder.register(
-    "comfort.cabin.climate_hold_setting", comfort_pb2.ClimateHoldSetting
-)
+def encode_climate_hold_setting(duration_seconds: int) -> bytes:
+    """Encode a comfort.cabin.climate_hold_setting payload."""
+    return comfort_pb2.ClimateHoldSetting(duration=duration_seconds).SerializeToString()
+
+
+@RVMDecoder.register(CLIMATE_HOLD_SETTING_RVM, comfort_pb2.ClimateHoldSetting)
 def decode_climate_hold_setting(m: comfort_pb2.ClimateHoldSetting) -> dict[str, Any]:
     """comfort.cabin.climate_hold_setting — configured climate-hold duration.
 
@@ -212,7 +218,7 @@ def decode_climate_hold_setting(m: comfort_pb2.ClimateHoldSetting) -> dict[str, 
     return {"climateHoldDuration": m.duration}
 
 
-@RVMDecoder.register("comfort.cabin.climate_hold_status", comfort_pb2.ClimateHoldStatus)
+@RVMDecoder.register(CLIMATE_HOLD_STATUS_RVM, comfort_pb2.ClimateHoldStatus)
 def decode_climate_hold_status(m: comfort_pb2.ClimateHoldStatus) -> dict[str, Any]:
     """comfort.cabin.climate_hold_status — current climate-hold status.
 
