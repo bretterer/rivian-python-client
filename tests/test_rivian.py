@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+from datetime import UTC, date, datetime
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
@@ -36,9 +37,11 @@ from .responses import (
     CREATE_DEPARTURE_SCHEDULE_RESPONSE,
     CSRF_TOKEN_RESPONSE,
     DELETE_DEPARTURE_SCHEDULE_RESPONSE,
+    DEPART_NOW_RESPONSE,
     OTP_TOKEN_RESPONSE,
     SEND_VEHICLE_OPERATION_RESPONSE,
     SET_CHARGING_SCHEDULES_RESPONSE,
+    SKIP_NEXT_SCHEDULED_DEPARTURE_RESPONSE,
     UPDATE_DEPARTURE_SCHEDULE_RESPONSE,
     USER_INFORMATION_RESPONSE,
     VEHICLE_CHARGING_SCHEDULES_RESPONSE,
@@ -369,6 +372,49 @@ async def test_departure_schedules(aresponses: ResponsesMockServer) -> None:
         assert requests[2]["variables"] == {
             "vehicleId": "vehicle_id",
             "scheduleId": "schedule_id",
+        }
+        await rivian.close()
+
+
+async def test_skip_and_depart_now(aresponses: ResponsesMockServer) -> None:
+    """Test skipping a scheduled departure and departing now."""
+    requests = capture_requests(
+        aresponses,
+        SKIP_NEXT_SCHEDULED_DEPARTURE_RESPONSE,
+        SKIP_NEXT_SCHEDULED_DEPARTURE_RESPONSE,
+        DEPART_NOW_RESPONSE,
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+
+        response = await rivian.skip_next_scheduled_departure(
+            "vehicle_id", "schedule_id", date(2026, 10, 14)
+        )
+        response_json = await response.json()
+        assert response_json["data"]["skipNextScheduledDeparture"]["success"] is True
+        assert requests[0]["variables"] == {
+            "vehicleId": "vehicle_id",
+            "scheduleId": "schedule_id",
+            "skipDate": "2026-10-14",
+        }
+
+        # A datetime sends only its date; a string is sent as is
+        await rivian.skip_next_scheduled_departure(
+            "vehicle_id", "schedule_id", datetime(2026, 10, 14, 7, 30, tzinfo=UTC)
+        )
+        assert requests[1]["variables"]["skipDate"] == "2026-10-14"
+
+        response = await rivian.depart_now("vehicle_id", "schedule_id", "2026-10-14")
+        response_json = await response.json()
+        assert response_json["data"]["departNow"]["success"] is True
+        assert requests[2]["variables"] == {
+            "vehicleId": "vehicle_id",
+            "scheduleId": "schedule_id",
+            "skipDate": "2026-10-14",
         }
         await rivian.close()
 

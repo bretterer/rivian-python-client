@@ -642,6 +642,10 @@ UPDATE_DEPARTURE_SCHEDULE_RESPONSE = {
 DELETE_DEPARTURE_SCHEDULE_RESPONSE = {
     "data": {"deleteDepartureSchedule": {"success": True}}
 }
+SKIP_NEXT_SCHEDULED_DEPARTURE_RESPONSE = {
+    "data": {"skipNextScheduledDeparture": {"success": True}}
+}
+DEPART_NOW_RESPONSE = {"data": {"departNow": {"success": True}}}
 
 SEND_VEHICLE_OPERATION_RESPONSE = {
     "data": {

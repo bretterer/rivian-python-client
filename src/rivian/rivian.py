@@ -8,6 +8,7 @@ import socket
 import time
 import uuid
 from collections.abc import Awaitable, Callable
+from datetime import date
 from typing import Any, Self
 from warnings import warn
 
@@ -83,6 +84,11 @@ ERROR_CODE_CLASS_MAP: dict[str, type[RivianApiException]] = {
     "SESSION_MANAGER_ERROR": RivianTemporarilyLockedError,
     "UNAUTHENTICATED": RivianUnauthenticated,
 }
+
+
+def _iso_date(value: date | str) -> str:
+    """Format a date (or the date of a datetime) as YYYY-MM-DD; pass strings through."""
+    return value if isinstance(value, str) else value.strftime("%Y-%m-%d")
 
 
 def send_deprecation_warning(old_name: str, new_name: str) -> None:  # pragma: no cover
@@ -558,6 +564,58 @@ class Rivian:
             "operationName": "DeleteDepartureSchedule",
             "query": "mutation DeleteDepartureSchedule($vehicleId: String!, $scheduleId: String!) { deleteDepartureSchedule(vehicleId: $vehicleId, scheduleId: $scheduleId) { __typename success } }",
             "variables": {"vehicleId": vehicle_id, "scheduleId": schedule_id},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def skip_next_scheduled_departure(
+        self, vehicle_id: str, schedule_id: str, skip_date: date | str
+    ) -> ClientResponse:
+        """Skip a departure schedule's departure on `skip_date`.
+
+        `skip_date` is a date, or an ISO date string such as "2026-10-14", local to
+        the vehicle. It is added to the schedule's `skippedOn` list.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "SkipNextScheduledDeparture",
+            "query": "mutation SkipNextScheduledDeparture($vehicleId: String!, $scheduleId: String!, $skipDate: String!) { skipNextScheduledDeparture(vehicleId: $vehicleId, scheduleId: $scheduleId, skipDate: $skipDate) { __typename success } }",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "scheduleId": schedule_id,
+                "skipDate": _iso_date(skip_date),
+            },
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
+    async def depart_now(
+        self, vehicle_id: str, schedule_id: str, skip_date: date | str
+    ) -> ClientResponse:
+        """Depart now instead of at the departure schedule's time on `skip_date`.
+
+        `skip_date` is a date, or an ISO date string such as "2026-10-14", local to
+        the vehicle. Like `skip_next_scheduled_departure`, it adds the date to the
+        schedule's `skippedOn` list. It does not stop preconditioning that has already
+        started, which keeps running until the departure time.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "DepartNow",
+            "query": "mutation DepartNow($vehicleId: String!, $scheduleId: String!, $skipDate: String!) { departNow(vehicleId: $vehicleId, scheduleId: $scheduleId, skipDate: $skipDate) { __typename success } }",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "scheduleId": schedule_id,
+                "skipDate": _iso_date(skip_date),
+            },
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
