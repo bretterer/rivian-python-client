@@ -234,8 +234,10 @@ class WebSocketMonitor:
         try:
             await self._receive(websocket)
         finally:
-            self._connection_ack.clear()
-            self._closed.set()
+            # A receiver restarted on an open connection keeps its ack
+            if websocket.closed:
+                self._connection_ack.clear()
+                self._closed.set()
         self._log_message("web socket stopped")
 
     async def _receive(self, websocket: ClientWebSocketResponse[bool]) -> None:
@@ -267,10 +269,14 @@ class WebSocketMonitor:
                         self._reset_backoff()
                         if (_id := data.get("id")) in self._subscriptions:
                             _fn = self._subscriptions[_id][0]
-                            if inspect.iscoroutinefunction(_fn):
-                                await _fn(data)
-                            else:
-                                _fn(data)
+                            # A failing callback shouldn't take the connection down
+                            try:
+                                if inspect.iscoroutinefunction(_fn):
+                                    await _fn(data)
+                                else:
+                                    _fn(data)
+                            except Exception:  # pylint: disable=broad-except
+                                _LOGGER.exception("Error in a subscription callback")
                     else:
                         self._log_message(msg)
                 elif msg.type == WSMsgType.ERROR:
@@ -299,10 +305,12 @@ class WebSocketMonitor:
                 # next subscription reconnects once any backoff has passed
                 self._log_message("web socket monitor stopped, nothing subscribed")
                 break
-            if delay := self.backoff_remaining:
+            while delay := self.backoff_remaining:
+                # Re-check after waiting, as another monitor for the same session
+                # may have pushed the retry back
                 await asyncio.sleep(delay)
-                if self._disconnect or self.connected:
-                    continue
+            if self._disconnect or self.connected:
+                continue
             if not self._disconnect:
                 try:
                     await self.new_connection()

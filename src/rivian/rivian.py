@@ -936,16 +936,13 @@ class Rivian:
                 backoff_key=self._user_session_token,
             )
         ws_monitor = self._ws_monitor
-        if ws_monitor.backing_off:
-            raise RivianApiException(
-                "the web socket is waiting to reconnect"
-                + (
-                    f" ({remaining:.0f} seconds left)"
-                    if (remaining := ws_monitor.backoff_remaining)
-                    else ""
-                )
-            )
         if ws_monitor.websocket is None or ws_monitor.websocket.closed:
+            # A backoff only holds off new connections, not an open one
+            if remaining := ws_monitor.backoff_remaining:
+                raise RivianApiException(
+                    "the web socket is waiting to reconnect "
+                    f"({remaining:.0f} seconds left)"
+                )
             await ws_monitor.new_connection(True)
         if ws_monitor.monitor is None or ws_monitor.monitor.done():
             await ws_monitor.start_monitor()

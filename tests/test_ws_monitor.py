@@ -28,6 +28,7 @@ class FakeServer:
         self.ping_connections = 0
         self.ping_once_connections = 0
         self.connections = 0
+        self.next_on_subscribe = False
         self.url = ""
 
     async def handler(self, request: web.Request) -> web.WebSocketResponse:
@@ -61,8 +62,10 @@ class FakeServer:
         else:
             await ws.send_json({"type": "connection_ack"})
             # Take subscribe requests until the client closes
-            async for _ in ws:
-                pass
+            async for msg in ws:
+                data = msg.json()
+                if self.next_on_subscribe and data.get("type") == "subscribe":
+                    await ws.send_json({"id": data["id"], "type": "next"})
         return ws
 
 
@@ -77,6 +80,7 @@ class BackoffSleeps:
     def __init__(self) -> None:
         """Initialize."""
         self.delays: list[float] = []
+        self.skipped = 0.0  # total of the delays skipped, added to the monitor's clock
         self.hold = False
         self.release = asyncio.Event()
 
@@ -122,7 +126,10 @@ async def rivian(monitor: WebSocketMonitor) -> AsyncIterator[Rivian]:
 
 @pytest.fixture
 def backoff() -> Iterator[BackoffSleeps]:
-    """Record backoff delays instead of sleeping; wait for `release` if `hold`."""
+    """Record backoff delays instead of sleeping; wait for `release` if `hold`.
+
+    The monitor's clock moves forward by each skipped delay, so the backoff passes.
+    """
     sleeps = BackoffSleeps()
     real_sleep = asyncio.sleep
 
@@ -132,10 +139,15 @@ def backoff() -> Iterator[BackoffSleeps]:
             sleeps.delays.append(delay)
             if sleeps.hold:
                 await sleeps.release.wait()
+            sleeps.skipped += delay
             delay = 0
         await real_sleep(delay)
 
-    with patch.object(ws_monitor.asyncio, "sleep", fake_sleep):
+    clock = SimpleNamespace(monotonic=lambda: time.monotonic() + sleeps.skipped)
+    with (
+        patch.object(ws_monitor.asyncio, "sleep", fake_sleep),
+        patch.object(ws_monitor, "time", clock),
+    ):
         yield sleeps
 
 
@@ -391,4 +403,65 @@ async def test_unsubscribing_last_subscription_closes(
 
     assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
     assert monitor.connected
+    assert server.connections == 2
+
+
+async def test_failing_callback_keeps_connection(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    rivian: Rivian,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test a callback that raises doesn't lose the ack or back off."""
+    server.next_on_subscribe = True
+    calls = 0
+
+    def callback(_: dict[str, Any]) -> None:
+        nonlocal calls
+        calls += 1
+        raise ValueError("callback failed")
+
+    assert await rivian.subscribe_for_vehicle_updates("id", callback)
+    await wait_for(lambda: calls == 1)
+    await asyncio.sleep(1.5)  # past the 1 second ack deadline
+
+    assert "Error in a subscription callback" in caplog.text
+    assert monitor.connection_ack.is_set()
+    assert monitor.connected
+    assert not monitor.backing_off
+    assert server.connections == 1
+
+
+async def test_backoff_does_not_block_an_open_connection(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Test a shared backoff only holds off new connections."""
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    # As if another client on the same session was rate limited
+    monitor._backoff_state.retry_at = time.monotonic() + 60
+
+    assert await rivian.subscribe_for_parallax_messages("id", lambda _: None)
+    assert server.connections == 1
+
+
+async def test_backoff_pushed_back_while_waiting(
+    server: FakeServer, monitor: WebSocketMonitor, backoff: BackoffSleeps
+) -> None:
+    """Test the monitor waits again if the backoff is pushed back meanwhile."""
+    server.close_reasons = ["Rate limited"]
+    backoff.hold = True
+    add_subscription(monitor)
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: len(backoff.delays) == 1)
+
+    # As if another client on the same session was rate limited meanwhile
+    monitor._backoff_state.retry_at = ws_monitor.time.monotonic() + 100
+    backoff.release.set()
+    await wait_for(lambda: monitor.connection_ack.is_set())
+
+    assert len(backoff.delays) == 2
+    # The rest of the pushed-back backoff, after the first delay has passed
+    assert backoff.delays[1] == pytest.approx(
+        100 - backoff.delays[0], abs=BACKOFF_SLACK
+    )
     assert server.connections == 2
