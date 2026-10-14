@@ -355,10 +355,14 @@ class WebSocketMonitor:
             RATE_LIMIT_BACKOFF_MAX,
         )
         state.attempt += 1
-        state.retry_at = time.monotonic() + delay
-        state.rate_limited = reason == BACKOFF_RATE_LIMITED
+        # Don't cut short a longer backoff another monitor for the session started
+        if (retry_at := time.monotonic() + delay) > state.retry_at:
+            state.retry_at = retry_at
+            state.rate_limited = reason == BACKOFF_RATE_LIMITED
         _LOGGER.warning(
-            "Web socket connection %s, reconnecting in %.0f seconds", reason, delay
+            "Web socket connection %s, reconnecting in %.0f seconds",
+            reason,
+            self.backoff_remaining,
         )
 
     def _reset_backoff(self) -> None:

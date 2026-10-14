@@ -517,3 +517,29 @@ async def test_rate_limited_is_shared_for_the_backoff(server: FakeServer) -> Non
             assert not new.rate_limited
         finally:
             WebSocketMonitor._shared_backoffs.clear()
+
+
+async def test_shorter_backoff_does_not_cut_a_longer_one_short(
+    server: FakeServer,
+) -> None:
+    """Test a later, shorter backoff keeps the session's longer rate limit."""
+
+    async def connection_init(ws: ClientWebSocketResponse[bool]) -> None:
+        await ws.send_json({"type": "connection_init"})
+
+    async with aiohttp.ClientSession() as session:
+        account: Any = SimpleNamespace(_session=session, request_timeout=1)
+        limited = WebSocketMonitor(account, server.url, connection_init, "session")
+        healthy = WebSocketMonitor(account, server.url, connection_init, "session")
+        unacked = WebSocketMonitor(account, server.url, connection_init, "session")
+        try:
+            limited._backoff_state.attempt = 4  # rate limited several times over
+            limited._start_backoff(ws_monitor.BACKOFF_RATE_LIMITED)
+            remaining = limited.backoff_remaining
+            healthy._reset_backoff()  # as on receiving data
+            unacked._start_backoff(ws_monitor.BACKOFF_NOT_ACKNOWLEDGED)
+
+            assert unacked.backoff_remaining == pytest.approx(remaining, abs=1)
+            assert unacked.rate_limited
+        finally:
+            WebSocketMonitor._shared_backoffs.clear()
