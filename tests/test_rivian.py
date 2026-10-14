@@ -3,7 +3,6 @@
 # pylint: disable=protected-access
 from __future__ import annotations
 
-import asyncio
 import base64
 import json
 from datetime import UTC, date, datetime
@@ -423,11 +422,10 @@ async def test_subscribe_for_departure_schedules() -> None:
     """Test subscribing to departure schedules."""
     rivian = Rivian(user_session_token="token")
     unsubscribe = AsyncMock()
-    monitor = Mock(connection_ack=asyncio.Event())
-    monitor.connection_ack.set()
+    monitor = Mock(wait_for_ack=AsyncMock(return_value=True))
     monitor.start_subscription = AsyncMock(return_value=unsubscribe)
     rivian._ws_monitor = monitor
-    rivian._ws_connect = AsyncMock()  # type: ignore[method-assign]
+    rivian._ws_connect = AsyncMock(return_value=monitor)  # type: ignore[method-assign]
     callback = Mock()
 
     assert (
@@ -443,6 +441,14 @@ async def test_subscribe_for_departure_schedules() -> None:
     assert (
         await rivian.subscribe_for_departure_schedules("vehicle_id", callback) is None
     )
+
+
+def test_ws_backoff_without_a_web_socket() -> None:
+    """Test the web socket backoff properties before anything has connected."""
+    rivian = Rivian()
+    assert rivian.ws_backoff_remaining == 0
+    assert not rivian.ws_rate_limited
+    assert not rivian.ws_unauthenticated
 
 
 def decode_vehicle_operation(
