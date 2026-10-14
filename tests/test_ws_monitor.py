@@ -66,6 +66,11 @@ class FakeServer:
         return ws
 
 
+# The monitor sleeps for what's left of a backoff, so allow for time passing
+# between recording one and sleeping
+BACKOFF_SLACK = 5
+
+
 class BackoffSleeps:
     """Backoff delays requested by the monitor."""
 
@@ -122,7 +127,8 @@ def backoff() -> Iterator[BackoffSleeps]:
     real_sleep = asyncio.sleep
 
     async def fake_sleep(delay: float) -> None:
-        if delay >= ws_monitor.RATE_LIMIT_BACKOFF_MIN:
+        # Anything longer than the monitor's 1 second poll is a backoff
+        if delay > 1:
             sleeps.delays.append(delay)
             if sleeps.hold:
                 await sleeps.release.wait()
@@ -170,8 +176,8 @@ async def test_rate_limited_backs_off_and_reconnects(
     assert monitor.connected
     assert monitor.monitor and not monitor.monitor.done()
     assert len(backoff.delays) == 2
-    assert 30 <= backoff.delays[0] <= 60
-    assert 60 <= backoff.delays[1] <= 90
+    assert 30 - BACKOFF_SLACK <= backoff.delays[0] <= 60
+    assert 60 - BACKOFF_SLACK <= backoff.delays[1] <= 90
 
 
 async def test_unacknowledged_connection_backs_off_and_reconnects(
@@ -185,8 +191,8 @@ async def test_unacknowledged_connection_backs_off_and_reconnects(
 
     assert server.connections == 3
     assert len(backoff.delays) == 2
-    assert 30 <= backoff.delays[0] <= 60
-    assert 60 <= backoff.delays[1] <= 90
+    assert 30 - BACKOFF_SLACK <= backoff.delays[0] <= 60
+    assert 60 - BACKOFF_SLACK <= backoff.delays[1] <= 90
 
 
 async def test_messages_before_ack_do_not_extend_ack_timeout(
@@ -298,7 +304,10 @@ async def test_backoff_is_shared_by_key(server: FakeServer) -> None:
         other = WebSocketMonitor(account, server.url, connection_init, "other")
         try:
             assert second.backing_off
-            assert second.backoff_remaining >= ws_monitor.RATE_LIMIT_BACKOFF_MIN
+            assert (
+                second.backoff_remaining
+                >= ws_monitor.RATE_LIMIT_BACKOFF_MIN - BACKOFF_SLACK
+            )
             assert not other.backing_off
         finally:
             WebSocketMonitor._shared_backoffs.clear()
@@ -340,7 +349,9 @@ async def test_rate_limited_subscribe_fails_fast(
         in caplog.text
     )
     assert monitor.backing_off
-    assert rivian.ws_backoff_remaining >= ws_monitor.RATE_LIMIT_BACKOFF_MIN
+    assert (
+        rivian.ws_backoff_remaining >= ws_monitor.RATE_LIMIT_BACKOFF_MIN - BACKOFF_SLACK
+    )
     assert rivian.ws_rate_limited
 
 
