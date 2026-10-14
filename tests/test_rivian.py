@@ -448,6 +448,7 @@ def test_ws_backoff_without_a_web_socket() -> None:
     rivian = Rivian()
     assert rivian.ws_backoff_remaining == 0
     assert not rivian.ws_rate_limited
+    assert not rivian.ws_unauthenticated
 
 
 def decode_vehicle_operation(

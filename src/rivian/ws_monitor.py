@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 RATE_LIMITED = "Rate limited"
+UNAUTHENTICATED = "Unauthenticated"
 RATE_LIMIT_BACKOFF_MIN = 30
 RATE_LIMIT_BACKOFF_MAX = 900
 
@@ -49,7 +50,6 @@ class _Backoff:
 
     attempt: int = 0
     retry_at: float = 0  # time.monotonic()
-    rate_limited: bool = False  # whether the latest backoff was for a rate limit
 
 
 class WebSocketMonitor:
@@ -82,6 +82,10 @@ class WebSocketMonitor:
         self._disconnect = False
         # Why the current connection is backing off, at most once per connection
         self._backoff_reason: str | None = None
+        # The server's reason for closing the current connection, if it gave one
+        self._close_message: str | None = None
+        # Kept per monitor, so another monitor's healthy connection can't clear it
+        self._rate_limited = False
         self._backoff_state = (
             _Backoff()
             if backoff_key is None
@@ -128,12 +132,22 @@ class WebSocketMonitor:
         return self._backoff_reason
 
     @property
-    def rate_limited(self) -> bool:
-        """Return `True` if the latest backoff was for a rate limit.
+    def close_message(self) -> str | None:
+        """Return the server's reason for closing the latest connection, if any."""
+        return self._close_message
 
-        Cleared once a connection receives data or stays open.
+    @property
+    def rate_limited(self) -> bool:
+        """Return `True` if this monitor's latest backoff was for a rate limit.
+
+        Cleared once one of its connections receives data or stays open.
         """
-        return self._backoff_state.rate_limited
+        return self._rate_limited
+
+    @property
+    def unauthenticated(self) -> bool:
+        """Return `True` if the server closed the latest connection as unauthenticated."""
+        return self._close_message == UNAUTHENTICATED
 
     @property
     def backoff_remaining(self) -> float:
@@ -150,6 +164,7 @@ class WebSocketMonitor:
         await cancel_task(self._receiver_task)
         self._disconnect = False
         self._backoff_reason = None
+        self._close_message = None
         self._connection_ack.clear()
         # pylint: disable=protected-access
         assert self._account._session
@@ -255,7 +270,8 @@ class WebSocketMonitor:
                 msg = await websocket.receive(timeout=timeout)
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     self._log_message(msg)
-                    if msg.extra == "Unauthenticated":
+                    self._close_message = msg.extra or None
+                    if msg.extra == UNAUTHENTICATED:
                         self._disconnect = True
                     elif msg.extra == RATE_LIMITED:
                         self._start_backoff(BACKOFF_RATE_LIMITED)
@@ -341,7 +357,7 @@ class WebSocketMonitor:
         )
         state.attempt += 1
         state.retry_at = time.monotonic() + delay
-        state.rate_limited = reason == BACKOFF_RATE_LIMITED
+        self._rate_limited = reason == BACKOFF_RATE_LIMITED
         _LOGGER.warning(
             "Web socket connection %s, reconnecting in %.0f seconds", reason, delay
         )
@@ -349,7 +365,7 @@ class WebSocketMonitor:
     def _reset_backoff(self) -> None:
         """Start the next backoff over, now that the connection is healthy."""
         self._backoff_state.attempt = 0
-        self._backoff_state.rate_limited = False
+        self._rate_limited = False
 
     async def start_monitor(self) -> None:
         """Start or restart the monitor task."""

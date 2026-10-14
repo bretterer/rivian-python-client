@@ -365,6 +365,10 @@ async def test_rate_limited_subscribe_fails_fast(
         rivian.ws_backoff_remaining >= ws_monitor.RATE_LIMIT_BACKOFF_MIN - BACKOFF_SLACK
     )
     assert rivian.ws_rate_limited
+    # Expected while backing off, so a warning rather than an error
+    assert [r.levelname for r in caplog.records if "Unable to" in r.message] == [
+        "WARNING"
+    ]
 
 
 async def test_backoff_survives_close_after_failed_subscribe(
@@ -465,3 +469,46 @@ async def test_backoff_pushed_back_while_waiting(
         100 - backoff.delays[0], abs=BACKOFF_SLACK
     )
     assert server.connections == 2
+
+
+async def test_unauthenticated_subscribe_reports_why(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    rivian: Rivian,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test an unauthenticated close is reported, without a backoff."""
+    server.close_reasons = ["Unauthenticated"]
+
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
+    assert (
+        "Unable to subscribe to id vehicle updates: the web socket connection "
+        "closed (Unauthenticated)" in caplog.text
+    )
+    assert [r.levelname for r in caplog.records if "Unable to" in r.message] == [
+        "ERROR"
+    ]
+    assert rivian.ws_unauthenticated
+    assert not rivian.ws_rate_limited
+    assert rivian.ws_backoff_remaining == 0
+
+
+async def test_rate_limited_is_kept_per_monitor(server: FakeServer) -> None:
+    """Test another monitor's healthy connection doesn't clear a rate limit."""
+
+    async def connection_init(ws: ClientWebSocketResponse[bool]) -> None:
+        await ws.send_json({"type": "connection_init"})
+
+    async with aiohttp.ClientSession() as session:
+        account: Any = SimpleNamespace(_session=session, request_timeout=1)
+        limited = WebSocketMonitor(account, server.url, connection_init, "session")
+        healthy = WebSocketMonitor(account, server.url, connection_init, "session")
+        try:
+            limited._start_backoff(ws_monitor.BACKOFF_RATE_LIMITED)
+            healthy._reset_backoff()  # as on receiving data
+
+            assert limited.rate_limited
+            assert limited.backing_off
+            assert not healthy.rate_limited
+        finally:
+            WebSocketMonitor._shared_backoffs.clear()

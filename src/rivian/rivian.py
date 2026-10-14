@@ -144,12 +144,20 @@ class Rivian:
 
     @property
     def ws_rate_limited(self) -> bool:
-        """Whether the latest web socket backoff was for a rate limit.
+        """Whether this client's latest web socket backoff was for a rate limit.
 
         False when it was for a missing acknowledgement instead, and cleared once
         a connection receives data or stays open.
         """
         return self._ws_monitor.rate_limited if self._ws_monitor else False
+
+    @property
+    def ws_unauthenticated(self) -> bool:
+        """Whether the server closed the latest web socket as unauthenticated.
+
+        The session needs a new login; the web socket doesn't reconnect.
+        """
+        return self._ws_monitor.unauthenticated if self._ws_monitor else False
 
     async def create_csrf_token(self) -> None:
         """Create cross-site-request-forgery (csrf) token."""
@@ -902,11 +910,19 @@ class Rivian:
                 return unsubscribe
             if backoff_reason := ws_monitor.backoff_reason:
                 reason = f"the web socket connection {backoff_reason}"
+            elif close_message := ws_monitor.close_message:
+                reason = f"the web socket connection closed ({close_message})"
             else:
                 reason = "the web socket connection closed"
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             reason = ex
-        _LOGGER.error("Unable to subscribe to %s: %s", description, reason)
+        # Expected while backing off, so less severe than other failures
+        _LOGGER.log(
+            logging.WARNING if self.ws_backoff_remaining else logging.ERROR,
+            "Unable to subscribe to %s: %s",
+            description,
+            reason,
+        )
         if self._ws_monitor and not self._ws_monitor.has_subscriptions:
             # Don't leave a connection open, or reconnecting, with nothing on it
             await self._ws_monitor.close()
