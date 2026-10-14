@@ -36,18 +36,32 @@ SURFACE_VENT_3: SurfaceHeatVentLevel
 class DepartureSchedules(_message.Message):
     __slots__ = ("schedule", "updated_at")
     class Schedule(_message.Message):
-        __slots__ = ("id", "name", "is_enabled", "occurrence", "departure_settings")
+        __slots__ = ("id", "name", "is_enabled", "occurrence", "single_occurrence", "departure_settings")
         ID_FIELD_NUMBER: _ClassVar[int]
         NAME_FIELD_NUMBER: _ClassVar[int]
         IS_ENABLED_FIELD_NUMBER: _ClassVar[int]
         OCCURRENCE_FIELD_NUMBER: _ClassVar[int]
+        SINGLE_OCCURRENCE_FIELD_NUMBER: _ClassVar[int]
         DEPARTURE_SETTINGS_FIELD_NUMBER: _ClassVar[int]
         id: str
         name: str
         is_enabled: bool
         occurrence: DepartureSchedules.Occurrence
+        single_occurrence: DepartureSchedules.SingleOccurrence
         departure_settings: DepartureSchedules.DepartureSettings
-        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., is_enabled: bool = ..., occurrence: _Optional[_Union[DepartureSchedules.Occurrence, _Mapping]] = ..., departure_settings: _Optional[_Union[DepartureSchedules.DepartureSettings, _Mapping]] = ...) -> None: ...
+        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., is_enabled: bool = ..., occurrence: _Optional[_Union[DepartureSchedules.Occurrence, _Mapping]] = ..., single_occurrence: _Optional[_Union[DepartureSchedules.SingleOccurrence, _Mapping]] = ..., departure_settings: _Optional[_Union[DepartureSchedules.DepartureSettings, _Mapping]] = ...) -> None: ...
+    class SingleOccurrence(_message.Message):
+        __slots__ = ("starts_at",)
+        class StartsAt(_message.Message):
+            __slots__ = ("seconds", "nanos")
+            SECONDS_FIELD_NUMBER: _ClassVar[int]
+            NANOS_FIELD_NUMBER: _ClassVar[int]
+            seconds: int
+            nanos: int
+            def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
+        STARTS_AT_FIELD_NUMBER: _ClassVar[int]
+        starts_at: DepartureSchedules.SingleOccurrence.StartsAt
+        def __init__(self, starts_at: _Optional[_Union[DepartureSchedules.SingleOccurrence.StartsAt, _Mapping]] = ...) -> None: ...
     class Occurrence(_message.Message):
         __slots__ = ("days", "starts_at")
         DAYS_FIELD_NUMBER: _ClassVar[int]

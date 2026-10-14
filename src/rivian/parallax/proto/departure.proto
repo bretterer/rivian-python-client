@@ -15,7 +15,19 @@ message DepartureSchedules {
     optional string name = 2;
     bool is_enabled = 3;
     Occurrence occurrence = 4;
+    // Set instead of occurrence on the one-off "s-" schedule a departNow
+    // adds; the gateway leaves that schedule out.
+    SingleOccurrence single_occurrence = 5;
     DepartureSettings departure_settings = 6;
+  }
+
+  message SingleOccurrence {
+    StartsAt starts_at = 1;
+
+    message StartsAt {
+      int64 seconds = 1; // epoch seconds
+      int32 nanos = 2;
+    }
   }
 
   message Occurrence {
