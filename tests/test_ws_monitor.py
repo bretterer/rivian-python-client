@@ -259,7 +259,7 @@ async def test_subscribe_does_not_connect_before_backoff_starts(
     server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
 ) -> None:
     """Test a subscription does not connect when a backoff is pending."""
-    monitor._backoff_reason = "was rate limited"
+    monitor._start_backoff(ws_monitor.BACKOFF_RATE_LIMITED)
 
     assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
     assert server.connections == 0
@@ -320,3 +320,64 @@ async def test_failed_subscribe_logs_reason_and_closes(
     )
     assert monitor.monitor and monitor.monitor.done()
     assert not monitor.connected
+
+
+async def test_rate_limited_subscribe_fails_fast(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    rivian: Rivian,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test a rate limit before the ack fails the subscribe without waiting it out."""
+    server.close_reasons = ["Rate limited"]
+    monitor._account.request_timeout = 10
+
+    start = time.monotonic()
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
+    assert time.monotonic() - start < 2
+    assert (
+        "Unable to subscribe to id updates: the web socket connection was rate limited"
+        in caplog.text
+    )
+    assert monitor.backing_off
+    assert rivian.ws_backoff_remaining >= ws_monitor.RATE_LIMIT_BACKOFF_MIN
+    assert rivian.ws_rate_limited
+
+
+async def test_backoff_survives_close_after_failed_subscribe(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Test closing after a failed subscribe keeps its backoff for the next one."""
+    server.silent_connections = 1
+
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
+    assert rivian.ws_backoff_remaining > 0
+    assert not rivian.ws_rate_limited  # not acknowledged, rather than rate limited
+
+    # The next subscribe doesn't connect until the backoff has passed
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
+    assert server.connections == 1
+
+    monitor._backoff_state.retry_at = 0
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    assert server.connections == 2
+    assert rivian.ws_backoff_remaining == 0
+
+
+async def test_unsubscribing_last_subscription_closes(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Test the connection closes with its last subscription, and reopens after."""
+    first = await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    second = await rivian.subscribe_for_parallax_messages("id", lambda _: None)
+    assert first and second
+
+    await first()
+    assert monitor.connected
+    await second()
+    assert not monitor.connected
+    assert monitor.monitor and monitor.monitor.done()
+
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    assert monitor.connected
+    assert server.connections == 2

@@ -26,11 +26,16 @@ RATE_LIMITED = "Rate limited"
 RATE_LIMIT_BACKOFF_MIN = 30
 RATE_LIMIT_BACKOFF_MAX = 900
 
+# Backoff reasons, completing "the web socket connection ..."
+BACKOFF_RATE_LIMITED = "was rate limited"
+BACKOFF_NOT_ACKNOWLEDGED = "was not acknowledged"
+
 
 async def cancel_task(*tasks: asyncio.Task | None) -> None:
-    """Cancel task(s)."""
+    """Cancel task(s), other than the one running this."""
+    current = asyncio.current_task()
     for task in tasks:
-        if task is not None and not task.done():
+        if task is not None and task is not current and not task.done():
             task.cancel()
             try:
                 await task
@@ -44,6 +49,7 @@ class _Backoff:
 
     attempt: int = 0
     retry_at: float = 0  # time.monotonic()
+    rate_limited: bool = False  # whether the latest backoff was for a rate limit
 
 
 class WebSocketMonitor:
@@ -70,7 +76,11 @@ class WebSocketMonitor:
         self._connection_init = connection_init
 
         self._connection_ack: asyncio.Event = asyncio.Event()
+        # Set while there's no open connection
+        self._closed: asyncio.Event = asyncio.Event()
+        self._closed.set()
         self._disconnect = False
+        # Why the current connection is backing off, at most once per connection
         self._backoff_reason: str | None = None
         self._backoff_state = (
             _Backoff()
@@ -110,7 +120,20 @@ class WebSocketMonitor:
     @property
     def backing_off(self) -> bool:
         """Return `True` while waiting to reconnect after a failed connection."""
-        return self._backoff_reason is not None or self.backoff_remaining > 0
+        return self.backoff_remaining > 0
+
+    @property
+    def backoff_reason(self) -> str | None:
+        """Return why the latest connection is backing off, if it is."""
+        return self._backoff_reason
+
+    @property
+    def rate_limited(self) -> bool:
+        """Return `True` if the latest backoff was for a rate limit.
+
+        Cleared once a connection receives data or stays open.
+        """
+        return self._backoff_state.rate_limited
 
     @property
     def backoff_remaining(self) -> float:
@@ -126,6 +149,7 @@ class WebSocketMonitor:
         """Create a new connection and, optionally, start the monitor."""
         await cancel_task(self._receiver_task)
         self._disconnect = False
+        self._backoff_reason = None
         self._connection_ack.clear()
         # pylint: disable=protected-access
         assert self._account._session
@@ -133,9 +157,35 @@ class WebSocketMonitor:
             url=self._url, headers={"sec-websocket-protocol": "graphql-transport-ws"}
         )
         await self._connection_init(self._ws)
+        self._closed.clear()
         self._receiver_task = asyncio.ensure_future(self._receiver())
         if start_monitor:
             await self.start_monitor()
+
+    async def wait_for_ack(self) -> bool:
+        """Wait for the connection to be acknowledged or to close.
+
+        Returns whether it was acknowledged. A connection that isn't acknowledged
+        within the request timeout is closed and backed off.
+        """
+        if not self._connection_ack.is_set():
+            waits = [
+                asyncio.ensure_future(self._connection_ack.wait()),
+                asyncio.ensure_future(self._closed.wait()),
+            ]
+            try:
+                done, _ = await asyncio.wait(
+                    waits,
+                    timeout=self._account.request_timeout,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+            finally:
+                await cancel_task(*waits)
+            if not done:
+                self._start_backoff(BACKOFF_NOT_ACKNOWLEDGED)
+                if self._ws:
+                    await self._ws.close()
+        return self._connection_ack.is_set()
 
     async def start_subscription(
         self, payload: dict[str, Any], callback: Callable[[dict[str, Any]], None]
@@ -154,6 +204,10 @@ class WebSocketMonitor:
                 if self.connected:
                     assert self._ws
                     await self._ws.send_json({"id": _id, "type": "complete"})
+                if not self._subscriptions:
+                    # Don't keep a connection open with nothing on it; the next
+                    # subscription reconnects
+                    await self.close()
 
         return unsubscribe
 
@@ -177,6 +231,15 @@ class WebSocketMonitor:
         """Receive a message from a web socket."""
         if not (websocket := self._ws):
             return
+        try:
+            await self._receive(websocket)
+        finally:
+            self._connection_ack.clear()
+            self._closed.set()
+        self._log_message("web socket stopped")
+
+    async def _receive(self, websocket: ClientWebSocketResponse[bool]) -> None:
+        """Handle messages until the web socket closes."""
         loop = asyncio.get_running_loop()
         ack_deadline = loop.time() + self._account.request_timeout
         while not websocket.closed:
@@ -193,7 +256,7 @@ class WebSocketMonitor:
                     if msg.extra == "Unauthenticated":
                         self._disconnect = True
                     elif msg.extra == RATE_LIMITED:
-                        self._backoff_reason = "was rate limited"
+                        self._start_backoff(BACKOFF_RATE_LIMITED)
                     break
                 self._last_received = datetime.now(UTC)
                 if msg.type == WSMsgType.TEXT:
@@ -201,7 +264,7 @@ class WebSocketMonitor:
                     if (data_type := data.get("type")) == "connection_ack":
                         self._connection_ack.set()
                     elif data_type == "next":
-                        self._backoff_state.attempt = 0
+                        self._reset_backoff()
                         if (_id := data.get("id")) in self._subscriptions:
                             _fn = self._subscriptions[_id][0]
                             if inspect.iscoroutinefunction(_fn):
@@ -215,14 +278,12 @@ class WebSocketMonitor:
                     continue
             except TimeoutError:
                 if not acknowledged:
-                    self._backoff_reason = "was not acknowledged"
+                    self._start_backoff(BACKOFF_NOT_ACKNOWLEDGED)
                     await websocket.close()
                     break
                 # The connection has stayed open, so any rate limit has passed
-                self._backoff_state.attempt = 0
+                self._reset_backoff()
                 await self._resubscribe_all()
-        self._connection_ack.clear()
-        self._log_message("web socket stopped")
 
     async def _monitor(self) -> None:
         """Monitor a web socket connection."""
@@ -233,8 +294,6 @@ class WebSocketMonitor:
                     # Need to restart the receiver
                     self._receiver_task = asyncio.ensure_future(self._receiver())
                 await asyncio.sleep(1)
-            if self._backoff_reason:
-                self._start_backoff()
             if not self._subscriptions:
                 # Nothing to resume, so stop rather than keep reconnecting; the
                 # next subscription reconnects once any backoff has passed
@@ -257,8 +316,15 @@ class WebSocketMonitor:
                 self._log_message("web socket connection reopened")
                 await self._resubscribe_all()
 
-    def _start_backoff(self) -> None:
-        """Hold off reconnecting after a rate limit or a missing connection_ack."""
+    def _start_backoff(self, reason: str) -> None:
+        """Hold off reconnecting after a rate limit or a missing connection_ack.
+
+        The retry time is recorded right away, so closing the monitor can't lose
+        it; a connection backs off at most once.
+        """
+        if self._backoff_reason:
+            return
+        self._backoff_reason = reason
         state = self._backoff_state
         delay = min(
             RATE_LIMIT_BACKOFF_MIN * 2**state.attempt
@@ -267,12 +333,15 @@ class WebSocketMonitor:
         )
         state.attempt += 1
         state.retry_at = time.monotonic() + delay
+        state.rate_limited = reason == BACKOFF_RATE_LIMITED
         _LOGGER.warning(
-            "Web socket connection %s, reconnecting in %.0f seconds",
-            self._backoff_reason,
-            delay,
+            "Web socket connection %s, reconnecting in %.0f seconds", reason, delay
         )
-        self._backoff_reason = None
+
+    def _reset_backoff(self) -> None:
+        """Start the next backoff over, now that the connection is healthy."""
+        self._backoff_state.attempt = 0
+        self._backoff_state.rate_limited = False
 
     async def start_monitor(self) -> None:
         """Start or restart the monitor task."""
@@ -286,7 +355,6 @@ class WebSocketMonitor:
     async def close(self) -> None:
         """Close the web socket."""
         self._disconnect = True
-        self._backoff_reason = None
         if self._ws:
             await self._ws.close()
         await cancel_task(self._monitor_task, self._receiver_task)

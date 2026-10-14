@@ -133,6 +133,24 @@ class Rivian:
         self._ws_monitor: WebSocketMonitor | None = None
         self._subscriptions: dict[str, str] = {}
 
+    @property
+    def ws_backoff_remaining(self) -> float:
+        """Seconds until the web socket may reconnect after a failed connection.
+
+        0 when it isn't backing off. While it is, subscribe_for_* fail without
+        connecting.
+        """
+        return self._ws_monitor.backoff_remaining if self._ws_monitor else 0
+
+    @property
+    def ws_rate_limited(self) -> bool:
+        """Whether the latest web socket backoff was for a rate limit.
+
+        False when it was for a missing acknowledgement instead, and cleared once
+        a connection receives data or stays open.
+        """
+        return self._ws_monitor.rate_limited if self._ws_monitor else False
+
     async def create_csrf_token(self) -> None:
         """Create cross-site-request-forgery (csrf) token."""
         url = GRAPHQL_GATEWAY
@@ -818,7 +836,7 @@ class Rivian:
             "variables": {"vehicleID": vehicle_id},
         }
         return await self._start_subscription(
-            payload, callback, f"{vehicle_id} updates"
+            payload, callback, f"{vehicle_id} vehicle updates"
         )
 
     async def subscribe_for_departure_schedules(
@@ -876,14 +894,16 @@ class Rivian:
         reason: str | Exception
         try:
             ws_monitor = await self._ws_connect()
-            async with asyncio.timeout(self.request_timeout):
-                await ws_monitor.connection_ack.wait()
-            if unsubscribe := await ws_monitor.start_subscription(payload, callback):
+            # Ends early if the connection closes, e.g. when rate limited
+            if await ws_monitor.wait_for_ack() and (
+                unsubscribe := await ws_monitor.start_subscription(payload, callback)
+            ):
                 _LOGGER.debug("Subscribed to %s", description)
                 return unsubscribe
-            reason = "the web socket closed"
-        except TimeoutError:
-            reason = "the web socket connection was not acknowledged"
+            if backoff_reason := ws_monitor.backoff_reason:
+                reason = f"the web socket connection {backoff_reason}"
+            else:
+                reason = "the web socket connection closed"
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             reason = ex
         _LOGGER.error("Unable to subscribe to %s: %s", description, reason)
