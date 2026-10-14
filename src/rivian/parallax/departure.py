@@ -53,11 +53,19 @@ def _decode_schedule(schedule: _Schedules.Schedule) -> dict[str, Any]:
         entry["name"] = v
     entry["isEnabled"] = schedule.is_enabled
 
-    occurrence = schedule.occurrence
-    entry["occurrence"] = {
-        "days": [day for field, day in _WEEKDAYS if getattr(occurrence.days, field)],
-        "startsAtMin": occurrence.starts_at,
-    }
+    if schedule.HasField("single_occurrence"):
+        starts_at = schedule.single_occurrence.starts_at
+        entry["occurrence"] = {
+            "startsAt": from_epoch(starts_at.seconds + starts_at.nanos / 1e9)
+        }
+    else:
+        occurrence = schedule.occurrence
+        entry["occurrence"] = {
+            "days": [
+                day for field, day in _WEEKDAYS if getattr(occurrence.days, field)
+            ],
+            "startsAtMin": occurrence.starts_at,
+        }
 
     settings = schedule.departure_settings
     comfort = settings.comfort_settings
@@ -87,7 +95,9 @@ def decode_departure_schedules(m: departure_pb2.DepartureSchedules) -> dict[str,
         departureSchedules: list[dict] — the gateway's DepartureSchedule shape:
             id: str, name: str, isEnabled: bool
             occurrence: {"days": list[str] ("monday" ... "sunday"; order
-                inferred), "startsAtMin": int (minutes after local midnight)}
+                inferred), "startsAtMin": int (minutes after local midnight)},
+                or {"startsAt": datetime} for the one-off "s-" schedule a
+                departNow adds (departing 10 minutes after the call)
             departureSettings: {"shouldOverrideChargeSchedule": bool,
                 "comfortSettings": {"cabinTempCelsius": float,
                 "frontDefogDefrost": "off" | "defog" | "defrost",

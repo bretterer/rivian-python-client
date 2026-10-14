@@ -64,6 +64,23 @@ def test_departure_schedules() -> None:
     }
 
 
+def test_departure_schedules_single_occurrence() -> None:
+    """The one-off departNow schedule has a start time instead of days."""
+    schedule = Schedules.Schedule(
+        id="s-1",
+        is_enabled=True,
+        single_occurrence=Schedules.SingleOccurrence(
+            starts_at=Schedules.SingleOccurrence.StartsAt(
+                seconds=1791761210, nanos=959000000
+            )
+        ),
+    )
+    result = decode("departure.schedule.schedule", Schedules(schedule=[schedule]))
+    assert result["departureSchedules"][0]["occurrence"] == {
+        "startsAt": epoch(1791761210_959)
+    }
+
+
 def test_departure_schedules_empty() -> None:
     """No schedules reads as an empty list."""
     assert decode("departure.schedule.schedule") == {"departureSchedules": []}
