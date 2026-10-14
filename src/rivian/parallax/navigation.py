@@ -310,7 +310,9 @@ def decode_trip_info(m: navigation_pb2.TripInfo) -> dict[str, Any]:
             and incidents ({firstIndex, lastIndex, type})
         overviewPolyline: str — Google-encoded, whole trip
         nextWaypointDepartureTime: datetime — the next stop's departure if
-            it's a charging stop, else its arrival
+            it's a charging stop, else its arrival. It stops updating once
+            the first stop is reached, keeping that stop's time for the
+            rest of the trip; use waypoints[0] instead
         finalStateOfCharge, finalRangeRemaining: float — the last
             waypoint's (percent, meters)
         socIsBelowLimit: bool
@@ -346,9 +348,11 @@ def decode_trip_progress(m: navigation_pb2.TripProgress) -> dict[str, Any]:
     """navigation.navigation_service.trip_progress — live progress on the active trip.
 
     Fields:
-        nextWaypointArrivalTime: datetime — live ETA
+        nextWaypointArrivalTime: datetime — live ETA, to the minute
         finalDestinationArrivalTime: datetime — live ETA for the last
-            waypoint; missing for one message after the waypoints change
+            waypoint, to the minute; missing while the route is
+            recalculating and on the stale progress the vehicle keeps
+            resending after navigation ends
         nextStopIndex: int
         distanceRemaining, durationRemaining: float — to the next waypoint
             (meters, seconds)
