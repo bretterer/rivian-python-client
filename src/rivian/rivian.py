@@ -812,22 +812,14 @@ class Rivian:
         if not properties:
             properties = VEHICLE_STATES_SUBSCRIPTION_PROPERTIES
 
-        try:
-            await self._ws_connect()
-            assert self._ws_monitor
-            async with asyncio.timeout(self.request_timeout):
-                await self._ws_monitor.connection_ack.wait()
-            payload = {
-                "operationName": "VehicleState",
-                "query": f"subscription VehicleState($vehicleID: String!) {{ vehicleState(id: $vehicleID) {self._build_vehicle_state_fragment(properties)} }}",
-                "variables": {"vehicleID": vehicle_id},
-            }
-            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
-            _LOGGER.debug("%s subscribed to updates", vehicle_id)
-            return unsubscribe
-        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
-            _LOGGER.error(ex)
-            return None
+        payload = {
+            "operationName": "VehicleState",
+            "query": f"subscription VehicleState($vehicleID: String!) {{ vehicleState(id: $vehicleID) {self._build_vehicle_state_fragment(properties)} }}",
+            "variables": {"vehicleID": vehicle_id},
+        }
+        return await self._start_subscription(
+            payload, callback, f"{vehicle_id} updates"
+        )
 
     async def subscribe_for_departure_schedules(
         self, vehicle_id: str, callback: Callable[[dict[str, Any]], None]
@@ -836,22 +828,14 @@ class Rivian:
 
         The current schedules are sent right after subscribing.
         """
-        try:
-            await self._ws_connect()
-            assert self._ws_monitor
-            async with asyncio.timeout(self.request_timeout):
-                await self._ws_monitor.connection_ack.wait()
-            payload = {
-                "operationName": "VehicleDepartureSchedules",
-                "query": "subscription VehicleDepartureSchedules($vehicleId: String!) { vehicleDepartureSchedules(vehicleId: $vehicleId) { id name isEnabled occurrence { __typename ... on RepeatsWeekly { days startsAtMin skippedOn } } departureSettings { shouldOverrideChargeSchedule comfortSettings { cabinTempCelsius frontDefogDefrost surfaceHeatVentLevels { frontLeftSeat frontRightSeat rearLeftSeat rearRightSeat steeringWheel } } } } }",
-                "variables": {"vehicleId": vehicle_id},
-            }
-            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
-            _LOGGER.debug("%s subscribed to departure schedules", vehicle_id)
-            return unsubscribe
-        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
-            _LOGGER.error(ex)
-            return None
+        payload = {
+            "operationName": "VehicleDepartureSchedules",
+            "query": "subscription VehicleDepartureSchedules($vehicleId: String!) { vehicleDepartureSchedules(vehicleId: $vehicleId) { id name isEnabled occurrence { __typename ... on RepeatsWeekly { days startsAtMin skippedOn } } departureSettings { shouldOverrideChargeSchedule comfortSettings { cabinTempCelsius frontDefogDefrost surfaceHeatVentLevels { frontLeftSeat frontRightSeat rearLeftSeat rearRightSeat steeringWheel } } } } }",
+            "variables": {"vehicleId": vehicle_id},
+        }
+        return await self._start_subscription(
+            payload, callback, f"{vehicle_id} departure schedules"
+        )
 
     async def subscribe_for_parallax_messages(
         self,
@@ -866,32 +850,50 @@ class Rivian:
         no decoder yet (`decode_parallax_message` returns None for those).
         Pass a list, e.g. `PARALLAX_RVMS`, to only receive those topics.
         """
-        try:
-            await self._ws_connect()
-            assert self._ws_monitor
-            async with asyncio.timeout(self.request_timeout):
-                await self._ws_monitor.connection_ack.wait()
-            variables: dict[str, Any] = {"vehicleId": vehicle_id}
-            if rvms is not None:
-                variables["rvms"] = rvms
-            payload = {
-                "operationName": "ParallaxMessages",
-                "query": "subscription ParallaxMessages($vehicleId: String!, $rvms: [String!]) { parallaxMessages(vehicleId: $vehicleId, rvms: $rvms) { payload timestamp rvm } }",
-                "variables": variables,
-            }
-            unsubscribe = await self._ws_monitor.start_subscription(payload, callback)
-            _LOGGER.debug(
-                "%s subscribed to %s",
-                vehicle_id,
-                "all Parallax RVMs" if rvms is None else f"{len(rvms)} Parallax RVMs",
-            )
-            return unsubscribe
-        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
-            _LOGGER.error(ex)
-            return None
+        variables: dict[str, Any] = {"vehicleId": vehicle_id}
+        if rvms is not None:
+            variables["rvms"] = rvms
+        payload = {
+            "operationName": "ParallaxMessages",
+            "query": "subscription ParallaxMessages($vehicleId: String!, $rvms: [String!]) { parallaxMessages(vehicleId: $vehicleId, rvms: $rvms) { payload timestamp rvm } }",
+            "variables": variables,
+        }
+        topics = "all Parallax RVMs" if rvms is None else f"{len(rvms)} Parallax RVMs"
+        return await self._start_subscription(
+            payload, callback, f"{vehicle_id} {topics}"
+        )
 
-    async def _ws_connect(self) -> ClientWebSocketResponse[bool]:
-        """Initiate a websocket connection."""
+    async def _start_subscription(
+        self,
+        payload: dict[str, Any],
+        callback: Callable[[dict[str, Any]], None],
+        description: str,
+    ) -> Callable[[], Awaitable[None]] | None:
+        """Connect the web socket if needed and start a subscription.
+
+        Returns the unsubscribe function, or None (after logging why) on failure.
+        """
+        reason: str | Exception
+        try:
+            ws_monitor = await self._ws_connect()
+            async with asyncio.timeout(self.request_timeout):
+                await ws_monitor.connection_ack.wait()
+            if unsubscribe := await ws_monitor.start_subscription(payload, callback):
+                _LOGGER.debug("Subscribed to %s", description)
+                return unsubscribe
+            reason = "the web socket closed"
+        except TimeoutError:
+            reason = "the web socket connection was not acknowledged"
+        except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
+            reason = ex
+        _LOGGER.error("Unable to subscribe to %s: %s", description, reason)
+        if self._ws_monitor and not self._ws_monitor.has_subscriptions:
+            # Don't leave a connection open, or reconnecting, with nothing on it
+            await self._ws_monitor.close()
+        return None
+
+    async def _ws_connect(self) -> WebSocketMonitor:
+        """Connect the web socket if needed and return its monitor."""
 
         async def connection_init(websocket: ClientWebSocketResponse[bool]) -> None:
             await websocket.send_json(
@@ -908,17 +910,26 @@ class Rivian:
 
         if not self._ws_monitor:
             self._ws_monitor = WebSocketMonitor(
-                self, GRAPHQL_WEBSOCKET, connection_init
+                self,
+                GRAPHQL_WEBSOCKET,
+                connection_init,
+                backoff_key=self._user_session_token,
             )
         ws_monitor = self._ws_monitor
         if ws_monitor.backing_off:
-            raise RivianApiException("Web socket is waiting to reconnect")
+            raise RivianApiException(
+                "the web socket is waiting to reconnect"
+                + (
+                    f" ({remaining:.0f} seconds left)"
+                    if (remaining := ws_monitor.backoff_remaining)
+                    else ""
+                )
+            )
         if ws_monitor.websocket is None or ws_monitor.websocket.closed:
             await ws_monitor.new_connection(True)
-            assert ws_monitor.websocket
         if ws_monitor.monitor is None or ws_monitor.monitor.done():
             await ws_monitor.start_monitor()
-        return ws_monitor.websocket
+        return ws_monitor
 
     async def __graphql_query(
         self, headers: dict[str, str], url: str, body: dict[str, Any]

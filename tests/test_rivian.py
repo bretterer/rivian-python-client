@@ -427,7 +427,7 @@ async def test_subscribe_for_departure_schedules() -> None:
     monitor.connection_ack.set()
     monitor.start_subscription = AsyncMock(return_value=unsubscribe)
     rivian._ws_monitor = monitor
-    rivian._ws_connect = AsyncMock()  # type: ignore[method-assign]
+    rivian._ws_connect = AsyncMock(return_value=monitor)  # type: ignore[method-assign]
     callback = Mock()
 
     assert (

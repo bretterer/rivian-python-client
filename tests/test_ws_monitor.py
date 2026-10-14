@@ -60,7 +60,9 @@ class FakeServer:
             await ws.close(code=4000, message=self.close_reasons.pop(0).encode())
         else:
             await ws.send_json({"type": "connection_ack"})
-            await ws.receive()
+            # Take subscribe requests until the client closes
+            async for _ in ws:
+                pass
         return ws
 
 
@@ -131,6 +133,11 @@ def backoff() -> Iterator[BackoffSleeps]:
         yield sleeps
 
 
+def add_subscription(monitor: WebSocketMonitor) -> None:
+    """Give the monitor a subscription to resume, so it keeps reconnecting."""
+    monitor._subscriptions["sub"] = (lambda _: None, {"query": "subscription"})
+
+
 async def wait_for(condition: Any, timeout: float = 5) -> None:
     """Wait for a condition to be true."""
     async with asyncio.timeout(timeout):
@@ -155,6 +162,7 @@ async def test_rate_limited_backs_off_and_reconnects(
 ) -> None:
     """Test the monitor backs off and reconnects when rate limited."""
     server.close_reasons = ["Rate limited", "Rate limited"]
+    add_subscription(monitor)
     await monitor.new_connection(start_monitor=True)
     await wait_for(lambda: monitor.connection_ack.is_set())
 
@@ -171,6 +179,7 @@ async def test_unacknowledged_connection_backs_off_and_reconnects(
 ) -> None:
     """Test the monitor backs off when a connection is never acknowledged."""
     server.silent_connections = 2
+    add_subscription(monitor)
     await monitor.new_connection(start_monitor=True)
     await wait_for(lambda: monitor.connection_ack.is_set())
 
@@ -185,6 +194,7 @@ async def test_messages_before_ack_do_not_extend_ack_timeout(
 ) -> None:
     """Test pings without connection_ack still lead to a backoff."""
     server.ping_connections = 1
+    add_subscription(monitor)
     await monitor.new_connection(start_monitor=True)
     await wait_for(lambda: monitor.connection_ack.is_set())
 
@@ -207,6 +217,7 @@ async def test_ack_deadline_passed_while_handling_a_message(
         log_message(message, is_error)
 
     with patch.object(monitor, "_log_message", slow_log_message):
+        add_subscription(monitor)
         await monitor.new_connection(start_monitor=True)
         await wait_for(lambda: monitor.connection_ack.is_set())
 
@@ -236,6 +247,7 @@ async def test_subscribe_does_not_connect_during_backoff(
     """Test a new subscription does not open a connection while backing off."""
     server.close_reasons = ["Rate limited"]
     backoff.hold = True
+    add_subscription(monitor)
     await monitor.new_connection(start_monitor=True)
     await wait_for(lambda: len(backoff.delays) == 1)
 
@@ -251,3 +263,60 @@ async def test_subscribe_does_not_connect_before_backoff_starts(
 
     assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
     assert server.connections == 0
+
+
+async def test_monitor_stops_with_nothing_subscribed(
+    server: FakeServer, monitor: WebSocketMonitor, backoff: BackoffSleeps
+) -> None:
+    """Test a monitor with no subscriptions stops instead of reconnecting."""
+    server.close_reasons = ["Rate limited"]
+    await monitor.new_connection(start_monitor=True)
+    assert monitor.monitor
+    await wait_for(monitor.monitor.done)
+
+    assert server.connections == 1
+    assert backoff.delays == []  # nothing waited on
+    assert monitor.backing_off  # but the next connection still waits
+
+
+async def test_backoff_is_shared_by_key(server: FakeServer) -> None:
+    """Test a new monitor waits out the backoff of another with the same key."""
+
+    async def connection_init(ws: ClientWebSocketResponse[bool]) -> None:
+        await ws.send_json({"type": "connection_init"})
+
+    server.close_reasons = ["Rate limited"]
+    async with aiohttp.ClientSession() as session:
+        account: Any = SimpleNamespace(_session=session, request_timeout=1)
+        first = WebSocketMonitor(account, server.url, connection_init, "session")
+        await first.new_connection(start_monitor=True)
+        assert first.monitor
+        await wait_for(first.monitor.done)
+        await first.close()
+
+        second = WebSocketMonitor(account, server.url, connection_init, "session")
+        other = WebSocketMonitor(account, server.url, connection_init, "other")
+        try:
+            assert second.backing_off
+            assert second.backoff_remaining >= ws_monitor.RATE_LIMIT_BACKOFF_MIN
+            assert not other.backing_off
+        finally:
+            WebSocketMonitor._shared_backoffs.clear()
+
+
+async def test_failed_subscribe_logs_reason_and_closes(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    rivian: Rivian,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test a failed subscription logs why and leaves nothing reconnecting."""
+    server.silent_connections = 1
+
+    assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
+    assert (
+        "Unable to subscribe to id updates: the web socket connection was not "
+        "acknowledged" in caplog.text
+    )
+    assert monitor.monitor and monitor.monitor.done()
+    assert not monitor.connected
