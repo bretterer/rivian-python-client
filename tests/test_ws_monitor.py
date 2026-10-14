@@ -315,7 +315,7 @@ async def test_failed_subscribe_logs_reason_and_closes(
 
     assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
     assert (
-        "Unable to subscribe to id updates: the web socket connection was not "
+        "Unable to subscribe to id vehicle updates: the web socket connection was not "
         "acknowledged" in caplog.text
     )
     assert monitor.monitor and monitor.monitor.done()
@@ -336,7 +336,7 @@ async def test_rate_limited_subscribe_fails_fast(
     assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None) is None
     assert time.monotonic() - start < 2
     assert (
-        "Unable to subscribe to id updates: the web socket connection was rate limited"
+        "Unable to subscribe to id vehicle updates: the web socket connection was rate limited"
         in caplog.text
     )
     assert monitor.backing_off
