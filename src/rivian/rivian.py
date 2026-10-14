@@ -144,10 +144,10 @@ class Rivian:
 
     @property
     def ws_rate_limited(self) -> bool:
-        """Whether this client's latest web socket backoff was for a rate limit.
+        """Whether the web socket is backing off after a rate limit.
 
-        False when it was for a missing acknowledgement instead, and cleared once
-        a connection receives data or stays open.
+        True for the rest of the backoff, including on a new client for the same
+        session; False when backing off for a missing acknowledgement instead.
         """
         return self._ws_monitor.rate_limited if self._ws_monitor else False
 

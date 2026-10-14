@@ -50,6 +50,7 @@ class _Backoff:
 
     attempt: int = 0
     retry_at: float = 0  # time.monotonic()
+    rate_limited: bool = False  # whether the backoff until retry_at is a rate limit
 
 
 class WebSocketMonitor:
@@ -84,8 +85,6 @@ class WebSocketMonitor:
         self._backoff_reason: str | None = None
         # The server's reason for closing the current connection, if it gave one
         self._close_message: str | None = None
-        # Kept per monitor, so another monitor's healthy connection can't clear it
-        self._rate_limited = False
         self._backoff_state = (
             _Backoff()
             if backoff_key is None
@@ -138,11 +137,11 @@ class WebSocketMonitor:
 
     @property
     def rate_limited(self) -> bool:
-        """Return `True` if this monitor's latest backoff was for a rate limit.
+        """Return `True` while backing off after a rate limit.
 
-        Cleared once one of its connections receives data or stays open.
+        Shared like the backoff, so a new monitor for the same session sees it too.
         """
-        return self._rate_limited
+        return self._backoff_state.rate_limited and self.backoff_remaining > 0
 
     @property
     def unauthenticated(self) -> bool:
@@ -357,7 +356,7 @@ class WebSocketMonitor:
         )
         state.attempt += 1
         state.retry_at = time.monotonic() + delay
-        self._rate_limited = reason == BACKOFF_RATE_LIMITED
+        state.rate_limited = reason == BACKOFF_RATE_LIMITED
         _LOGGER.warning(
             "Web socket connection %s, reconnecting in %.0f seconds", reason, delay
         )
@@ -365,7 +364,6 @@ class WebSocketMonitor:
     def _reset_backoff(self) -> None:
         """Start the next backoff over, now that the connection is healthy."""
         self._backoff_state.attempt = 0
-        self._rate_limited = False
 
     async def start_monitor(self) -> None:
         """Start or restart the monitor task."""

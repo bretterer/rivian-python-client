@@ -493,8 +493,8 @@ async def test_unauthenticated_subscribe_reports_why(
     assert rivian.ws_backoff_remaining == 0
 
 
-async def test_rate_limited_is_kept_per_monitor(server: FakeServer) -> None:
-    """Test another monitor's healthy connection doesn't clear a rate limit."""
+async def test_rate_limited_is_shared_for_the_backoff(server: FakeServer) -> None:
+    """Test a rate limit shows on every monitor for the session until it passes."""
 
     async def connection_init(ws: ClientWebSocketResponse[bool]) -> None:
         await ws.send_json({"type": "connection_init"})
@@ -507,8 +507,13 @@ async def test_rate_limited_is_kept_per_monitor(server: FakeServer) -> None:
             limited._start_backoff(ws_monitor.BACKOFF_RATE_LIMITED)
             healthy._reset_backoff()  # as on receiving data
 
+            # A new monitor for the session, as a client made for a retry
+            new = WebSocketMonitor(account, server.url, connection_init, "session")
             assert limited.rate_limited
-            assert limited.backing_off
-            assert not healthy.rate_limited
+            assert healthy.rate_limited
+            assert new.rate_limited
+
+            limited._backoff_state.retry_at = 0  # the backoff has passed
+            assert not new.rate_limited
         finally:
             WebSocketMonitor._shared_backoffs.clear()
