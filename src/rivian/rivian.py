@@ -36,6 +36,7 @@ from .parallax import (
     CLIMATE_HOLD_SETTING_RVM,
     CLIMATE_HOLD_STATUS_RVM,
     encode_climate_hold_setting,
+    encode_command,
     encode_vehicle_operation,
 )
 from .utils import generate_vehicle_command_hmac
@@ -89,6 +90,16 @@ ERROR_CODE_CLASS_MAP: dict[str, type[RivianApiException]] = {
 def _iso_date(value: date | str) -> str:
     """Format a date (or the date of a datetime) as YYYY-MM-DD; pass strings through."""
     return value if isinstance(value, str) else value.strftime("%Y-%m-%d")
+
+
+def _command_id(command_id: str | None = None) -> str:
+    """Return a Parallax command id as a canonical UUID string, or a new one."""
+    if command_id is None:
+        return str(uuid.uuid4())
+    try:
+        return str(uuid.UUID(str(command_id)))
+    except ValueError as err:
+        raise RivianBadRequestError("A command id must be a UUID") from err
 
 
 def send_deprecation_warning(old_name: str, new_name: str) -> None:  # pragma: no cover
@@ -762,6 +773,72 @@ class Rivian:
                 return status.get("id")
         return None
 
+    async def send_parallax_command(
+        self,
+        vehicle_id: str,
+        rvm: str,
+        payload: bytes,
+        *,
+        identity_id: str,
+        vehicle_key: str,
+        private_key: str,
+        command_id: str | None = None,
+    ) -> str | None:
+        """Send a signed Parallax command to the vehicle, e.g. to unlock it.
+
+        `rvm` and `payload` go together, e.g. `UNLOCK_RVM` and `encode_unlock()`
+        from `rivian.parallax`. The keys are those of `send_vehicle_command`: a
+        phone key enrolled with `enroll_phone`. In testing, a sleeping vehicle
+        was woken by the request, so `WAKE_VEHICLE` wasn't needed first. The app
+        sends body commands this way only to vehicles that list `PVS_BD_CMD` as
+        available; how others respond is untested.
+
+        Returns the command's id, a UUID (the given `command_id`, if any), once
+        Rivian has accepted the command, or None if it didn't. That isn't the
+        command done: follow it with `subscribe_for_parallax_command_state`.
+
+        Raises `RivianBadRequestError` for a missing id or a `command_id` that
+        isn't a UUID, and the usual `RivianApiException` if the request fails,
+        which can be after Rivian has the command. Bad keys raise `ValueError`
+        or a `cryptography` error before anything is sent.
+        """
+        if not (vehicle_id and rvm and identity_id):
+            raise RivianBadRequestError(
+                "A Parallax command needs a vehicle id, an RVM and an identity id"
+            )
+        command_id = _command_id(command_id)
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "SendRemoteCommand",
+            "variables": {
+                "vehicleId": vehicle_id,
+                "model": rvm,
+                "parallaxPayloadB64": encode_command(
+                    vehicle_id,
+                    rvm,
+                    payload,
+                    identity_id=identity_id,
+                    vehicle_key=vehicle_key,
+                    private_key=private_key,
+                    command_id=command_id,
+                ),
+            },
+            "query": "mutation SendRemoteCommand($vehicleId: String!, $model: String!, $parallaxPayloadB64: String!) { sendParallaxPayload(payload: $parallaxPayloadB64, meta: { vehicleId: $vehicleId model: $model isVehicleModelOp: true requiresWakeup: true } ) { success sequenceNumber } }",
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            sent = (data.get("data") or {}).get("sendParallaxPayload") or {}
+            if sent.get("success"):
+                return command_id
+        return None
+
     async def send_vehicle_operation(
         self,
         vehicle_id: str,
@@ -887,6 +964,36 @@ class Rivian:
         topics = "all Parallax RVMs" if rvms is None else f"{len(rvms)} Parallax RVMs"
         return await self._start_subscription(
             payload, callback, f"{vehicle_id} {topics}"
+        )
+
+    async def subscribe_for_parallax_command_state(
+        self,
+        vehicle_id: str,
+        command_id: str,
+        callback: Callable[[dict[str, Any]], None],
+    ) -> Callable[[], Awaitable[None]] | None:
+        """Open a web socket connection to follow a `send_parallax_command`.
+
+        The messages report the command's progress, up to its result; decode them
+        with `parallax.decode_command_state_message`. Subscribe before sending the
+        command: Rivian doesn't acknowledge a subscription, and states from before
+        it may not be replayed.
+
+        The last message has the progress "complete", but none comes if the
+        vehicle can't be reached, so keep a timeout of your own. The subscription
+        is kept, and resubscribed after a quiet minute or a reconnect (so a message
+        may come more than once), until the returned function is awaited. Returns
+        None if it couldn't subscribe, and raises `RivianBadRequestError` if
+        `command_id` isn't a UUID.
+        """
+        command_id = _command_id(command_id)
+        payload = {
+            "operationName": "vehicleCommandStatePx",
+            "query": "subscription vehicleCommandStatePx($vehicleId: String!, $commandId: String!) { vehicleCommandStatePx(vehicleId: $vehicleId, commandId: $commandId) { payload } }",
+            "variables": {"vehicleId": vehicle_id, "commandId": command_id},
+        }
+        return await self._start_subscription(
+            payload, callback, f"{vehicle_id} command {command_id}"
         )
 
     async def _start_subscription(
