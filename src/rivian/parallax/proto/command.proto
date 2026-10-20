@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package rivian.parallax.command;
+
+// Reverse-engineered `sendParallaxPayload` request for a signed remote command,
+// and the `vehicleCommandStatePx` message that reports on it; see ../command.py.
+// Only the field numbers matter on the wire. Enum values are named as the app
+// names them, except ResponseStatus, which the app names without a prefix. Unlike
+// operation.proto's Operation, this one goes to the vehicle inside a signed
+// Envelope.
+
+// Wraps an Operation. Field 17 is what makes it a signed command.
+message Envelope {
+  // The app's envelope can hold other kinds of value; a command only uses this
+  oneof value {
+    Composite composite = 10;
+  }
+  Timestamp last_update = 12;
+  bytes correlation_id = 16; // the command id: 16 bytes of a UUID
+  SecurityInfo security_info = 17;
+}
+
+message Composite {
+  bytes bytes_val = 2; // a serialized Operation
+}
+
+message Operation {
+  string rvm = 1;
+  OperationType type = 2;
+  bytes command_id = 3; // the same 16 bytes as the envelope's correlation_id
+  bytes payload = 4;    // the RVM's message; absent when empty
+  Timestamp created_at = 5;
+  // 6 is never set by the app
+  string vehicle_id = 7;
+}
+
+enum OperationType {
+  PARALLAX_OPERATION_UNSPECIFIED = 0;
+  PARALLAX_OPERATION_PUBLISH = 1;
+  PARALLAX_OPERATION_SUBSCRIBE = 2;
+  PARALLAX_OPERATION_REQUEST = 3; // the only one a command uses
+}
+
+message SecurityInfo {
+  Signature signature = 1;
+  string mapped_identity = 2; // the enrolled phone's identityId for the vehicle
+}
+
+message Signature {
+  SignatureType type = 1;
+  bytes value = 2; // 32 raw bytes of the HMAC-SHA256, not hex
+}
+
+enum SignatureType {
+  DATA_SIGNATURE_TYPE_UNSPECIFIED = 0;
+  DATA_SIGNATURE_TYPE_HMAC_SHA256 = 1;
+  DATA_SIGNATURE_TYPE_RCS = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1; // epoch seconds
+  int32 nanos = 2;
+}
+
+// What `vehicleCommandStatePx` sends, base64 encoded, as the command goes on.
+message CommandState {
+  bytes command_id = 1; // 16 bytes of a UUID
+  string rvm = 2;
+  Progress progress = 3;
+  oneof result {
+    OperationError operation_error = 4;
+    // The app declares this as bytes holding a CommandResult, which is the
+    // same on the wire. Present, but empty, for an undefined status.
+    CommandResult data = 5;
+  }
+}
+
+enum Progress {
+  VEHICLE_MODEL_OP_PROGRESS_UNSPECIFIED = 0;
+  VEHICLE_MODEL_OP_PROGRESS_VEHICLE_WAKING_UP = 1; // seen twice for one command
+  VEHICLE_MODEL_OP_PROGRESS_VEHICLE_VALIDATING = 2;
+  VEHICLE_MODEL_OP_PROGRESS_VEHICLE_EXECUTING = 3;
+  VEHICLE_MODEL_OP_PROGRESS_VEHICLE_COMPLETE = 4; // the last message
+}
+
+message CommandResult {
+  ResponseStatus response_status = 1;
+  Error error = 2;
+}
+
+enum ResponseStatus {
+  RESPONSE_STATUS_UNDEFINED = 0;
+  RESPONSE_STATUS_SUCCESS = 1;
+  RESPONSE_STATUS_FAIL = 2;
+  RESPONSE_STATUS_INVALID_REQUEST = 3;
+  RESPONSE_STATUS_NOT_SUPPORTED = 4;
+  RESPONSE_STATUS_TIMEOUT = 5;
+}
+
+message Error {
+  int32 code = 1;
+  string message = 2;
+}
+
+message OperationError {
+  int32 error = 1; // an enum in the app, whose values were not decompiled
+  string message = 2;
+}

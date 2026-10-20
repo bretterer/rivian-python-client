@@ -266,3 +266,14 @@ enum WiperFluidState {
   WIPER_FLUID_STATE_LOW = 2;
   WIPER_FLUID_STATE_EMPTY = 3;
 }
+
+// body.locks.unlock, the payload of a signed command (see ../command.py)
+message UnlockCommand {
+  oneof target {
+    bool all = 1; // the app always sets this
+    bool user_preference = 2; // in the app's schema; its button never sends it
+  }
+}
+
+// body.locks.lock, the payload of a signed command. It has no fields.
+message LockCommand {}

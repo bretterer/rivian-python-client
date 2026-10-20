@@ -50,3 +50,44 @@ editing one, regenerate its `*_pb2` modules (don't edit those by hand):
 uv run python -m grpc_tools.protoc --proto_path=src --python_out=src \
     --pyi_out=src src/rivian/parallax/proto/*.proto
 ```
+
+### Commands
+
+`send_parallax_command` sends a signed command, such as unlocking
+(`parallax.UNLOCK_RVM` with `parallax.encode_unlock()`; `LOCK_RVM` and
+`encode_lock()` to lock), and `subscribe_for_parallax_command_state` follows it.
+Subscribe first, then send:
+
+```python
+import uuid
+
+from rivian import parallax
+
+
+def on_state(data):
+    if state := parallax.decode_command_state_message(data):
+        print(state["progress"], state["status"], state["error"])
+
+
+command_id = str(uuid.uuid4())
+unsubscribe = await rivian.subscribe_for_parallax_command_state(
+    vehicle_id, command_id, on_state
+)
+if unsubscribe:
+    await rivian.send_parallax_command(
+        vehicle_id,
+        parallax.UNLOCK_RVM,
+        parallax.encode_unlock(),
+        identity_id=identity_id,
+        vehicle_key=vehicle_key,
+        private_key=private_key,
+        command_id=command_id,
+    )
+    ...  # wait for the progress "complete", or give up
+    await unsubscribe()
+```
+
+The keys are those of `send_vehicle_command`. The command is done when the progress
+is `complete`, the status `success` and there is no `error`. If you never see that,
+check the vehicle before sending it again. This unlocks a real vehicle, so keep the
+keys secret.

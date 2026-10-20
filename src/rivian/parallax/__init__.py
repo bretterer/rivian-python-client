@@ -10,9 +10,15 @@ Public API:
     encode_vehicle_operation(rvm, payload=b"", ...) -> str
         Builds a `send_vehicle_operation` request; an empty payload reads
         the RVM, anything else (e.g. `encode_climate_hold_setting`) writes it.
+    encode_command(vehicle_id, rvm, payload, ...) -> str
+        Builds and signs a `send_parallax_command` request, with a payload
+        such as `encode_unlock()`.
+    decode_command_state_message(data) -> dict | None
+        Reads a raw `subscribe_for_parallax_command_state` message.
 
 Layout:
-    core.py  - registry, payload parsing and shared helpers
+    core.py    - registry, payload parsing and shared helpers
+    command.py - signed remote commands and their state messages
     proto/   - .proto schemas and their generated *_pb2 modules
     <topic prefix>.py - one module per RVM topic prefix (body.*, etc.)
 
@@ -44,11 +50,13 @@ from . import (  # noqa: F401  (imported to register their decoders)
     vehicle,
     vehicle_access,
 )
+from .body import LOCK_RVM, UNLOCK_RVM, encode_lock, encode_unlock
 from .comfort import (
     CLIMATE_HOLD_SETTING_RVM,
     CLIMATE_HOLD_STATUS_RVM,
     encode_climate_hold_setting,
 )
+from .command import decode_command_state_message, encode_command
 from .core import (
     RVMDecoder,
     decode_parallax_message,
@@ -75,9 +83,15 @@ __all__ = [
     "CHARGING_RVMS",
     "CLIMATE_HOLD_SETTING_RVM",
     "CLIMATE_HOLD_STATUS_RVM",
+    "LOCK_RVM",
     "PARALLAX_RVMS",
+    "UNLOCK_RVM",
+    "decode_command_state_message",
     "decode_parallax_message",
     "decode_parallax_subscription_message",
     "encode_climate_hold_setting",
+    "encode_command",
+    "encode_lock",
+    "encode_unlock",
     "encode_vehicle_operation",
 ]
