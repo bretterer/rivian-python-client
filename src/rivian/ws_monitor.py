@@ -24,6 +24,8 @@ _LOGGER = logging.getLogger(__name__)
 
 RATE_LIMITED = "Rate limited"
 UNAUTHENTICATED = "Unauthenticated"
+# Close code for a connection the server refuses, sent soon after connection_init
+FORBIDDEN = 4403
 RATE_LIMIT_BACKOFF_MIN = 30
 RATE_LIMIT_BACKOFF_MAX = 900
 
@@ -85,6 +87,8 @@ class WebSocketMonitor:
         self._backoff_reason: str | None = None
         # The server's reason for closing the current connection, if it gave one
         self._close_message: str | None = None
+        # The server's close code for the current connection, if it sent one
+        self._close_code: int | None = None
         self._backoff_state = (
             _Backoff()
             if backoff_key is None
@@ -145,8 +149,11 @@ class WebSocketMonitor:
 
     @property
     def unauthenticated(self) -> bool:
-        """Return `True` if the server closed the latest connection as unauthenticated."""
-        return self._close_message == UNAUTHENTICATED
+        """Return `True` if the server closed the latest connection as unauthenticated.
+
+        That is, with the reason "Unauthenticated" or as forbidden (4403).
+        """
+        return self._close_message == UNAUTHENTICATED or self._close_code == FORBIDDEN
 
     @property
     def backoff_remaining(self) -> float:
@@ -164,6 +171,7 @@ class WebSocketMonitor:
         self._disconnect = False
         self._backoff_reason = None
         self._close_message = None
+        self._close_code = None
         self._connection_ack.clear()
         # pylint: disable=protected-access
         assert self._account._session
@@ -270,7 +278,9 @@ class WebSocketMonitor:
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     self._log_message(msg)
                     self._close_message = msg.extra or None
-                    if msg.extra == UNAUTHENTICATED:
+                    if msg.type == WSMsgType.CLOSE:
+                        self._close_code = msg.data
+                    if self.unauthenticated:
                         self._disconnect = True
                     elif msg.extra == RATE_LIMITED:
                         self._start_backoff(BACKOFF_RATE_LIMITED)
