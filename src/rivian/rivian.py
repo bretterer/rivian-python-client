@@ -684,6 +684,8 @@ class Rivian:
             VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT,
             VehicleCommand.CABIN_HVAC_RIGHT_SEAT_VENT,
             VehicleCommand.CABIN_HVAC_STEERING_HEAT,
+            VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_LEFT_SEAT_HEAT,
+            VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_RIGHT_SEAT_HEAT,
         ) and not (
             params
             and isinstance((level := params.get("level")), int)
