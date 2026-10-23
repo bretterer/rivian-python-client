@@ -141,12 +141,7 @@ async def test_authentication_with_expired_otp(aresponses: ResponsesMockServer) 
 
 async def test_get_user_information(aresponses: ResponsesMockServer) -> None:
     """Test get user information request."""
-    aresponses.add(
-        "rivian.com",
-        "/api/gql/gateway/graphql",
-        "POST",
-        response=USER_INFORMATION_RESPONSE,
-    )
+    requests = capture_requests(aresponses, USER_INFORMATION_RESPONSE)
     async with aiohttp.ClientSession():
         rivian = Rivian(
             csrf_token="token", app_session_token="token", user_session_token="token"
@@ -157,6 +152,8 @@ async def test_get_user_information(aresponses: ResponsesMockServer) -> None:
         assert (current_user := response_json["data"]["currentUser"])
         assert current_user["id"] == "id"
         assert len(current_user["vehicles"]) == 1
+        query = requests[0]["query"]
+        assert "tonneauOption { __typename optionId optionName }" in query
         await rivian.close()
 
 
