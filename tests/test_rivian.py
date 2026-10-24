@@ -38,6 +38,7 @@ from .responses import (
     DELETE_DEPARTURE_SCHEDULE_RESPONSE,
     DEPART_NOW_RESPONSE,
     OTP_TOKEN_RESPONSE,
+    SEND_LOCATION_TO_VEHICLE_RESPONSE,
     SEND_VEHICLE_OPERATION_RESPONSE,
     SET_CHARGING_SCHEDULES_RESPONSE,
     SKIP_NEXT_SCHEDULED_DEPARTURE_RESPONSE,
@@ -414,6 +415,29 @@ async def test_skip_and_depart_now(aresponses: ResponsesMockServer) -> None:
             "vehicleId": "vehicle_id",
             "scheduleId": "schedule_id",
             "skipDate": "2026-10-14",
+        }
+        await rivian.close()
+
+
+async def test_send_location_to_vehicle(aresponses: ResponsesMockServer) -> None:
+    """Test sending a destination to a vehicle."""
+    requests = capture_requests(aresponses, SEND_LOCATION_TO_VEHICLE_RESPONSE)
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+
+        response = await rivian.send_location_to_vehicle(
+            "123 Main St, Springfield, IL", "vehicle_id"
+        )
+        response_json = await response.json()
+        result = response_json["data"]["parseAndShareLocationToVehicle"]
+        assert result["publishResponse"]["result"] == 0
+        assert requests[0]["variables"] == {
+            "str": "123 Main St, Springfield, IL",
+            "vehicleId": "vehicle_id",
         }
         await rivian.close()
 
