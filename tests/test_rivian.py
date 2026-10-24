@@ -17,6 +17,7 @@ from rivian import Rivian
 from rivian.const import (
     VEHICLE_STATE_PROPERTIES,
     VEHICLE_STATES_SUBSCRIPTION_ONLY_PROPERTIES,
+    VehicleCommand,
 )
 from rivian.exceptions import (
     RivianApiException,
@@ -505,6 +506,23 @@ async def test_send_vehicle_operation(aresponses: ResponsesMockServer) -> None:
                 await rivian.set_climate_hold_duration("vehicle_id", minutes)
         assert len(requests) == 3
         await rivian.close()
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_LEFT_SEAT_HEAT,
+        VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_RIGHT_SEAT_HEAT,
+    ],
+)
+async def test_send_vehicle_command_requires_level(command: VehicleCommand) -> None:
+    """Test third row seat heat commands require a `level` parameter."""
+    rivian = Rivian()
+    with pytest.raises(RivianBadRequestError):
+        await rivian.send_vehicle_command(
+            command, "vehicle_id", "phone_id", "identity_id", "vehicle_key", ""
+        )
+    await rivian.close()
 
 
 async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
