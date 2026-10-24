@@ -211,6 +211,17 @@ def test_trip_target_not_set(soc: int) -> None:
     }
 
 
+def test_trip_target_no_estimate() -> None:
+    """A target with #2 absent has no minutes, rather than 0."""
+    message = charging.TripTarget.FromString(bytes.fromhex("0850"))
+    assert (message.soc, message.time_estimate) == (80, 0)
+    assert decode("charging.session.trip_target", message) == {
+        "chargingTripTargetSoc": 80,
+        "chargingTripTargetMinsRemaining": None,
+        "_chargingTripTargetStatus": 0,
+    }
+
+
 def test_trip_target_captured() -> None:
     """A captured frame with no trip target: #2 = 0xFFFF and no #1."""
     message = charging.TripTarget.FromString(bytes.fromhex("10ffff03"))

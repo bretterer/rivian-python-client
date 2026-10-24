@@ -170,7 +170,8 @@ def decode_trip_target(m: charging_pb2.TripTarget) -> dict[str, Any]:
     Fields:
         chargingTripTargetSoc: int | None (percent; None when not set)
         chargingTripTargetMinsRemaining: int | None — minutes of charging
-            until the target SoC; None when no target or no estimate
+            until the target SoC; None when no target, or when the estimate is
+            absent, zero or 0xFFFF
         _chargingTripTargetStatus: int — raw
     """
     has_target = 1 <= m.soc <= 100
@@ -178,7 +179,7 @@ def decode_trip_target(m: charging_pb2.TripTarget) -> dict[str, Any]:
     return {
         "chargingTripTargetSoc": m.soc if has_target else None,
         "chargingTripTargetMinsRemaining": (
-            minutes if has_target and minutes != 0xFFFF else None
+            minutes if has_target and 0 < minutes < 0xFFFF else None
         ),
         "_chargingTripTargetStatus": m.status,
     }
