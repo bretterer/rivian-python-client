@@ -165,13 +165,24 @@ def decode_soc_slider(m: charging_pb2.SocSlider) -> dict[str, Any]:
 
 @RVMDecoder.register("charging.session.trip_target", charging_pb2.TripTarget)
 def decode_trip_target(m: charging_pb2.TripTarget) -> dict[str, Any]:
-    """charging.session.trip_target — the trip's target state of charge.
+    """charging.session.trip_target — the charge a planned trip needs.
 
     Fields:
         chargingTripTargetSoc: int | None (percent; None when not set)
+        chargingTripTargetMinsRemaining: int | None — minutes of charging
+            until the target SoC; None when no target, or when the estimate is
+            absent, zero or 0xFFFF
+        _chargingTripTargetStatus: int — raw
     """
-    soc = m.soc_limit
-    return {"chargingTripTargetSoc": None if soc in (0, 0xFFFF) else soc}
+    has_target = 1 <= m.soc <= 100
+    minutes = m.time_estimate
+    return {
+        "chargingTripTargetSoc": m.soc if has_target else None,
+        "chargingTripTargetMinsRemaining": (
+            minutes if has_target and 0 < minutes < 0xFFFF else None
+        ),
+        "_chargingTripTargetStatus": m.status,
+    }
 
 
 @RVMDecoder.register(
