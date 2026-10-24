@@ -25,6 +25,7 @@ class FakeServer:
         """Initialize the fake server."""
         self.close_reasons: list[str] = []
         self.close_code = 4000
+        self.ack_before_close = False
         self.silent_connections = 0
         self.ping_connections = 0
         self.ping_once_connections = 0
@@ -59,6 +60,8 @@ class FakeServer:
             await ws.send_json({"type": "ping"})
             await ws.receive()
         elif self.close_reasons:
+            if self.ack_before_close:
+                await ws.send_json({"type": "connection_ack"})
             await ws.close(
                 code=self.close_code, message=self.close_reasons.pop(0).encode()
             )
@@ -192,6 +195,21 @@ async def test_forbidden_stops_monitor(
     assert server.connections == 1
     assert not monitor.connected
     assert rivian.ws_unauthenticated
+
+
+async def test_forbidden_after_ack_reconnects(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Test the monitor reconnects when an acknowledged connection closes as forbidden."""
+    server.close_code = 4403
+    server.ack_before_close = True
+    server.close_reasons = ["Forbidden"]
+    add_subscription(monitor)
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: server.connections == 2 and monitor.connection_ack.is_set())
+    assert monitor.connected
+    assert monitor.monitor and not monitor.monitor.done()
+    assert not rivian.ws_unauthenticated
 
 
 async def test_rate_limited_backs_off_and_reconnects(
