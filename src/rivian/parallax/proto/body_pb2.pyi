@@ -434,3 +434,21 @@ class WiperFluidLevel(_message.Message):
     STATE_FIELD_NUMBER: _ClassVar[int]
     state: WiperFluidState
     def __init__(self, state: _Optional[_Union[WiperFluidState, str]] = ...) -> None: ...
+
+class UnlockCommand(_message.Message):
+    __slots__ = ("all", "user_preference")
+    ALL_FIELD_NUMBER: _ClassVar[int]
+    USER_PREFERENCE_FIELD_NUMBER: _ClassVar[int]
+    all: bool
+    user_preference: bool
+    def __init__(self, all: bool = ..., user_preference: bool = ...) -> None: ...
+
+class LockCommand(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class ClosureCommand(_message.Message):
+    __slots__ = ("closure",)
+    CLOSURE_FIELD_NUMBER: _ClassVar[int]
+    closure: _containers.RepeatedScalarFieldContainer[ClosureId]
+    def __init__(self, closure: _Optional[_Iterable[_Union[ClosureId, str]]] = ...) -> None: ...

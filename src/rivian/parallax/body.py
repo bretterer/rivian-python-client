@@ -7,6 +7,9 @@ from typing import Any, Final
 from .core import _LOGGER, RVMDecoder, _enum, _present
 from .proto import body_pb2
 
+LOCK_RVM: Final = "body.locks.lock"
+UNLOCK_RVM: Final = "body.locks.unlock"
+
 _CLOSURE_MAP: Final[dict[int, str]] = {
     body_pb2.DOOR_FRONT_LEFT: "doorFrontLeftClosed",
     body_pb2.DOOR_FRONT_RIGHT: "doorFrontRightClosed",
@@ -173,6 +176,16 @@ def decode_closures(m: body_pb2.ClosuresState) -> dict[str, Any]:
     return result
 
 
+def encode_lock() -> bytes:
+    """Encode a body.locks.lock payload, which has no fields."""
+    return body_pb2.LockCommand().SerializeToString()
+
+
+def encode_unlock() -> bytes:
+    """Encode a body.locks.unlock payload that unlocks everything."""
+    return body_pb2.UnlockCommand(all=True).SerializeToString()
+
+
 @RVMDecoder.register("body.locks.states", body_pb2.LocksState)
 def decode_locks(m: body_pb2.LocksState) -> dict[str, Any]:
     """body.locks.states — lock state of every lock.
@@ -258,3 +271,18 @@ _WIPER_FLUID_STATE_MAP: Final[dict[int, str]] = {
     body_pb2.WIPER_FLUID_STATE_LOW: "low",
     body_pb2.WIPER_FLUID_STATE_EMPTY: "empty",
 }
+
+
+def encode_frunk() -> bytes:
+    """Select only the front trunk for body.closures.open or .close."""
+    return body_pb2.ClosureCommand(closure=[body_pb2.FRUNK]).SerializeToString()
+
+
+def encode_windows() -> bytes:
+    """Select the window group for body.closures.open or .close."""
+    return body_pb2.ClosureCommand(closure=[body_pb2.GROUP_WINDOWS]).SerializeToString()
+
+
+def encode_liftgate() -> bytes:
+    """Select only the rear liftgate for body.closures.open or .close."""
+    return body_pb2.ClosureCommand(closure=[body_pb2.LIFTGATE]).SerializeToString()

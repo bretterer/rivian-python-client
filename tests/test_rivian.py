@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import json
+import uuid
 from datetime import UTC, date, datetime
 from typing import Any
 from unittest.mock import AsyncMock, Mock
@@ -28,7 +29,9 @@ from rivian.exceptions import (
     RivianTemporarilyLockedError,
     RivianUnauthenticated,
 )
-from rivian.parallax.proto import operation_pb2
+from rivian.parallax import UNLOCK_RVM, encode_unlock
+from rivian.parallax.proto import command_pb2, operation_pb2
+from rivian.utils import generate_key_pair
 
 from .responses import (
     AUTHENTICATION_OTP_RESPONSE,
@@ -38,6 +41,7 @@ from .responses import (
     DELETE_DEPARTURE_SCHEDULE_RESPONSE,
     DEPART_NOW_RESPONSE,
     OTP_TOKEN_RESPONSE,
+    SEND_PARALLAX_COMMAND_RESPONSE,
     SEND_VEHICLE_OPERATION_RESPONSE,
     SET_CHARGING_SCHEDULES_RESPONSE,
     SKIP_NEXT_SCHEDULED_DEPARTURE_RESPONSE,
@@ -440,6 +444,206 @@ async def test_subscribe_for_departure_schedules() -> None:
     rivian._ws_connect.side_effect = aiohttp.ClientError
     assert (
         await rivian.subscribe_for_departure_schedules("vehicle_id", callback) is None
+    )
+
+
+SEND_REMOTE_COMMAND_MUTATION = (
+    "mutation SendRemoteCommand($vehicleId: String!, $model: String!, "
+    "$parallaxPayloadB64: String!) { sendParallaxPayload("
+    "payload: $parallaxPayloadB64, meta: { vehicleId: $vehicleId model: $model "
+    "isVehicleModelOp: true requiresWakeup: true } ) { success sequenceNumber } }"
+)
+COMMAND_ID = "00010203-0405-0607-0809-0a0b0c0d0e0f"
+
+
+def decode_parallax_command(
+    request: dict[str, Any],
+) -> tuple[command_pb2.Envelope, command_pb2.Operation]:
+    """Decode the envelope and operation of a sendParallaxPayload request."""
+    payload = base64.b64decode(request["variables"]["parallaxPayloadB64"])
+    envelope = command_pb2.Envelope.FromString(payload)
+    return envelope, command_pb2.Operation.FromString(envelope.composite.bytes_val)
+
+
+async def send_unlock(rivian: Rivian, **overrides: Any) -> str | None:
+    """Send an unlock with a phone key and a vehicle key, or what overrides them."""
+    vehicle_key, _ = generate_key_pair()
+    _, private_key = generate_key_pair()
+    args: dict[str, Any] = {
+        "vehicle_id": "vehicle_id",
+        "rvm": UNLOCK_RVM,
+        "payload": encode_unlock(),
+        "identity_id": "identity_id",
+        "vehicle_key": vehicle_key,
+        "private_key": private_key,
+    }
+    return await rivian.send_parallax_command(**(args | overrides))
+
+
+def parallax_rivian() -> Rivian:
+    """A client that can send commands."""
+    return Rivian(csrf_token="csrf", app_session_token="app", user_session_token="user")
+
+
+async def test_send_parallax_command(aresponses: ResponsesMockServer) -> None:
+    """Test sending a signed Parallax command."""
+    requests = capture_requests(
+        aresponses,
+        SEND_PARALLAX_COMMAND_RESPONSE,
+        SEND_PARALLAX_COMMAND_RESPONSE,
+        {"data": {"sendParallaxPayload": {"success": False, "sequenceNumber": 0}}},
+        {"data": {"sendParallaxPayload": None}},
+        {"data": None},
+    )
+    async with aiohttp.ClientSession():
+        rivian = parallax_rivian()
+
+        # Any form of a UUID is accepted, and returned in its canonical form
+        assert await send_unlock(rivian, command_id=COMMAND_ID.upper()) == COMMAND_ID
+        assert requests[0]["operationName"] == "SendRemoteCommand"
+        assert requests[0]["query"] == SEND_REMOTE_COMMAND_MUTATION
+        assert requests[0]["variables"]["vehicleId"] == "vehicle_id"
+        assert requests[0]["variables"]["model"] == UNLOCK_RVM
+        envelope, operation = decode_parallax_command(requests[0])
+        assert operation.rvm == UNLOCK_RVM
+        assert operation.payload == encode_unlock()
+        assert operation.vehicle_id == "vehicle_id"
+        assert uuid.UUID(bytes=operation.command_id) == uuid.UUID(COMMAND_ID)
+        assert envelope.security_info.mapped_identity == "identity_id"
+
+        # Without an id, a new one is made and returned
+        new_id = await send_unlock(rivian)
+        assert new_id is not None
+        assert uuid.UUID(new_id).version == 4
+        envelope, _ = decode_parallax_command(requests[1])
+        assert uuid.UUID(bytes=envelope.correlation_id) == uuid.UUID(new_id)
+
+        # Not accepted, or no answer
+        for _ in range(3):
+            assert await send_unlock(rivian) is None
+        assert len(requests) == 5
+        await rivian.close()
+
+
+async def test_send_parallax_command_request_headers(
+    aresponses: ResponsesMockServer,
+) -> None:
+    """Test that a Parallax command is sent with the session's headers."""
+    headers: dict[str, str] = {}
+
+    async def handler(request: aiohttp.web.Request) -> aiohttp.web.Response:
+        headers.update(request.headers)
+        return aresponses.Response(
+            text=json.dumps(SEND_PARALLAX_COMMAND_RESPONSE),
+            content_type="application/json",
+        )
+
+    aresponses.add("rivian.com", "/api/gql/gateway/graphql", "POST", response=handler)
+    async with aiohttp.ClientSession():
+        rivian = parallax_rivian()
+        assert await send_unlock(rivian)
+        assert headers["Csrf-Token"] == "csrf"
+        assert headers["A-Sess"] == "app"
+        assert headers["U-Sess"] == "user"
+        await rivian.close()
+
+
+async def test_send_parallax_command_error_response(
+    aresponses: ResponsesMockServer,
+) -> None:
+    """Test that only an accepted command, in a successful response, is returned."""
+    for status in (202, 500):
+        aresponses.add(
+            "rivian.com",
+            "/api/gql/gateway/graphql",
+            "POST",
+            response=aresponses.Response(
+                status=status,
+                text=json.dumps(SEND_PARALLAX_COMMAND_RESPONSE),
+                content_type="application/json",
+            ),
+        )
+    async with aiohttp.ClientSession():
+        rivian = parallax_rivian()
+        for _ in range(2):
+            assert await send_unlock(rivian) is None
+        await rivian.close()
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"command_id": ""},
+        {"command_id": "not-a-uuid"},
+        {"command_id": b"0" * 16},
+        {"command_id": 5},
+        {"vehicle_id": ""},
+        {"rvm": ""},
+        {"identity_id": ""},
+    ],
+)
+async def test_send_parallax_command_refuses_bad_arguments(
+    aresponses: ResponsesMockServer, overrides: dict[str, Any]
+) -> None:
+    """Test that a bad command id, or a missing id, is refused before sending."""
+    requests = capture_requests(aresponses, SEND_PARALLAX_COMMAND_RESPONSE)
+    async with aiohttp.ClientSession():
+        rivian = parallax_rivian()
+        with pytest.raises(RivianBadRequestError):
+            await send_unlock(rivian, **overrides)
+        assert not requests
+
+
+async def test_send_parallax_command_with_bad_keys(
+    aresponses: ResponsesMockServer,
+) -> None:
+    """Test that keys that can't sign fail before anything is sent."""
+    requests = capture_requests(aresponses, SEND_PARALLAX_COMMAND_RESPONSE)
+    async with aiohttp.ClientSession():
+        rivian = parallax_rivian()
+        with pytest.raises(ValueError):
+            await send_unlock(rivian, private_key="not a key")
+        assert not requests
+
+
+async def test_subscribe_for_parallax_command_state() -> None:
+    """Test following a Parallax command."""
+    rivian = Rivian(user_session_token="token")
+    unsubscribe = AsyncMock()
+    monitor = Mock(wait_for_ack=AsyncMock(return_value=True))
+    monitor.start_subscription = AsyncMock(return_value=unsubscribe)
+    rivian._ws_monitor = monitor
+    rivian._ws_connect = AsyncMock(return_value=monitor)  # type: ignore[method-assign]
+    callback = Mock()
+
+    # The id is subscribed to in the form it was signed in
+    assert (
+        await rivian.subscribe_for_parallax_command_state(
+            "vehicle_id", COMMAND_ID.upper(), callback
+        )
+        is unsubscribe
+    )
+    payload, subscribed_callback = monitor.start_subscription.call_args.args
+    assert payload["operationName"] == "vehicleCommandStatePx"
+    assert payload["query"] == (
+        "subscription vehicleCommandStatePx($vehicleId: String!, "
+        "$commandId: String!) { vehicleCommandStatePx(vehicleId: $vehicleId, "
+        "commandId: $commandId) { payload } }"
+    )
+    assert payload["variables"] == {"vehicleId": "vehicle_id", "commandId": COMMAND_ID}
+    assert subscribed_callback is callback
+
+    with pytest.raises(RivianBadRequestError):
+        await rivian.subscribe_for_parallax_command_state(
+            "vehicle_id", "not-a-uuid", callback
+        )
+
+    rivian._ws_connect.side_effect = aiohttp.ClientError
+    assert (
+        await rivian.subscribe_for_parallax_command_state(
+            "vehicle_id", COMMAND_ID, callback
+        )
+        is None
     )
 
 

@@ -209,7 +209,22 @@ class WebSocketMonitor:
             return None
         _id = str(uuid4())
         self._subscriptions[_id] = (callback, payload)
-        await self._subscribe(_id, payload)
+        try:
+            await self._subscribe(_id, payload)
+        except (Exception, asyncio.CancelledError):
+            # Registration happened before the send. The caller has no cleanup
+            # handle yet, so remove it even if sending was interrupted.
+            self._subscriptions.pop(_id, None)
+            try:
+                async with asyncio.timeout(5):
+                    if not self._subscriptions:
+                        await self.close()
+                    elif self.connected:
+                        assert self._ws
+                        await self._ws.send_json({"id": _id, "type": "complete"})
+            except (Exception, asyncio.CancelledError):  # noqa: BLE001 -- preserve the registration failure
+                _LOGGER.warning("Interrupted subscription cleanup did not complete")
+            raise
 
         async def unsubscribe() -> None:
             """Unsubscribe."""

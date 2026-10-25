@@ -237,3 +237,6 @@ enum ChargerStatus {
 message SessionPower {
   float power = 1; // kW
 }
+
+// charging.energy.set_charge_limit; Android 3.17.0 ur2.
+message ChargeLimitCommand { uint32 soc_limit = 1; }

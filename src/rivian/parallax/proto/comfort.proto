@@ -188,3 +188,26 @@ enum ConditioningLevel {
   CONDITIONING_LEVEL_2 = 2;
   CONDITIONING_LEVEL_3 = 3;
 }
+
+// Commands recovered from Android 3.17.0: q82, i82, x82.
+message PreconditioningTemperatureCommand { float temperature_celsius = 1; }
+message DefrostCommand { DefrostCommandLevel level = 1; }
+enum DefrostCommandLevel {
+  DEFROST_COMMAND_UNSPECIFIED = 0;
+  DEFROST_COMMAND_DEFOG = 1;
+  DEFROST_COMMAND_DEFROST = 2;
+  DEFROST_COMMAND_COMBINED = 3;
+  DEFROST_COMMAND_OFF = 4;
+}
+message CabinSurfaceCommand {
+  CabinSurface instance = 1;
+  ConditioningLevel level = 2;
+  CabinSurfaceCommandStatus status = 3;
+  ConditioningType device = 4;
+}
+enum CabinSurfaceCommandStatus {
+  SURFACE_COMMAND_UNSPECIFIED = 0;
+  SURFACE_COMMAND_OFF = 1;
+  SURFACE_COMMAND_ON = 2;
+  SURFACE_COMMAND_AUTO = 3;
+}
