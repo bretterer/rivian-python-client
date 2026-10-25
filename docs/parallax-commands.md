@@ -28,6 +28,9 @@ error with code 3. The helper preserves that error and warns that the command ma
 have taken effect. It does not retry, fall back to another transport, or infer
 success from unrelated telemetry. Check current vehicle state before retrying.
 
+Vehicle tests used the earlier local build; subsequent subscription-cleanup and
+input-validation refinements were verified offline.
+
 Payload fields were checked against Android app 3.17.0. Physical testing covered
 one R2: locks, frunk opening, rear-liftgate opening/closing, cabin climate and temperature, driver-seat heat and
 ventilation, steering-wheel heat, defrost, Gear Guard, and charging controls.
