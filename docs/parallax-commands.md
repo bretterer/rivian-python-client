@@ -26,12 +26,19 @@ have taken effect. It does not retry, fall back to another transport, or infer
 success from unrelated telemetry. Check current vehicle state before retrying.
 
 Payload fields were checked against Android app 3.17.0. Physical testing covered
-one R2: locks, frunk opening, cabin climate and temperature, driver-seat heat and
+one R2: locks, frunk opening, rear-liftgate opening/closing, cabin climate and temperature, driver-seat heat and
 ventilation, steering-wheel heat, defrost, Gear Guard, and charging controls.
 Charging worked in these tests, although some acknowledgements were inconsistent
 as described above. No major charging-control problem was observed, but the cause
 of those responses remains uncertain. Window commands did not move the windows;
 the vehicle's iOS Shortcuts integration also reported window venting unavailable.
 The R2 frunk closes manually, so powered frunk closing does not apply to this
-vehicle. Rear liftgate and panic alarm have not been physically tested. Encoding support does not
+vehicle. Panic alarm has not been physically tested. Encoding support does not
 establish vehicle support.
+
+The existing HA wake button was tested successfully. Earlier attempts took a few minutes; the latest user-operated test woke the R2 quickly, with HA reporting `ready`. The wake command remains on its existing path; this is not a new Parallax wake implementation.
+
+Rear-liftgate opening and closing were confirmed physically by the owner and
+by HA recorder history: opening, open, closing, then closed. The cover and
+closure sensor agreed on the final closed state. This confirms operation and
+telemetry; command acknowledgement logs were not retrieved for that test.
