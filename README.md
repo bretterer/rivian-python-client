@@ -53,6 +53,10 @@ uv run python -m grpc_tools.protoc --proto_path=src --python_out=src \
 
 ### Commands
 
+For a helper that subscribes, sends once, waits for the matching vehicle result
+and cleans up the subscription, see [`execute_command` and the control encoders](docs/parallax-commands.md).
+The example below shows the lower-level API.
+
 `send_parallax_command` sends a signed command, such as unlocking
 (`parallax.UNLOCK_RVM` with `parallax.encode_unlock()`; `LOCK_RVM` and
 `encode_lock()` to lock), and `subscribe_for_parallax_command_state` follows it.

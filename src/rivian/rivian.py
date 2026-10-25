@@ -1021,6 +1021,16 @@ class Rivian:
                 reason = f"the web socket connection closed ({close_message})"
             else:
                 reason = "the web socket connection closed"
+        except asyncio.CancelledError:
+            # Cancellation can happen while connecting or waiting for the ack,
+            # before start_subscription can return a cleanup handle.
+            if self._ws_monitor and not self._ws_monitor.has_subscriptions:
+                try:
+                    async with asyncio.timeout(5):
+                        await self._ws_monitor.close()
+                except (Exception, asyncio.CancelledError):  # noqa: BLE001 -- preserve cancellation
+                    _LOGGER.warning("Cancelled subscription cleanup did not complete")
+            raise
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             reason = ex
         # Expected while backing off, so less severe than other failures

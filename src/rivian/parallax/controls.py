@@ -93,7 +93,7 @@ def encode_control_command(
             isinstance(value, bool)
             or not isinstance(value, (int, float))
             or not math.isfinite(value)
-            or not 0 <= value <= 63.5
+            or not (16 <= value <= 29 or value in (0, 63.5))
         ):
             raise ValueError("Invalid preconditioning temperature")
         return (
@@ -104,8 +104,10 @@ def encode_control_command(
         )
     if command == VehicleCommand.CHARGING_LIMITS:
         value = params["SOC_limit"]
-        if type(value) is not int or not 0 <= value <= 100:
-            raise ValueError("Charge limit must be an integer percentage")
+        if type(value) is not int or not 50 <= value <= 100:
+            raise ValueError(
+                "Charge limit must be an integer percentage between 50 and 100"
+            )
         return "charging.energy.set_charge_limit", charging_pb2.ChargeLimitCommand(
             soc_limit=value
         ).SerializeToString()

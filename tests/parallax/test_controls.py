@@ -108,6 +108,11 @@ def test_steering_wire(level, wire):
     "command,params",
     [
         (C.CHARGING_LIMITS, {"SOC_limit": 101}),
+        (C.CHARGING_LIMITS, {"SOC_limit": 49}),
+        (C.CHARGING_LIMITS, {"SOC_limit": 0}),
+        (C.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 15.9}),
+        (C.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 29.1}),
+        (C.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": True}),
         (C.CHARGING_LIMITS, {"SOC_limit": 80.5}),
         (C.CHARGING_LIMITS, {"SOC_limit": True}),
         (C.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": float("nan")}),
@@ -122,3 +127,26 @@ def test_steering_wire(level, wire):
 def test_reject_invalid_inputs(command, params):
     with pytest.raises(ValueError):
         encode_control_command(command, params)
+
+
+@pytest.mark.parametrize("temperature", [0, 16, 29, 63.5])
+def test_temperature_boundaries(temperature):
+    from rivian.parallax.proto import comfort_pb2
+
+    _, payload = encode_control_command(
+        C.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": temperature}
+    )
+    assert (
+        comfort_pb2.PreconditioningTemperatureCommand.FromString(
+            payload
+        ).temperature_celsius
+        == temperature
+    )
+
+
+@pytest.mark.parametrize("limit", [50, 100])
+def test_charge_limit_boundaries(limit):
+    from rivian.parallax.proto import charging_pb2
+
+    _, payload = encode_control_command(C.CHARGING_LIMITS, {"SOC_limit": limit})
+    assert charging_pb2.ChargeLimitCommand.FromString(payload).soc_limit == limit

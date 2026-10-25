@@ -11,6 +11,9 @@ for cabin preconditioning, temperature, defrost, seat conditioning, steering-whe
 heat, charging start/stop, and charge limits. It accepts the existing
 `VehicleCommand` parameter conventions. `CONTROL_COMMAND_FEATURES` identifies
 the corresponding `PVS_COMF_CMD` or `PVS_ENRG_CMD` feature requirement.
+Temperature inputs follow the existing client range of 16–29°C, plus the exact
+LO/HI sentinel values 0 and 63.5. Charge limits must be integer percentages
+between 50 and 100.
 
 Call `execute_command` with an enrolled phone identity, the vehicle public key,
 and the enrolled phone private key. It subscribes to command state before sending
