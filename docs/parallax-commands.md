@@ -3,8 +3,9 @@
 These helpers extend the signed Parallax transport introduced in #229. Command
 support depends on the vehicle's advertised features and software version.
 
-`encode_frunk()` and `encode_windows()` produce closure-target messages for
-`body.closures.open` or `body.closures.close`. They do not target the rear liftgate.
+`encode_frunk()`, `encode_windows()` and `encode_liftgate()` produce separate
+closure-target messages for `body.closures.open` or `body.closures.close`.
+The liftgate encoder selects only closure ID 7; it does not target the R1T tailgate.
 `encode_control_command(command, params)` returns the RVM and protobuf payload
 for cabin preconditioning, temperature, defrost, seat conditioning, steering-wheel
 heat, charging start/stop, and charge limits. It accepts the existing
@@ -27,7 +28,10 @@ success from unrelated telemetry. Check current vehicle state before retrying.
 Payload fields were checked against Android app 3.17.0. Physical testing covered
 one R2: locks, frunk opening, cabin climate and temperature, driver-seat heat and
 ventilation, steering-wheel heat, defrost, Gear Guard, and charging controls.
-Charging acknowledgements were inconsistent as described above. Window commands
-did not move the windows; the vehicle's iOS Shortcuts integration also reported
-window venting unavailable. Other seats, powered frunk closing, and panic alarm
-were not physically tested. Encoding support does not establish vehicle support.
+Charging worked in these tests, although some acknowledgements were inconsistent
+as described above. No major charging-control problem was observed, but the cause
+of those responses remains uncertain. Window commands did not move the windows;
+the vehicle's iOS Shortcuts integration also reported window venting unavailable.
+The R2 frunk closes manually, so powered frunk closing does not apply to this
+vehicle. Rear liftgate and panic alarm have not been physically tested. Encoding support does not
+establish vehicle support.

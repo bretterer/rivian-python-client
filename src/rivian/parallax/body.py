@@ -281,3 +281,8 @@ def encode_frunk() -> bytes:
 def encode_windows() -> bytes:
     """Select the window group for body.closures.open or .close."""
     return body_pb2.ClosureCommand(closure=[body_pb2.GROUP_WINDOWS]).SerializeToString()
+
+
+def encode_liftgate() -> bytes:
+    """Select only the rear liftgate for body.closures.open or .close."""
+    return body_pb2.ClosureCommand(closure=[body_pb2.LIFTGATE]).SerializeToString()
