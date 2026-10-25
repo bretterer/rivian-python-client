@@ -446,3 +446,9 @@ class UnlockCommand(_message.Message):
 class LockCommand(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
+
+class ClosureCommand(_message.Message):
+    __slots__ = ("closure",)
+    CLOSURE_FIELD_NUMBER: _ClassVar[int]
+    closure: _containers.RepeatedScalarFieldContainer[ClosureId]
+    def __init__(self, closure: _Optional[_Iterable[_Union[ClosureId, str]]] = ...) -> None: ...

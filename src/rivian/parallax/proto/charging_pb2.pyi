@@ -359,3 +359,9 @@ class SessionPower(_message.Message):
     POWER_FIELD_NUMBER: _ClassVar[int]
     power: float
     def __init__(self, power: _Optional[float] = ...) -> None: ...
+
+class ChargeLimitCommand(_message.Message):
+    __slots__ = ("soc_limit",)
+    SOC_LIMIT_FIELD_NUMBER: _ClassVar[int]
+    soc_limit: int
+    def __init__(self, soc_limit: _Optional[int] = ...) -> None: ...

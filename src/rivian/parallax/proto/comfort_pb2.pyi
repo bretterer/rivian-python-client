@@ -108,6 +108,21 @@ class ConditioningLevel(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CONDITIONING_LEVEL_1: _ClassVar[ConditioningLevel]
     CONDITIONING_LEVEL_2: _ClassVar[ConditioningLevel]
     CONDITIONING_LEVEL_3: _ClassVar[ConditioningLevel]
+
+class DefrostCommandLevel(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    DEFROST_COMMAND_UNSPECIFIED: _ClassVar[DefrostCommandLevel]
+    DEFROST_COMMAND_DEFOG: _ClassVar[DefrostCommandLevel]
+    DEFROST_COMMAND_DEFROST: _ClassVar[DefrostCommandLevel]
+    DEFROST_COMMAND_COMBINED: _ClassVar[DefrostCommandLevel]
+    DEFROST_COMMAND_OFF: _ClassVar[DefrostCommandLevel]
+
+class CabinSurfaceCommandStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    SURFACE_COMMAND_UNSPECIFIED: _ClassVar[CabinSurfaceCommandStatus]
+    SURFACE_COMMAND_OFF: _ClassVar[CabinSurfaceCommandStatus]
+    SURFACE_COMMAND_ON: _ClassVar[CabinSurfaceCommandStatus]
+    SURFACE_COMMAND_AUTO: _ClassVar[CabinSurfaceCommandStatus]
 PRECONDITIONING_STATUS_UNSPECIFIED: PreconditioningStatus
 PRECONDITIONING_INITIATE: PreconditioningStatus
 PRECONDITIONING_ACTIVE: PreconditioningStatus
@@ -174,6 +189,15 @@ CONDITIONING_LEVEL_UNSPECIFIED: ConditioningLevel
 CONDITIONING_LEVEL_1: ConditioningLevel
 CONDITIONING_LEVEL_2: ConditioningLevel
 CONDITIONING_LEVEL_3: ConditioningLevel
+DEFROST_COMMAND_UNSPECIFIED: DefrostCommandLevel
+DEFROST_COMMAND_DEFOG: DefrostCommandLevel
+DEFROST_COMMAND_DEFROST: DefrostCommandLevel
+DEFROST_COMMAND_COMBINED: DefrostCommandLevel
+DEFROST_COMMAND_OFF: DefrostCommandLevel
+SURFACE_COMMAND_UNSPECIFIED: CabinSurfaceCommandStatus
+SURFACE_COMMAND_OFF: CabinSurfaceCommandStatus
+SURFACE_COMMAND_ON: CabinSurfaceCommandStatus
+SURFACE_COMMAND_AUTO: CabinSurfaceCommandStatus
 
 class HvacSettingsStatus(_message.Message):
     __slots__ = ("target_temperature",)
@@ -285,3 +309,27 @@ class SeatConditioningStatus(_message.Message):
     SURFACE_FIELD_NUMBER: _ClassVar[int]
     surface: _containers.RepeatedCompositeFieldContainer[SeatConditioningStatus.Surface]
     def __init__(self, surface: _Optional[_Iterable[_Union[SeatConditioningStatus.Surface, _Mapping]]] = ...) -> None: ...
+
+class PreconditioningTemperatureCommand(_message.Message):
+    __slots__ = ("temperature_celsius",)
+    TEMPERATURE_CELSIUS_FIELD_NUMBER: _ClassVar[int]
+    temperature_celsius: float
+    def __init__(self, temperature_celsius: _Optional[float] = ...) -> None: ...
+
+class DefrostCommand(_message.Message):
+    __slots__ = ("level",)
+    LEVEL_FIELD_NUMBER: _ClassVar[int]
+    level: DefrostCommandLevel
+    def __init__(self, level: _Optional[_Union[DefrostCommandLevel, str]] = ...) -> None: ...
+
+class CabinSurfaceCommand(_message.Message):
+    __slots__ = ("instance", "level", "status", "device")
+    INSTANCE_FIELD_NUMBER: _ClassVar[int]
+    LEVEL_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DEVICE_FIELD_NUMBER: _ClassVar[int]
+    instance: CabinSurface
+    level: ConditioningLevel
+    status: CabinSurfaceCommandStatus
+    device: ConditioningType
+    def __init__(self, instance: _Optional[_Union[CabinSurface, str]] = ..., level: _Optional[_Union[ConditioningLevel, str]] = ..., status: _Optional[_Union[CabinSurfaceCommandStatus, str]] = ..., device: _Optional[_Union[ConditioningType, str]] = ...) -> None: ...

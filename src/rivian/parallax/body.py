@@ -271,3 +271,13 @@ _WIPER_FLUID_STATE_MAP: Final[dict[int, str]] = {
     body_pb2.WIPER_FLUID_STATE_LOW: "low",
     body_pb2.WIPER_FLUID_STATE_EMPTY: "empty",
 }
+
+
+def encode_frunk() -> bytes:
+    """Select only the front trunk for body.closures.open or .close."""
+    return body_pb2.ClosureCommand(closure=[body_pb2.FRUNK]).SerializeToString()
+
+
+def encode_windows() -> bytes:
+    """Select the window group for body.closures.open or .close."""
+    return body_pb2.ClosureCommand(closure=[body_pb2.GROUP_WINDOWS]).SerializeToString()

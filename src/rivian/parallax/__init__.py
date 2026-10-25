@@ -50,7 +50,14 @@ from . import (  # noqa: F401  (imported to register their decoders)
     vehicle,
     vehicle_access,
 )
-from .body import LOCK_RVM, UNLOCK_RVM, encode_lock, encode_unlock
+from .body import (
+    LOCK_RVM,
+    UNLOCK_RVM,
+    encode_frunk,
+    encode_lock,
+    encode_unlock,
+    encode_windows,
+)
 from .comfort import (
     CLIMATE_HOLD_SETTING_RVM,
     CLIMATE_HOLD_STATUS_RVM,
@@ -91,7 +98,9 @@ __all__ = [
     "decode_parallax_subscription_message",
     "encode_climate_hold_setting",
     "encode_command",
+    "encode_frunk",
     "encode_lock",
     "encode_unlock",
     "encode_vehicle_operation",
+    "encode_windows",
 ]

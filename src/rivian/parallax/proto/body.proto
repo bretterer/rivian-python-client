@@ -277,3 +277,9 @@ message UnlockCommand {
 
 // body.locks.lock, the payload of a signed command. It has no fields.
 message LockCommand {}
+
+// body.closures.open / body.closures.close, signed command payload.
+// Source: RivDocs Android 3.17.0 body command schema.
+message ClosureCommand {
+  repeated ClosureId closure = 1;
+}
