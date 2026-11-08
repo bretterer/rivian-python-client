@@ -237,3 +237,8 @@ enum ChargerStatus {
 message SessionPower {
   float power = 1; // kW
 }
+
+// charging.energy.set_charge_limit
+message ChargeLimitRequest {
+  uint32 limit = 1; // percent
+}

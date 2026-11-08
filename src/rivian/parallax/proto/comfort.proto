@@ -133,6 +133,30 @@ enum DefrostStatus {
   DEFROST_OFF = 4;
 }
 
+// comfort.cabin.set_defrost_defog
+message DefrostDefogRequest {
+  DefrostStatus status = 1; // the app sends DEFROST_DEFOG_DEFROST or DEFROST_OFF
+}
+
+// comfort.cabin.set_preconditioning_temperature
+message PreconditioningTemperatureRequest {
+  optional float temperature = 1; // °C; sent even for 0 (LO)
+}
+
+enum CabinSurfaceStatus {
+  CABIN_SURFACE_STATUS_UNSPECIFIED = 0;
+  CABIN_SURFACE_OFF = 1;
+  CABIN_SURFACE_ON = 2;
+}
+
+// comfort.cabin.set_cabin_surface
+message CabinSurfaceRequest {
+  CabinSurface surface = 1;
+  ConditioningLevel level = 2;
+  CabinSurfaceStatus status = 3;
+  ConditioningType type = 4;
+}
+
 // comfort.cabin.pet_mode_status
 message PetModeStatus {
   PetModeState status = 1;

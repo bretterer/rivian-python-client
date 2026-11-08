@@ -24,6 +24,11 @@ Public API:
     encode_climate_hold(on), encode_pet_mode(on) -> bytes
         Payloads for the signed SET_CLIMATE_HOLD_RVM and SET_PET_MODE_RVM
         commands.
+    vehicle_command_feature(command) -> str | None
+        The supported feature that, when AVAILABLE, sends a `VehicleCommand`
+        over Parallax.
+    encode_vehicle_command(command, params=None) -> (rvm, payload)
+        The command's Parallax equivalent, for `send_parallax_command`.
 
 Layout:
     core.py           - registry, payload parsing and shared helpers
@@ -82,6 +87,7 @@ from .security import (
     START_LIVE_STREAMING_RVM,
     encode_live_streaming,
 )
+from .vehicle_command import encode_vehicle_command, vehicle_command_feature
 
 PARALLAX_RVMS: list[str] = list(RVMDecoder.decoders)
 
@@ -121,5 +127,7 @@ __all__ = [
     "encode_lock",
     "encode_pet_mode",
     "encode_unlock",
+    "encode_vehicle_command",
     "encode_vehicle_operation",
+    "vehicle_command_feature",
 ]

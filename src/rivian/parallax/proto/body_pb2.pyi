@@ -393,6 +393,12 @@ class ClosuresState(_message.Message):
     closure: _containers.RepeatedCompositeFieldContainer[ClosuresState.Closure]
     def __init__(self, closure: _Optional[_Iterable[_Union[ClosuresState.Closure, _Mapping]]] = ...) -> None: ...
 
+class ClosuresRequest(_message.Message):
+    __slots__ = ("closures",)
+    CLOSURES_FIELD_NUMBER: _ClassVar[int]
+    closures: _containers.RepeatedScalarFieldContainer[ClosureId]
+    def __init__(self, closures: _Optional[_Iterable[_Union[ClosureId, str]]] = ...) -> None: ...
+
 class LocksState(_message.Message):
     __slots__ = ("lock",)
     class Lock(_message.Message):
