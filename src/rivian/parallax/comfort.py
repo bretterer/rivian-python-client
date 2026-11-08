@@ -9,6 +9,8 @@ from .proto import comfort_pb2
 
 CLIMATE_HOLD_SETTING_RVM: Final = "comfort.cabin.climate_hold_setting"
 CLIMATE_HOLD_STATUS_RVM: Final = "comfort.cabin.climate_hold_status"
+SET_CLIMATE_HOLD_RVM: Final = "comfort.cabin.set_climate_hold"
+SET_PET_MODE_RVM: Final = "comfort.cabin.set_pet_mode"
 
 
 @RVMDecoder.register(
@@ -206,6 +208,18 @@ def decode_cabin_ventilation(m: comfort_pb2.CabinVentilationSetting) -> dict[str
 def encode_climate_hold_setting(duration_seconds: int) -> bytes:
     """Encode a comfort.cabin.climate_hold_setting payload."""
     return comfort_pb2.ClimateHoldSetting(duration=duration_seconds).SerializeToString()
+
+
+def encode_climate_hold(on: bool) -> bytes:
+    """Encode a comfort.cabin.set_climate_hold payload."""
+    action = comfort_pb2.ACTION_ON if on else comfort_pb2.ACTION_OFF
+    return comfort_pb2.ActionRequest(action=action).SerializeToString()
+
+
+def encode_pet_mode(on: bool) -> bytes:
+    """Encode a comfort.cabin.set_pet_mode payload."""
+    action = comfort_pb2.ACTION_ON if on else comfort_pb2.ACTION_OFF
+    return comfort_pb2.ActionRequest(action=action).SerializeToString()
 
 
 @RVMDecoder.register(CLIMATE_HOLD_SETTING_RVM, comfort_pb2.ClimateHoldSetting)

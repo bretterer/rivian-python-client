@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from rivian.parallax import CLIMATE_HOLD_SETTING_RVM, encode_climate_hold_setting
+from rivian.parallax import (
+    CLIMATE_HOLD_SETTING_RVM,
+    encode_climate_hold,
+    encode_climate_hold_setting,
+    encode_pet_mode,
+)
 from rivian.parallax.proto import comfort_pb2 as comfort
 
 from .helpers import decode
@@ -84,6 +89,12 @@ def test_climate_hold_setting() -> None:
     assert raw == b"\x08\xa0\x38"
     setting = comfort.ClimateHoldSetting.FromString(raw)
     assert decode(CLIMATE_HOLD_SETTING_RVM, setting) == {"climateHoldDuration": 7200}
+
+
+def test_climate_hold_and_pet_mode() -> None:
+    """On and off encode like the Rivian app's."""
+    assert encode_climate_hold(True) == encode_pet_mode(True) == b"\x08\x01"
+    assert encode_climate_hold(False) == encode_pet_mode(False) == b"\x08\x02"
 
 
 def test_climate_hold_status() -> None:
