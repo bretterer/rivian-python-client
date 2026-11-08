@@ -34,8 +34,10 @@ from .exceptions import (
 from .parallax import (
     CLIMATE_HOLD_SETTING_RVM,
     CLIMATE_HOLD_STATUS_RVM,
+    UPDATED_TRIP_MODEL,
     encode_climate_hold_setting,
     encode_command,
+    encode_end_trip,
     encode_vehicle_operation,
 )
 from .utils import generate_vehicle_command_hmac, send_deprecation_warning
@@ -71,6 +73,20 @@ TEMPLATE_MAP = {
     "gnssError": LOCATION_ERROR_TEMPLATE,
 }
 QUERY_TEMPLATE_MAP = TEMPLATE_MAP | {"gnssLocation": QUERY_LOCATION_TEMPLATE}
+
+# Charging network ids by name, as the Rivian app's charging filter offers them; a
+# trip plans with all of them unless the filter is set
+CHARGING_NETWORKS: dict[str, tuple[str, ...]] = {
+    "rivian": ("10001", "10002"),  # Adventure and Waypoints
+    "chargepoint": ("10025",),
+    "electrify_america": ("10027",),
+    "ev_connect": ("10030",),
+    "evgo": ("10031",),
+    "flo": ("10032", "10033"),
+    "shell_recharge": ("10045",),
+    "tesla": ("10050",),
+    "ionna": ("10056",),
+}
 
 # Minutes; the durations the Rivian app offers
 CLIMATE_HOLD_DURATIONS = range(120, 481, 15)
@@ -664,6 +680,112 @@ class Rivian:
             "variables": {"str": location, "vehicleId": vehicle_id},
         }
         return await self.__graphql_query(headers, url, graphql_json)
+
+    async def send_trip_to_vehicle(
+        self,
+        vehicle_id: str,
+        origin: tuple[float, float],
+        stops: list[tuple[str, float, float]],
+        min_arrival_soc: int = 20,
+        networks: list[str] | None = None,
+    ) -> bool:
+        """Send a trip to the vehicle's navigation, waking it if needed.
+
+        `origin` is the vehicle's (latitude, longitude) and `stops` are (name,
+        latitude, longitude) in order. The vehicle plans the route and charging
+        stops itself, arriving with at least `min_arrival_soc` percent, at chargers
+        of the `CHARGING_NETWORKS` named in `networks` (default all). It replaces
+        any trip the vehicle is navigating.
+        """
+        if not stops:
+            raise RivianBadRequestError("A trip needs at least one stop")
+        if not 0 <= min_arrival_soc <= 100:
+            raise RivianBadRequestError("Minimum arrival charge must be 0 to 100")
+        names = CHARGING_NETWORKS if networks is None else networks
+        if unknown := set(names) - CHARGING_NETWORKS.keys():
+            raise RivianBadRequestError(f"Unknown charging networks: {sorted(unknown)}")
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        waypoints: list[dict[str, Any]] = [
+            {
+                "address": {
+                    "name": name,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "address": "",
+                    "addressSourceId": "",
+                }
+            }
+            for name, latitude, longitude in [("Vehicle location", *origin), *stops]
+        ]
+        waypoints[-1]["minArrivalSoC"] = min_arrival_soc
+        graphql_json = {
+            "operationName": "sendTripToVehicle",
+            "query": "mutation sendTripToVehicle($attrs: SendTripToVehicleInput!) { sendTripToVehicle(attrs: $attrs) }",
+            "variables": {
+                "attrs": {
+                    "preferences": {
+                        "avoidAdapterRequired": False,
+                        "networks": [
+                            {"networkId": network_id}
+                            for name in names
+                            for network_id in CHARGING_NETWORKS[name]
+                        ],
+                    },
+                    "requiresWakeup": True,
+                    "routePreferences": {
+                        "avoidFerries": False,
+                        "avoidHighways": False,
+                        "avoidTolls": False,
+                    },
+                    "vehicleId": vehicle_id,
+                    "waypoints": waypoints,
+                }
+            },
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return bool(data.get("data", {}).get("sendTripToVehicle"))
+        return False
+
+    async def end_trip(self, vehicle_id: str, user_id: str) -> bool:
+        """End the trip the vehicle is navigating, waking it if needed.
+
+        `user_id` is the signed-in user's id from `get_user_information`.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "SendUpdatedTrip",
+            "query": "mutation SendUpdatedTrip($payload: String!, $meta: ParallaxMetaInput!) { sendParallaxPayload(payload: $payload, meta: $meta) { success } }",
+            "variables": {
+                "payload": encode_end_trip(user_id),
+                "meta": {
+                    "isVehicleModelOp": False,
+                    "model": UPDATED_TRIP_MODEL,
+                    "requiresWakeup": True,
+                    "vehicleId": vehicle_id,
+                },
+            },
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return bool(
+                (data.get("data", {}).get("sendParallaxPayload") or {}).get("success")
+            )
+        return False
 
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""

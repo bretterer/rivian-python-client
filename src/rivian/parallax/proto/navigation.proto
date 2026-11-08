@@ -199,3 +199,20 @@ message TripProgress {
   double duration_remaining = 5; // seconds; this leg
   GpsFix location_fix = 6;
 }
+
+// c2v_navigation.trip_copilot.updated_trip, sent unsigned with
+// sendParallaxPayload in a command.proto Envelope. Only the fields that end a
+// trip are known here.
+message UpdatedTrip {
+  Route route = 1;
+  Settings settings = 2; // sent empty to end a trip
+  User user = 3;
+
+  message Route {
+    string route_id = 1; // "end_trip_<epoch ms>" ends the trip
+  }
+  message Settings {}
+  message User {
+    string user_id = 1;
+  }
+}

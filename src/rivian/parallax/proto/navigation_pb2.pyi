@@ -310,3 +310,26 @@ class TripProgress(_message.Message):
     duration_remaining: float
     location_fix: GpsFix
     def __init__(self, next_waypoint: _Optional[_Union[Timestamp, _Mapping]] = ..., final_destination: _Optional[_Union[Timestamp, _Mapping]] = ..., next_stop_index: _Optional[int] = ..., distance_remaining: _Optional[float] = ..., duration_remaining: _Optional[float] = ..., location_fix: _Optional[_Union[GpsFix, _Mapping]] = ...) -> None: ...
+
+class UpdatedTrip(_message.Message):
+    __slots__ = ("route", "settings", "user")
+    class Route(_message.Message):
+        __slots__ = ("route_id",)
+        ROUTE_ID_FIELD_NUMBER: _ClassVar[int]
+        route_id: str
+        def __init__(self, route_id: _Optional[str] = ...) -> None: ...
+    class Settings(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class User(_message.Message):
+        __slots__ = ("user_id",)
+        USER_ID_FIELD_NUMBER: _ClassVar[int]
+        user_id: str
+        def __init__(self, user_id: _Optional[str] = ...) -> None: ...
+    ROUTE_FIELD_NUMBER: _ClassVar[int]
+    SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    USER_FIELD_NUMBER: _ClassVar[int]
+    route: UpdatedTrip.Route
+    settings: UpdatedTrip.Settings
+    user: UpdatedTrip.User
+    def __init__(self, route: _Optional[_Union[UpdatedTrip.Route, _Mapping]] = ..., settings: _Optional[_Union[UpdatedTrip.Settings, _Mapping]] = ..., user: _Optional[_Union[UpdatedTrip.User, _Mapping]] = ...) -> None: ...
