@@ -1136,6 +1136,7 @@ class Rivian:
         payload: dict[str, Any],
         callback: Callable[[dict[str, Any]], None],
         description: str,
+        on_error: Callable[[dict[str, Any]], None] | None = None,
     ) -> Callable[[], Awaitable[None]] | None:
         """Connect the web socket if needed and start a subscription.
 
@@ -1146,7 +1147,9 @@ class Rivian:
             ws_monitor = await self._ws_connect()
             # Ends early if the connection closes, e.g. when rate limited
             if await ws_monitor.wait_for_ack() and (
-                unsubscribe := await ws_monitor.start_subscription(payload, callback)
+                unsubscribe := await ws_monitor.start_subscription(
+                    payload, callback, on_error=on_error
+                )
             ):
                 _LOGGER.debug("Subscribed to %s", description)
                 return unsubscribe
