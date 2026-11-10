@@ -666,6 +666,67 @@ class Rivian:
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def search_places(
+        self, query: str, latitude: float, longitude: float
+    ) -> list[dict[str, Any]]:
+        """Search for places like the Rivian app's map search.
+
+        Results come in the search's own order, each with a Google place `id`,
+        `name`, `location` and the `driveDetails` from `latitude`, `longitude`.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "places",
+            "query": "query places($params: PlacesQueryParams!) { places(params: $params) { results { id name location { formattedAddress coordinate { latitude longitude } navCoordinate { latitude longitude } } driveDetails { driveDistance driveDuration } } } }",
+            "variables": {
+                "params": {
+                    "query": query,
+                    "userLocation": {"latitude": latitude, "longitude": longitude},
+                    "autocomplete": "None",
+                }
+            },
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return (data.get("data", {}).get("places") or {}).get("results") or []
+        return []
+
+    async def suggest_places(
+        self, query: str, latitude: float, longitude: float
+    ) -> list[str]:
+        """Suggest search texts for partial text, for type-ahead in a place search."""
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "places",
+            "query": "query places($params: PlacesQueryParams!) { places(params: $params) { queryPredictions { query } } }",
+            "variables": {
+                "params": {
+                    "query": query,
+                    "userLocation": {"latitude": latitude, "longitude": longitude},
+                    "autocomplete": "Place",
+                }
+            },
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            places = data.get("data", {}).get("places") or {}
+            return [p["query"] for p in places.get("queryPredictions") or []]
+        return []
+
     async def send_location_to_vehicle(
         self, vehicle_id: str, location: str
     ) -> ClientResponse:

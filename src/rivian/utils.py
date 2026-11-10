@@ -8,6 +8,7 @@ import logging
 from base64 import b64decode, b64encode
 from datetime import UTC, datetime
 from typing import cast
+from urllib.parse import urlencode
 from warnings import warn
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -143,3 +144,30 @@ def from_epoch(epoch: float) -> datetime:
     if abs(epoch) >= _MS_THRESHOLD:
         epoch /= 1000
     return datetime.fromtimestamp(epoch, UTC)
+
+
+def place_url(
+    place_id: str,
+    name: str,
+    latitude: float,
+    longitude: float,
+    address: str | None = None,
+) -> str:
+    """Return the Rivian app's link for a place, for `send_location_to_vehicle`.
+
+    The vehicle shows the place's name. `place_id` is a Google place id, such as a
+    `search_places` result's `id`; Rivian refuses these links without one. Use the
+    result's `navCoordinate`, where the drive ends.
+    """
+    coordinates = f"{latitude},{longitude}"
+    query = {
+        "geo_coordinates": coordinates,
+        "entity_id": place_id,
+        "name": name,
+        "nav_coordinates": coordinates,
+        "address": address,
+        "source_type": "telenav",
+    }
+    return "https://telenav.id/entity?" + urlencode(
+        {k: v for k, v in query.items() if v is not None}
+    )

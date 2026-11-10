@@ -654,6 +654,25 @@ SEND_PARALLAX_COMMAND_RESPONSE = {
     "data": {"sendParallaxPayload": {"success": True, "sequenceNumber": 0}}
 }
 
+PLACES_RESPONSE = {
+    "data": {
+        "places": {
+            "results": [
+                {
+                    "id": "place_id",
+                    "name": "REI",
+                    "location": {
+                        "formattedAddress": "5901 Mills Civic Pkwy, West Des Moines, IA",
+                        "coordinate": {"latitude": 41.56028, "longitude": -93.78724},
+                        "navCoordinate": {"latitude": 41.56001, "longitude": -93.7873},
+                    },
+                    "driveDetails": {"driveDistance": 239062, "driveDuration": 9960},
+                }
+            ]
+        }
+    }
+}
+
 SEND_VEHICLE_OPERATION_RESPONSE = {
     "data": {
         "sendVehicleOperation": {
