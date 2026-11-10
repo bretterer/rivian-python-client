@@ -580,3 +580,17 @@ async def test_shorter_backoff_does_not_cut_a_longer_one_short(
             assert unacked.rate_limited
         finally:
             WebSocketMonitor._shared_backoffs.clear()
+
+
+async def test_monitor_stops_when_the_session_closes(
+    server: FakeServer, monitor: WebSocketMonitor, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test a closed HTTP session stops the monitor quietly instead of reconnecting."""
+    add_subscription(monitor)
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: monitor.connection_ack.is_set())
+    await monitor._account._session.close()
+    assert monitor.monitor
+    await wait_for(monitor.monitor.done)
+    assert server.connections == 1
+    assert not [r for r in caplog.records if r.levelname == "ERROR"]
