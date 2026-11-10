@@ -81,6 +81,16 @@ class TosAcceptance(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TOS_ACCEPTANCE_UNSPECIFIED: _ClassVar[TosAcceptance]
     TOS_NOT_ACCEPTED: _ClassVar[TosAcceptance]
     TOS_ACCEPTED: _ClassVar[TosAcceptance]
+
+class GearGuardCamera(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    GEAR_GUARD_CAMERA_UNSPECIFIED: _ClassVar[GearGuardCamera]
+    GEAR_GUARD_CAMERA_FRONT: _ClassVar[GearGuardCamera]
+    GEAR_GUARD_CAMERA_BED: _ClassVar[GearGuardCamera]
+    GEAR_GUARD_CAMERA_LEFT: _ClassVar[GearGuardCamera]
+    GEAR_GUARD_CAMERA_RIGHT: _ClassVar[GearGuardCamera]
+    GEAR_GUARD_CAMERA_REAR: _ClassVar[GearGuardCamera]
+    GEAR_GUARD_CAMERA_INTERIOR: _ClassVar[GearGuardCamera]
 HARDWARE_FAILURE_UNSPECIFIED: HardwareFailure
 HARDWARE_FAILURE_SET: HardwareFailure
 IMMOBILIZER_NOT_ASSIGNED: ImmobilizerStatus
@@ -128,6 +138,13 @@ VIDEO_MODE_AWAY_FROM_HOME: VideoMode
 TOS_ACCEPTANCE_UNSPECIFIED: TosAcceptance
 TOS_NOT_ACCEPTED: TosAcceptance
 TOS_ACCEPTED: TosAcceptance
+GEAR_GUARD_CAMERA_UNSPECIFIED: GearGuardCamera
+GEAR_GUARD_CAMERA_FRONT: GearGuardCamera
+GEAR_GUARD_CAMERA_BED: GearGuardCamera
+GEAR_GUARD_CAMERA_LEFT: GearGuardCamera
+GEAR_GUARD_CAMERA_RIGHT: GearGuardCamera
+GEAR_GUARD_CAMERA_REAR: GearGuardCamera
+GEAR_GUARD_CAMERA_INTERIOR: GearGuardCamera
 
 class PassiveEntry(_message.Message):
     __slots__ = ()
@@ -196,3 +213,11 @@ class VideoMonitoringState(_message.Message):
     mode: VideoMode
     terms_accepted: TosAcceptance
     def __init__(self, status: _Optional[_Union[VideoMonitoringStatus, str]] = ..., mode: _Optional[_Union[VideoMode, str]] = ..., terms_accepted: _Optional[_Union[TosAcceptance, str]] = ...) -> None: ...
+
+class LiveStreamingRequest(_message.Message):
+    __slots__ = ("camera", "device_id")
+    CAMERA_FIELD_NUMBER: _ClassVar[int]
+    DEVICE_ID_FIELD_NUMBER: _ClassVar[int]
+    camera: GearGuardCamera
+    device_id: str
+    def __init__(self, camera: _Optional[_Union[GearGuardCamera, str]] = ..., device_id: _Optional[str] = ...) -> None: ...

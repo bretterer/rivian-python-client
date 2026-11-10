@@ -129,3 +129,19 @@ enum TosAcceptance {
   TOS_NOT_ACCEPTED = 1;
   TOS_ACCEPTED = 2;
 }
+
+// security.video_monitoring.start_live_streaming
+message LiveStreamingRequest {
+  GearGuardCamera camera = 1;
+  string device_id = 2; // a label for the viewer; any stable string works
+}
+
+enum GearGuardCamera { // the app's camera selector
+  GEAR_GUARD_CAMERA_UNSPECIFIED = 0;
+  GEAR_GUARD_CAMERA_FRONT = 1;
+  GEAR_GUARD_CAMERA_BED = 2;
+  GEAR_GUARD_CAMERA_LEFT = 3;
+  GEAR_GUARD_CAMERA_RIGHT = 4;
+  GEAR_GUARD_CAMERA_REAR = 5;
+  GEAR_GUARD_CAMERA_INTERIOR = 6;
+}

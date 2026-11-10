@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from rivian.parallax import encode_live_streaming
 from rivian.parallax.proto import security_pb2 as security
 
 from .helpers import decode
@@ -35,3 +36,12 @@ def test_alarm_state() -> None:
         "alarmSoundStatus": "false",
         "consecutiveAlarmDisabledNotification": True,
     }
+
+
+def test_encode_live_streaming() -> None:
+    """A live stream start names the camera and the viewer's device id."""
+    request = security.LiveStreamingRequest.FromString(
+        encode_live_streaming("rear", "viewer")
+    )
+    assert request.camera == security.GEAR_GUARD_CAMERA_REAR
+    assert request.device_id == "viewer"
