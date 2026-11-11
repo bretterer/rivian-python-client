@@ -7,7 +7,7 @@ import logging
 import platform
 import secrets
 
-from .utils import generate_ble_command_hmac
+from .utils import generate_command_hmac
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ async def pair_phone(
 
             _LOGGER.debug("Exchanging nonce")
             phone_nonce = secrets.token_bytes(16)
-            hmac = generate_ble_command_hmac(phone_nonce, vehicle_key, private_key)
+            hmac = generate_command_hmac(phone_nonce, vehicle_key, private_key)
             await client.write_gatt_char(
                 PHONE_NONCE_VEHICLE_NONCE_UUID, phone_nonce + hmac
             )

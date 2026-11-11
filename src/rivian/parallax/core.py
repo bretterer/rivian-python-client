@@ -76,6 +76,16 @@ def _describe_unknowns(message: Message, path: str = "") -> list[str]:
     return found
 
 
+def _debug_message(label: str, message: Message) -> None:
+    """Debug-log a parsed `message` and anything its schema doesn't define."""
+    if _LOGGER.isEnabledFor(logging.DEBUG):
+        _LOGGER.debug(
+            "%s: %s", label, text_format.MessageToString(message, as_one_line=True)
+        )
+        for unknown in _describe_unknowns(message):
+            _LOGGER.debug("%s: %s", label, unknown)
+
+
 class RVMDecoder:
     """Registry of RVM topic -> (message class, decoder).
 
@@ -124,12 +134,7 @@ def _decode_rvm_payload(payload: str | None, rvm: str) -> dict[str, Any]:
     except Exception:
         _LOGGER.debug("Failed to decode %s payload", rvm, exc_info=True)
         return {}
-    if _LOGGER.isEnabledFor(logging.DEBUG):
-        _LOGGER.debug(
-            "%s: %s", rvm, text_format.MessageToString(message, as_one_line=True)
-        )
-        for unknown in _describe_unknowns(message):
-            _LOGGER.debug("%s: %s", rvm, unknown)
+    _debug_message(rvm, message)
     return result
 
 

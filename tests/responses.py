@@ -650,6 +650,10 @@ SEND_LOCATION_TO_VEHICLE_RESPONSE = {
     "data": {"parseAndShareLocationToVehicle": {"publishResponse": {"result": 0}}}
 }
 
+SEND_PARALLAX_COMMAND_RESPONSE = {
+    "data": {"sendParallaxPayload": {"success": True, "sequenceNumber": 0}}
+}
+
 SEND_VEHICLE_OPERATION_RESPONSE = {
     "data": {
         "sendVehicleOperation": {

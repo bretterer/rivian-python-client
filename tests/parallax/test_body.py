@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from rivian.parallax import LOCK_RVM, UNLOCK_RVM, encode_lock, encode_unlock
 from rivian.parallax.proto import body_pb2 as body
 
 from .helpers import decode
@@ -162,3 +163,12 @@ def test_wiper_fluid_level() -> None:
     result = decode(rvm, body.WiperFluidLevel(state=body.WIPER_FLUID_STATE_NORMAL))
     assert result == {"wiperFluidState": "normal"}
     assert decode(rvm) == {"wiperFluidState": None}
+
+
+def test_lock_commands() -> None:
+    """Unlock sets `all`, the way the app does; lock has no fields."""
+    assert LOCK_RVM == "body.locks.lock"
+    assert UNLOCK_RVM == "body.locks.unlock"
+    assert encode_lock() == b""
+    assert encode_unlock() == b"\x08\x01"
+    assert body.UnlockCommand.FromString(encode_unlock()).WhichOneof("target") == "all"

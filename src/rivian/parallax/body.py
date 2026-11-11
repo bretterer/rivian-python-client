@@ -7,6 +7,9 @@ from typing import Any, Final
 from .core import _LOGGER, RVMDecoder, _enum, _present
 from .proto import body_pb2
 
+LOCK_RVM: Final = "body.locks.lock"
+UNLOCK_RVM: Final = "body.locks.unlock"
+
 _CLOSURE_MAP: Final[dict[int, str]] = {
     body_pb2.DOOR_FRONT_LEFT: "doorFrontLeftClosed",
     body_pb2.DOOR_FRONT_RIGHT: "doorFrontRightClosed",
@@ -171,6 +174,16 @@ def decode_closures(m: body_pb2.ClosuresState) -> dict[str, Any]:
             if (next_action := _present(s, field)) is not None:
                 result[key] = _enum(names, next_action, what=f"{key} value")
     return result
+
+
+def encode_lock() -> bytes:
+    """Encode a body.locks.lock payload, which has no fields."""
+    return body_pb2.LockCommand().SerializeToString()
+
+
+def encode_unlock() -> bytes:
+    """Encode a body.locks.unlock payload that unlocks everything."""
+    return body_pb2.UnlockCommand(all=True).SerializeToString()
 
 
 @RVMDecoder.register("body.locks.states", body_pb2.LocksState)
