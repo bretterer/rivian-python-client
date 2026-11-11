@@ -647,10 +647,11 @@ class Rivian:
     async def send_location_to_vehicle(
         self, vehicle_id: str, location: str
     ) -> ClientResponse:
-        """Send a destination to a vehicle's navigation.
+        """Send a destination to a vehicle's navigation, waking it if needed.
 
-        `location` is an address, a place, or coordinates as "lat,lng", and Rivian
-        parses it. A `publishResponse.result` of 0 means the request was accepted.
+        `location` is an address, a place, coordinates as "lat,lng", or a map link,
+        and Rivian parses it. A `publishResponse.result` of 0 means the request was
+        accepted.
         """
         url = GRAPHQL_GATEWAY
         headers = BASE_HEADERS | {
@@ -660,8 +661,12 @@ class Rivian:
         }
         graphql_json = {
             "operationName": "parseAndShareLocationToVehicle",
-            "query": "mutation parseAndShareLocationToVehicle($str: String!, $vehicleId: String!) { parseAndShareLocationToVehicle(str: $str, vehicleId: $vehicleId) { __typename publishResponse { __typename result } } }",
-            "variables": {"str": location, "vehicleId": vehicle_id},
+            "query": "mutation parseAndShareLocationToVehicle($str: String!, $vehicleId: String!, $requiresWakeup: Boolean) { parseAndShareLocationToVehicle(str: $str, vehicleId: $vehicleId, requiresWakeup: $requiresWakeup) { __typename publishResponse { __typename result } } }",
+            "variables": {
+                "str": location,
+                "vehicleId": vehicle_id,
+                "requiresWakeup": True,
+            },
         }
         return await self.__graphql_query(headers, url, graphql_json)
 

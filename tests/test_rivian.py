@@ -443,6 +443,7 @@ async def test_send_location_to_vehicle(aresponses: ResponsesMockServer) -> None
         assert requests[0]["variables"] == {
             "str": "123 Main St, Springfield, IL",
             "vehicleId": "vehicle_id",
+            "requiresWakeup": True,
         }
         await rivian.close()
 
