@@ -4,13 +4,29 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 from base64 import b64decode, b64encode
 from datetime import UTC, datetime
 from typing import cast
+from warnings import warn
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def send_deprecation_warning(old_name: str, new_name: str) -> None:
+    """Send a deprecation warning."""
+    message = f"{old_name} has been deprecated in favor of {new_name}, the alias will be removed in the future"
+    warn(
+        message,
+        DeprecationWarning,
+        # Point at the code that called the deprecated function
+        stacklevel=3,
+    )
+    _LOGGER.warning(message)
 
 
 def base64_encode(data: bytes) -> str:
@@ -69,12 +85,25 @@ def generate_key_pair() -> tuple[str, str]:
     return (public_key_str, private_key_str)
 
 
+def generate_command_hmac(data: bytes, vehicle_key: str, private_key: str) -> bytes:
+    """Return the raw HMAC-SHA256 of `data`, keyed by the phone and vehicle keys.
+
+    Signs BLE commands and signed Parallax commands alike.
+    """
+    secret_key = get_secret_key(private_key, vehicle_key)
+    return bytes.fromhex(get_message_signature(secret_key, data))
+
+
+# TODO: Remove around 2027-05, six months after its deprecation in 2026-11
 def generate_ble_command_hmac(
     hmac_data: bytes, vehicle_key: str, private_key: str
 ) -> bytes:
-    """Generate ble command hmac."""
-    secret_key = get_secret_key(private_key, vehicle_key)
-    return bytes.fromhex(get_message_signature(secret_key, hmac_data))
+    """Generate ble command hmac.
+
+    Deprecated: use `generate_command_hmac`.
+    """
+    send_deprecation_warning("generate_ble_command_hmac", "generate_command_hmac")
+    return generate_command_hmac(hmac_data, vehicle_key, private_key)
 
 
 def generate_vehicle_command_hmac(

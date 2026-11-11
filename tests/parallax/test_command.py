@@ -61,9 +61,7 @@ def _operation(envelope: command.Envelope) -> command.Operation:
 
 def test_encode_command_matches_a_payload_a_vehicle_accepted() -> None:
     """The encoding is byte for byte what was sent to a real vehicle."""
-    with patch(
-        "rivian.parallax.command.generate_ble_command_hmac", return_value=SIGNATURE
-    ):
+    with patch("rivian.parallax.command.generate_command_hmac", return_value=SIGNATURE):
         encoded = encode_command(
             "vehicle-1",
             RVM,

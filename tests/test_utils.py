@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from rivian import VehicleCommand, utils
 
 PHONE_NONCE = bytes.fromhex("e4e9b1f0abba398bdfe5b2d90cba16ad")
@@ -15,12 +17,27 @@ def test_generate_key_pair() -> None:
     assert public_key, private_key
 
 
-def test_generate_ble_command_hmac() -> None:
-    """Test generating a BLE command HMAC."""
-    hmac = utils.generate_ble_command_hmac(PHONE_NONCE, VEHICLE_KEY, PRIVATE_KEY)
-    assert hmac == bytes.fromhex(
-        "935bde3fe77d5501635e16e2a9f2e867038e6a2bd6c5936d0b315ab38e0993dd"
-    )
+COMMAND_HMAC = bytes.fromhex(
+    "935bde3fe77d5501635e16e2a9f2e867038e6a2bd6c5936d0b315ab38e0993dd"
+)
+
+
+def test_generate_command_hmac() -> None:
+    """Test generating a command HMAC."""
+    hmac = utils.generate_command_hmac(PHONE_NONCE, VEHICLE_KEY, PRIVATE_KEY)
+    assert hmac == COMMAND_HMAC
+
+
+def test_generate_ble_command_hmac_is_deprecated(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test the deprecated name warns and still returns the command HMAC."""
+    with pytest.warns(DeprecationWarning, match="generate_command_hmac") as record:
+        hmac = utils.generate_ble_command_hmac(PHONE_NONCE, VEHICLE_KEY, PRIVATE_KEY)
+    assert hmac == COMMAND_HMAC
+    # The warning points at the caller, not at the deprecated function
+    assert record[0].filename == __file__
+    assert "generate_ble_command_hmac has been deprecated" in caplog.text
 
 
 def test_generate_vehicle_command_hmac() -> None:

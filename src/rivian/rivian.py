@@ -10,7 +10,6 @@ import uuid
 from collections.abc import Awaitable, Callable
 from datetime import date
 from typing import Any, Self
-from warnings import warn
 
 import aiohttp
 from aiohttp import ClientResponse, ClientWebSocketResponse
@@ -39,7 +38,7 @@ from .parallax import (
     encode_command,
     encode_vehicle_operation,
 )
-from .utils import generate_vehicle_command_hmac
+from .utils import generate_vehicle_command_hmac, send_deprecation_warning
 from .ws_monitor import WebSocketMonitor
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,17 +99,6 @@ def _command_id(command_id: str | None = None) -> str:
         return str(uuid.UUID(str(command_id)))
     except ValueError as err:
         raise RivianBadRequestError("A command id must be a UUID") from err
-
-
-def send_deprecation_warning(old_name: str, new_name: str) -> None:  # pragma: no cover
-    """Send a deprecation warning."""
-    message = f"{old_name} has been deprecated in favor of {new_name}, the alias will be removed in the future"
-    warn(
-        message,
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    _LOGGER.warning(message)
 
 
 class Rivian:

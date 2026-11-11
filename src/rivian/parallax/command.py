@@ -20,7 +20,7 @@ from typing import Any, Final
 
 from google.protobuf.message import DecodeError
 
-from ..utils import generate_ble_command_hmac
+from ..utils import generate_command_hmac
 from .core import _LOGGER, _debug_message, _enum, _present
 from .proto import command_pb2
 
@@ -87,7 +87,7 @@ def encode_command(
             signature=command_pb2.Signature(
                 type=command_pb2.DATA_SIGNATURE_TYPE_HMAC_SHA256,
                 # The raw HMAC-SHA256 of the data, as BLE commands use too
-                value=generate_ble_command_hmac(operation, vehicle_key, private_key),
+                value=generate_command_hmac(operation, vehicle_key, private_key),
             ),
             mapped_identity=identity_id,
         ),
