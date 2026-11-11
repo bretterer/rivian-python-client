@@ -435,7 +435,7 @@ async def test_send_location_to_vehicle(aresponses: ResponsesMockServer) -> None
         )
 
         response = await rivian.send_location_to_vehicle(
-            "123 Main St, Springfield, IL", "vehicle_id"
+            "vehicle_id", "123 Main St, Springfield, IL"
         )
         response_json = await response.json()
         result = response_json["data"]["parseAndShareLocationToVehicle"]

@@ -645,7 +645,7 @@ class Rivian:
         return await self.__graphql_query(headers, url, graphql_json)
 
     async def send_location_to_vehicle(
-        self, location: str, vehicle_id: str
+        self, vehicle_id: str, location: str
     ) -> ClientResponse:
         """Send a destination to a vehicle's navigation.
 

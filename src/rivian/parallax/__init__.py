@@ -13,13 +13,15 @@ Public API:
     encode_command(vehicle_id, rvm, payload, ...) -> str
         Builds and signs a `send_parallax_command` request, with a payload
         such as `encode_unlock()`.
+    LOCK_RVM / encode_lock(), UNLOCK_RVM / encode_unlock()
+        The RVM and payload of a signed lock or unlock command.
     decode_command_state_message(data) -> dict | None
         Reads a raw `subscribe_for_parallax_command_state` message.
 
 Layout:
-    core.py    - registry, payload parsing and shared helpers
-    command.py - signed remote commands and their state messages
-    proto/   - .proto schemas and their generated *_pb2 modules
+    core.py           - registry, payload parsing and shared helpers
+    command.py        - signed remote commands and their state messages
+    proto/            - .proto schemas and their generated *_pb2 modules
     <topic prefix>.py - one module per RVM topic prefix (body.*, etc.)
 
 To add a decoder, decorate it with
