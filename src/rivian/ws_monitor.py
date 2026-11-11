@@ -24,6 +24,8 @@ _LOGGER = logging.getLogger(__name__)
 
 RATE_LIMITED = "Rate limited"
 UNAUTHENTICATED = "Unauthenticated"
+# Close code with which the server refuses a connection
+FORBIDDEN = 4403
 RATE_LIMIT_BACKOFF_MIN = 30
 RATE_LIMIT_BACKOFF_MAX = 900
 
@@ -85,6 +87,8 @@ class WebSocketMonitor:
         self._backoff_reason: str | None = None
         # The server's reason for closing the current connection, if it gave one
         self._close_message: str | None = None
+        # Whether the server refused the current connection (4403) before its ack
+        self._forbidden = False
         self._backoff_state = (
             _Backoff()
             if backoff_key is None
@@ -145,8 +149,12 @@ class WebSocketMonitor:
 
     @property
     def unauthenticated(self) -> bool:
-        """Return `True` if the server closed the latest connection as unauthenticated."""
-        return self._close_message == UNAUTHENTICATED
+        """Return `True` if the server closed the latest connection as unauthenticated.
+
+        That is, with the reason "Unauthenticated" or as forbidden (4403) before
+        the connection was acknowledged.
+        """
+        return self._close_message == UNAUTHENTICATED or self._forbidden
 
     @property
     def backoff_remaining(self) -> float:
@@ -164,6 +172,7 @@ class WebSocketMonitor:
         self._disconnect = False
         self._backoff_reason = None
         self._close_message = None
+        self._forbidden = False
         self._connection_ack.clear()
         # pylint: disable=protected-access
         assert self._account._session
@@ -270,7 +279,11 @@ class WebSocketMonitor:
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
                     self._log_message(msg)
                     self._close_message = msg.extra or None
-                    if msg.extra == UNAUTHENTICATED:
+                    # After the ack a 4403 may be transient, so reconnect instead
+                    self._forbidden = (
+                        not acknowledged and websocket.close_code == FORBIDDEN
+                    )
+                    if self.unauthenticated:
                         self._disconnect = True
                     elif msg.extra == RATE_LIMITED:
                         self._start_backoff(BACKOFF_RATE_LIMITED)
