@@ -555,6 +555,7 @@ type VehicleMobileConfiguration {
   driveSystemOption: VehicleMobileConfigurationOption!
   exteriorColorOption: VehicleMobileConfigurationOption!
   interiorColorOption: VehicleMobileConfigurationOption!
+  tonneauOption: VehicleMobileConfigurationOption
 }
 
 type VehicleMobileConfigurationOption {
