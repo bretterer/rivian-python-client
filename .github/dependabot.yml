@@ -12,3 +12,7 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: "development"
+    ignore:
+      # Pinned in pyproject.toml to keep generated protobuf code compatible
+      # with the oldest supported Home Assistant; bump it by hand
+      - dependency-name: "grpcio-tools"
