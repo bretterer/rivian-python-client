@@ -645,6 +645,27 @@ class Rivian:
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def send_location_to_vehicle(
+        self, location: str, vehicle_id: str
+    ) -> ClientResponse:
+        """Send a destination to a vehicle's navigation.
+
+        `location` is an address, a place, or coordinates as "lat,lng", and Rivian
+        parses it. A `publishResponse.result` of 0 means the request was accepted.
+        """
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        graphql_json = {
+            "operationName": "parseAndShareLocationToVehicle",
+            "query": "mutation parseAndShareLocationToVehicle($str: String!, $vehicleId: String!) { parseAndShareLocationToVehicle(str: $str, vehicleId: $vehicleId) { __typename publishResponse { __typename result } } }",
+            "variables": {"str": location, "vehicleId": vehicle_id},
+        }
+        return await self.__graphql_query(headers, url, graphql_json)
+
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
         url = GRAPHQL_GATEWAY
