@@ -99,9 +99,12 @@ message SocSlider {
   optional int32 soc_limit = 1; // percent
 }
 
-// charging.session.trip_target -- unmapped.
+// charging.session.trip_target -- the charge a planned trip needs. The app
+// shows a trip target only while soc is 1-100.
 message TripTarget {
-  int32 soc_limit = 2; // percent; 0xFFFF when not set
+  int32 soc = 1; // percent; 0 when not set
+  int32 time_estimate = 2; // minutes until soc is reached; 0xFFFF when not set
+  int32 status = 3; // enum type unknown
 }
 
 // charging.smart_charging.settings -- not seen yet; the app's likely schema.

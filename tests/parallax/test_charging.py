@@ -184,13 +184,52 @@ def test_session_power() -> None:
 
 
 def test_trip_target() -> None:
-    """The trip's target SoC, or None for the "not set" value."""
+    """The target SoC (#1) and the minutes until it's reached (#2)."""
     rvm = "charging.session.trip_target"
-    assert decode(rvm, charging.TripTarget(soc_limit=80)) == {
-        "chargingTripTargetSoc": 80
+    message = charging.TripTarget(soc=80, time_estimate=45, status=1)
+    assert message.SerializeToString() == bytes.fromhex("0850102d1801")
+    assert decode(rvm, message) == {
+        "chargingTripTargetSoc": 80,
+        "chargingTripTargetMinsRemaining": 45,
+        "_chargingTripTargetStatus": 1,
     }
-    assert decode(rvm, charging.TripTarget(soc_limit=0xFFFF)) == {
-        "chargingTripTargetSoc": None
+    assert decode(rvm, charging.TripTarget(soc=80, time_estimate=0xFFFF)) == {
+        "chargingTripTargetSoc": 80,
+        "chargingTripTargetMinsRemaining": None,
+        "_chargingTripTargetStatus": 0,
+    }
+
+
+@pytest.mark.parametrize("soc", [0, 101])
+def test_trip_target_not_set(soc: int) -> None:
+    """Without a 1-100 SoC there's no trip target, so no minutes either."""
+    message = charging.TripTarget(soc=soc, time_estimate=45)
+    assert decode("charging.session.trip_target", message) == {
+        "chargingTripTargetSoc": None,
+        "chargingTripTargetMinsRemaining": None,
+        "_chargingTripTargetStatus": 0,
+    }
+
+
+def test_trip_target_no_estimate() -> None:
+    """A target with #2 absent has no minutes, rather than 0."""
+    message = charging.TripTarget.FromString(bytes.fromhex("0850"))
+    assert (message.soc, message.time_estimate) == (80, 0)
+    assert decode("charging.session.trip_target", message) == {
+        "chargingTripTargetSoc": 80,
+        "chargingTripTargetMinsRemaining": None,
+        "_chargingTripTargetStatus": 0,
+    }
+
+
+def test_trip_target_captured() -> None:
+    """A captured frame with no trip target: #2 = 0xFFFF and no #1."""
+    message = charging.TripTarget.FromString(bytes.fromhex("10ffff03"))
+    assert (message.soc, message.time_estimate) == (0, 0xFFFF)
+    assert decode("charging.session.trip_target", message) == {
+        "chargingTripTargetSoc": None,
+        "chargingTripTargetMinsRemaining": None,
+        "_chargingTripTargetStatus": 0,
     }
 
 

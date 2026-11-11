@@ -275,10 +275,14 @@ class SocSlider(_message.Message):
     def __init__(self, soc_limit: _Optional[int] = ...) -> None: ...
 
 class TripTarget(_message.Message):
-    __slots__ = ("soc_limit",)
-    SOC_LIMIT_FIELD_NUMBER: _ClassVar[int]
-    soc_limit: int
-    def __init__(self, soc_limit: _Optional[int] = ...) -> None: ...
+    __slots__ = ("soc", "time_estimate", "status")
+    SOC_FIELD_NUMBER: _ClassVar[int]
+    TIME_ESTIMATE_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    soc: int
+    time_estimate: int
+    status: int
+    def __init__(self, soc: _Optional[int] = ..., time_estimate: _Optional[int] = ..., status: _Optional[int] = ...) -> None: ...
 
 class SmartChargingSettings(_message.Message):
     __slots__ = ("ready_by_times", "clean_energy_enabled")
