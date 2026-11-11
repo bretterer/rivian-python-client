@@ -33,7 +33,10 @@ dev = [
     "ruff>=0.16,<0.18",
     "pre-commit>=4.6.1,<5",
     "types-protobuf>=6.32.1.20260221",
-    "grpcio-tools==1.85.0",
+    # Generates the committed *_pb2 modules. Newer releases emit protobuf 7.x
+    # gencode, which won't import on the protobuf 6.32 that Home Assistant
+    # 2026.9 pins, so bump this only with the minimum supported HA version.
+    "grpcio-tools==1.80.0",
     "pytest-cov>=7.0,<8",
 ]
 
