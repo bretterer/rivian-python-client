@@ -52,6 +52,15 @@ def test_gnss_gps_time() -> None:
     assert result["gnssTimeStamp"] == epoch(1790553428211)
 
 
+def test_gnss_unix_seconds() -> None:
+    """A fix time in Unix seconds is converted to milliseconds."""
+    result = decode(
+        "dynamics.vehicle.gnss", dynamics.Gnss(latitude=1.0, time=1794604023)
+    )
+    assert result["gnssTimeStamp"] == epoch(1794604023000)
+    assert result["gnssLocation"]["timeStamp"] == epoch(1794604023000)
+
+
 def test_gnss_empty() -> None:
     """An empty payload has no fix, so nothing is reported."""
     assert decode("dynamics.vehicle.gnss") == {}
