@@ -93,16 +93,20 @@ def decode_gear(m: dynamics_pb2.Gear) -> dict[str, Any]:
     return {"gearStatus": _enum(_GEAR_MAP, m.gear, what="gear")}
 
 
-# Some vehicles send the fix time as GPS time (milliseconds since the GPS
-# epoch, 1980-01-06, without leap seconds) instead of Unix time. Any time
-# before 2020 is taken as GPS time.
+# Vehicles send the fix time in Unix milliseconds, Unix seconds, or GPS time
+# (milliseconds since the GPS epoch, 1980-01-06, without leap seconds). Any
+# time below 10^11 (1973 in ms, year 5138 in seconds) is taken as seconds, and
+# then any time before 2020 as GPS time.
 _GPS_EPOCH_OFFSET_MS: Final = 315_964_800_000
 _GPS_LEAP_SECONDS_MS: Final = 18_000
 _GPS_TIME_CUTOFF_MS: Final = 1_577_836_800_000  # 2020-01-01 in Unix ms
+_SECONDS_CUTOFF: Final = 100_000_000_000
 
 
 def _gnss_unix_ms(time: int) -> int:
     """A GNSS fix time as Unix epoch milliseconds."""
+    if 0 < time < _SECONDS_CUTOFF:
+        time *= 1000
     if 0 < time < _GPS_TIME_CUTOFF_MS:
         return time + _GPS_EPOCH_OFFSET_MS - _GPS_LEAP_SECONDS_MS
     return time
