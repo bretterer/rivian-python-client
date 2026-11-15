@@ -17,6 +17,8 @@ Public API:
         The RVM and payload of a signed lock or unlock command.
     decode_command_state_message(data) -> dict | None
         Reads a raw `subscribe_for_parallax_command_state` message.
+    encode_end_trip(user_id) -> str
+        Builds the unsigned `end_trip` request.
 
 Layout:
     core.py           - registry, payload parsing and shared helpers
@@ -64,6 +66,7 @@ from .core import (
     decode_parallax_message,
     decode_parallax_subscription_message,
 )
+from .navigation import UPDATED_TRIP_MODEL, encode_end_trip
 from .operation import encode_vehicle_operation
 
 PARALLAX_RVMS: list[str] = list(RVMDecoder.decoders)
@@ -88,11 +91,13 @@ __all__ = [
     "LOCK_RVM",
     "PARALLAX_RVMS",
     "UNLOCK_RVM",
+    "UPDATED_TRIP_MODEL",
     "decode_command_state_message",
     "decode_parallax_message",
     "decode_parallax_subscription_message",
     "encode_climate_hold_setting",
     "encode_command",
+    "encode_end_trip",
     "encode_lock",
     "encode_unlock",
     "encode_vehicle_operation",
