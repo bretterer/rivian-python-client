@@ -826,8 +826,9 @@ class Rivian:
                 config.set_result(live)
 
         def on_error(message: dict[str, Any]) -> None:
-            errors = message.get("payload") or [{}]
-            reason = (errors[0].get("extensions") or {}).get("reason")
+            payload = message.get("payload") or [{}]
+            error = (payload if isinstance(payload, list) else [payload])[0]
+            reason = (error.get("extensions") or {}).get("reason")
             if not config.done():
                 config.set_exception(
                     RivianApiException(f"The vehicle refused the stream: {reason}")
@@ -866,6 +867,9 @@ class Rivian:
             return None
         finally:
             await unsubscribe()
+            # Read a refusal left on the future by an early return, or asyncio logs it
+            if config.done() and not config.cancelled():
+                config.exception()
 
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
