@@ -931,6 +931,34 @@ async def test_send_vehicle_command_requires_level(command: VehicleCommand) -> N
     await rivian.close()
 
 
+@pytest.mark.parametrize(
+    ("command", "params"),
+    [
+        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 30}),
+        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": "warm"}),
+        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 40}),
+        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 80.5}),
+        (VehicleCommand.CHARGING_LIMITS, None),
+        (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": 5}),
+    ],
+)
+def test_validate_vehicle_command(
+    command: VehicleCommand, params: dict[str, Any] | None
+) -> None:
+    """Invalid params are rejected the same way for either way of sending."""
+    with pytest.raises(RivianBadRequestError):
+        Rivian.validate_vehicle_command(command, params)
+
+
+def test_validate_vehicle_command_keeps_params() -> None:
+    """Validation leaves the params alone; `send_vehicle_command` converts the temperature."""
+    params = {"HVAC_set_temp": 21}
+    Rivian.validate_vehicle_command(
+        VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, params
+    )
+    assert params == {"HVAC_set_temp": 21}
+
+
 async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
     """Test GraphQL error responses."""
     host = "rivian.com"

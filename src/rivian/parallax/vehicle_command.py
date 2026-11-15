@@ -1,193 +1,169 @@
 """Parallax equivalents of `VehicleCommand`s.
 
-The Rivian app sends a command over Parallax when the vehicle reports the
-supported feature for the command's category as AVAILABLE, and as a legacy
+The Rivian app sends a command over Parallax when the vehicle reports its
+category's supported feature as AVAILABLE, and as a legacy
 `sendVehicleCommand` otherwise.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Final
 
 from ..const import VehicleCommand
 from ..exceptions import RivianBadRequestError
-from .body import LOCK_RVM, UNLOCK_RVM, encode_unlock
-from .proto import body_pb2, charging_pb2, comfort_pb2
-
-_Build = Callable[[dict[str, Any]], bytes]
-
-_BODY = "PVS_BD_CMD"
-_LIFTGATE = "LIFTGATE_CMD"
-_COMFORT = "PVS_COMF_CMD"
-_ENERGY = "PVS_ENRG_CMD"
-_SECURITY = "PVS_SEC_CMD"
-
-_Level = comfort_pb2.ConditioningLevel
-_OFF, _LOW, _MEDIUM, _HIGH = (
-    comfort_pb2.CONDITIONING_LEVEL_UNSPECIFIED,
-    comfort_pb2.CONDITIONING_LEVEL_1,
-    comfort_pb2.CONDITIONING_LEVEL_2,
-    comfort_pb2.CONDITIONING_LEVEL_3,
+from .body import (
+    CLOSE_CLOSURES_RVM,
+    LOCK_RVM,
+    OPEN_CLOSURES_RVM,
+    UNLOCK_RVM,
+    encode_closures,
+    encode_lock,
+    encode_unlock,
+)
+from .charging import (
+    SET_CHARGE_LIMIT_RVM,
+    START_CHARGING_RVM,
+    STOP_CHARGING_RVM,
+    encode_charge_limit,
+)
+from .comfort import (
+    DISABLE_PRECONDITIONING_RVM,
+    ENABLE_PRECONDITIONING_RVM,
+    SET_CABIN_SURFACE_RVM,
+    SET_DEFROST_DEFOG_RVM,
+    SET_PRECONDITIONING_TEMPERATURE_RVM,
+    encode_cabin_surface,
+    encode_defrost_defog,
+    encode_preconditioning_temperature,
+)
+from .proto import body_pb2, comfort_pb2
+from .security import (
+    DISABLE_PANIC_RVM,
+    DISABLE_VIDEO_MONITORING_RVM,
+    ENABLE_PANIC_RVM,
+    ENABLE_VIDEO_MONITORING_RVM,
 )
 
-_VENT = comfort_pb2.CONDITIONING_VENT
-
 # Legacy `level` param -> level, as the Rivian app maps them; seats have no "1 = on"
-_SEAT_LEVELS: dict[int, _Level] = {0: _OFF, 2: _LOW, 3: _MEDIUM, 4: _HIGH}
-_WHEEL_LEVELS: dict[int, _Level] = {0: _OFF, 1: _LOW, 2: _MEDIUM, 3: _HIGH}
+_SEAT_LEVELS: Final[dict[int, comfort_pb2.ConditioningLevel]] = {
+    0: comfort_pb2.CONDITIONING_LEVEL_UNSPECIFIED,
+    2: comfort_pb2.CONDITIONING_LEVEL_1,
+    3: comfort_pb2.CONDITIONING_LEVEL_2,
+    4: comfort_pb2.CONDITIONING_LEVEL_3,
+}
+_STEERING_WHEEL_LEVELS: Final[dict[int, comfort_pb2.ConditioningLevel]] = {
+    0: comfort_pb2.CONDITIONING_LEVEL_UNSPECIFIED,
+    1: comfort_pb2.CONDITIONING_LEVEL_1,
+    2: comfort_pb2.CONDITIONING_LEVEL_2,
+    3: comfort_pb2.CONDITIONING_LEVEL_3,
+}
 
-
-def _empty(params: dict[str, Any]) -> bytes:
-    return b""
-
-
-def _closure(closure: body_pb2.ClosureId) -> _Build:
-    def build(params: dict[str, Any]) -> bytes:
-        return body_pb2.ClosuresRequest(closures=[closure]).SerializeToString()
-
-    return build
-
-
-def _unlock(params: dict[str, Any]) -> bytes:
-    return encode_unlock()
-
-
-def _surface(
-    surface: comfort_pb2.CabinSurface,
-    type_: comfort_pb2.ConditioningType,
-    levels: dict[int, _Level],
-) -> _Build:
-    def build(params: dict[str, Any]) -> bytes:
-        if (level := levels.get(params.get("level", -1))) is None:
-            raise RivianBadRequestError(f"Level must be one of {list(levels)}")
-        return comfort_pb2.CabinSurfaceRequest(
-            surface=surface,
-            level=level,
-            status=comfort_pb2.CABIN_SURFACE_ON
-            if level
-            else comfort_pb2.CABIN_SURFACE_OFF,
-            type=type_,
-        ).SerializeToString()
-
-    return build
-
-
-def _defrost(params: dict[str, Any]) -> bytes:
-    status = (
-        comfort_pb2.DEFROST_DEFOG_DEFROST
-        if params.get("level")
-        else comfort_pb2.DEFROST_OFF
-    )
-    return comfort_pb2.DefrostDefogRequest(status=status).SerializeToString()
-
-
-def _temperature(params: dict[str, Any]) -> bytes:
-    temp = params.get("HVAC_set_temp")
-    if not (isinstance(temp, (int, float)) and (16 <= temp <= 29 or temp in (0, 63.5))):
-        raise RivianBadRequestError(
-            "Temperature must be between 16 and 29 or 0/63.5 for LO/HI"
-        )
-    return comfort_pb2.PreconditioningTemperatureRequest(
-        temperature=temp
-    ).SerializeToString()
-
-
-def _charge_limit(params: dict[str, Any]) -> bytes:
-    limit = params.get("SOC_limit")
-    if not (isinstance(limit, int) and 50 <= limit <= 100):
-        raise RivianBadRequestError("Charging limit must be between 50 and 100")
-    return charging_pb2.ChargeLimitRequest(limit=limit).SerializeToString()
+_Encode = Callable[[dict[str, Any]], bytes]
 
 
 def _seat(
     surface: comfort_pb2.CabinSurface,
-    type_: comfort_pb2.ConditioningType = comfort_pb2.CONDITIONING_HEAT,
-) -> tuple[str, str, _Build]:
+    conditioning: comfort_pb2.ConditioningType = comfort_pb2.CONDITIONING_HEAT,
+) -> tuple[str, str, _Encode]:
     return (
-        _COMFORT,
-        "comfort.cabin.set_cabin_surface",
-        _surface(surface, type_, _SEAT_LEVELS),
+        "PVS_COMF_CMD",
+        SET_CABIN_SURFACE_RVM,
+        lambda p: encode_cabin_surface(surface, conditioning, _SEAT_LEVELS[p["level"]]),
     )
 
 
-_COMMANDS: dict[str, tuple[str, str, _Build]] = {
-    VehicleCommand.LOCK_ALL_CLOSURES_FEEDBACK: (_BODY, LOCK_RVM, _empty),
-    VehicleCommand.UNLOCK_ALL_CLOSURES: (_BODY, UNLOCK_RVM, _unlock),
+# Command -> (supported feature, RVM, encoder of the `send_vehicle_command` params)
+_COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
+    VehicleCommand.LOCK_ALL_CLOSURES_FEEDBACK: (
+        "PVS_BD_CMD",
+        LOCK_RVM,
+        lambda _: encode_lock(),
+    ),
+    VehicleCommand.UNLOCK_ALL_CLOSURES: (
+        "PVS_BD_CMD",
+        UNLOCK_RVM,
+        lambda _: encode_unlock(),
+    ),
     VehicleCommand.OPEN_ALL_WINDOWS: (
-        _BODY,
-        "body.closures.open",
-        _closure(body_pb2.GROUP_WINDOWS),
+        "PVS_BD_CMD",
+        OPEN_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.GROUP_WINDOWS),
     ),
     VehicleCommand.CLOSE_ALL_WINDOWS: (
-        _BODY,
-        "body.closures.close",
-        _closure(body_pb2.GROUP_WINDOWS),
+        "PVS_BD_CMD",
+        CLOSE_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.GROUP_WINDOWS),
     ),
-    VehicleCommand.OPEN_FRUNK: (_BODY, "body.closures.open", _closure(body_pb2.FRUNK)),
+    VehicleCommand.OPEN_FRUNK: (
+        "PVS_BD_CMD",
+        OPEN_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.FRUNK),
+    ),
     VehicleCommand.CLOSE_FRUNK: (
-        _BODY,
-        "body.closures.close",
-        _closure(body_pb2.FRUNK),
+        "PVS_BD_CMD",
+        CLOSE_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.FRUNK),
     ),
-    # Vehicles without LIFTGATE_CMD, e.g. an R1T's tailgate, keep the old command
     VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE: (
-        _LIFTGATE,
-        "body.closures.open",
-        _closure(body_pb2.LIFTGATE),
+        "PVS_BD_CMD",
+        OPEN_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.LIFTGATE),
     ),
     VehicleCommand.CLOSE_LIFTGATE: (
-        _LIFTGATE,
-        "body.closures.close",
-        _closure(body_pb2.LIFTGATE),
+        "PVS_BD_CMD",
+        CLOSE_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.LIFTGATE),
     ),
     VehicleCommand.OPEN_CHARGE_PORT_DOOR: (
-        _BODY,
-        "body.closures.open",
-        _closure(body_pb2.CHARGE_PORT),
+        "PVS_BD_CMD",
+        OPEN_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.CHARGE_PORT),
     ),
     VehicleCommand.CLOSE_CHARGE_PORT_DOOR: (
-        _BODY,
-        "body.closures.close",
-        _closure(body_pb2.CHARGE_PORT),
+        "PVS_BD_CMD",
+        CLOSE_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.CHARGE_PORT),
     ),
-    VehicleCommand.PANIC_ON: (_SECURITY, "security.alarm.enable_panic", _empty),
-    VehicleCommand.PANIC_OFF: (_SECURITY, "security.alarm.disable_panic", _empty),
+    VehicleCommand.PANIC_ON: ("PVS_SEC_CMD", ENABLE_PANIC_RVM, lambda _: b""),
+    VehicleCommand.PANIC_OFF: ("PVS_SEC_CMD", DISABLE_PANIC_RVM, lambda _: b""),
     VehicleCommand.ENABLE_GEAR_GUARD_VIDEO: (
-        _SECURITY,
-        "security.video_monitoring.enable_video_monitoring",
-        _empty,
+        "PVS_SEC_CMD",
+        ENABLE_VIDEO_MONITORING_RVM,
+        lambda _: b"",
     ),
     VehicleCommand.DISABLE_GEAR_GUARD_VIDEO: (
-        _SECURITY,
-        "security.video_monitoring.disable_video_monitoring",
-        _empty,
+        "PVS_SEC_CMD",
+        DISABLE_VIDEO_MONITORING_RVM,
+        lambda _: b"",
     ),
     VehicleCommand.VEHICLE_CABIN_PRECONDITION_ENABLE: (
-        _COMFORT,
-        "comfort.cabin.enable_preconditioning",
-        _empty,
+        "PVS_COMF_CMD",
+        ENABLE_PRECONDITIONING_RVM,
+        lambda _: b"",
     ),
     VehicleCommand.VEHICLE_CABIN_PRECONDITION_DISABLE: (
-        _COMFORT,
-        "comfort.cabin.disable_preconditioning",
-        _empty,
+        "PVS_COMF_CMD",
+        DISABLE_PRECONDITIONING_RVM,
+        lambda _: b"",
     ),
     VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP: (
-        _COMFORT,
-        "comfort.cabin.set_preconditioning_temperature",
-        _temperature,
+        "PVS_COMF_CMD",
+        SET_PRECONDITIONING_TEMPERATURE_RVM,
+        lambda p: encode_preconditioning_temperature(float(p["HVAC_set_temp"])),
     ),
     VehicleCommand.CABIN_HVAC_DEFROST_DEFOG: (
-        _COMFORT,
-        "comfort.cabin.set_defrost_defog",
-        _defrost,
+        "PVS_COMF_CMD",
+        SET_DEFROST_DEFOG_RVM,
+        lambda p: encode_defrost_defog(bool(p["level"])),
     ),
     VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_1_LEFT),
     VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_1_RIGHT),
-    VehicleCommand.CABIN_HVAC_LEFT_SEAT_VENT: _seat(comfort_pb2.SEAT_ROW_1_LEFT, _VENT),
+    VehicleCommand.CABIN_HVAC_LEFT_SEAT_VENT: _seat(
+        comfort_pb2.SEAT_ROW_1_LEFT, comfort_pb2.CONDITIONING_VENT
+    ),
     VehicleCommand.CABIN_HVAC_RIGHT_SEAT_VENT: _seat(
-        comfort_pb2.SEAT_ROW_1_RIGHT, _VENT
+        comfort_pb2.SEAT_ROW_1_RIGHT, comfort_pb2.CONDITIONING_VENT
     ),
     VehicleCommand.CABIN_HVAC_REAR_LEFT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_2_LEFT),
     VehicleCommand.CABIN_HVAC_REAR_RIGHT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_2_RIGHT),
@@ -198,18 +174,20 @@ _COMMANDS: dict[str, tuple[str, str, _Build]] = {
         comfort_pb2.SEAT_ROW_3_RIGHT
     ),
     VehicleCommand.CABIN_HVAC_STEERING_HEAT: (
-        _COMFORT,
-        "comfort.cabin.set_cabin_surface",
-        _surface(
-            comfort_pb2.STEERING_WHEEL, comfort_pb2.CONDITIONING_HEAT, _WHEEL_LEVELS
+        "PVS_COMF_CMD",
+        SET_CABIN_SURFACE_RVM,
+        lambda p: encode_cabin_surface(
+            comfort_pb2.STEERING_WHEEL,
+            comfort_pb2.CONDITIONING_HEAT,
+            _STEERING_WHEEL_LEVELS[p["level"]],
         ),
     ),
-    VehicleCommand.START_CHARGING: (_ENERGY, "charging.energy.start_charging", _empty),
-    VehicleCommand.STOP_CHARGING: (_ENERGY, "charging.energy.stop_charging", _empty),
+    VehicleCommand.START_CHARGING: ("PVS_ENRG_CMD", START_CHARGING_RVM, lambda _: b""),
+    VehicleCommand.STOP_CHARGING: ("PVS_ENRG_CMD", STOP_CHARGING_RVM, lambda _: b""),
     VehicleCommand.CHARGING_LIMITS: (
-        _ENERGY,
-        "charging.energy.set_charge_limit",
-        _charge_limit,
+        "PVS_ENRG_CMD",
+        SET_CHARGE_LIMIT_RVM,
+        lambda p: encode_charge_limit(p["SOC_limit"]),
     ),
 }
 
@@ -228,9 +206,16 @@ def encode_vehicle_command(
 ) -> tuple[str, bytes]:
     """Return the RVM and payload for a command's Parallax equivalent.
 
-    `params` are those of `send_vehicle_command`.
+    `params` are those of `send_vehicle_command`, already checked with
+    `Rivian.validate_vehicle_command`. Seat level 1 and steering wheel level 4
+    have no Parallax equivalent.
     """
     if not (entry := _COMMANDS.get(command)):
         raise RivianBadRequestError(f"{command} has no Parallax equivalent")
-    _, rvm, build = entry
-    return rvm, build(params or {})
+    _, rvm, encode = entry
+    try:
+        return rvm, encode(params or {})
+    except KeyError as err:
+        raise RivianBadRequestError(
+            f"{command} {params} has no Parallax equivalent"
+        ) from err

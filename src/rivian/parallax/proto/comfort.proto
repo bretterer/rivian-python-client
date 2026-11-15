@@ -140,7 +140,7 @@ message DefrostDefogRequest {
 
 // comfort.cabin.set_preconditioning_temperature
 message PreconditioningTemperatureRequest {
-  optional float temperature = 1; // °C; sent even for 0 (LO)
+  optional float temperature = 1; // °C; the app sends LO (0) as an empty payload, and the vehicle reads both as 0
 }
 
 enum CabinSurfaceStatus {

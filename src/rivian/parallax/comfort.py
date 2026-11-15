@@ -11,6 +11,13 @@ CLIMATE_HOLD_SETTING_RVM: Final = "comfort.cabin.climate_hold_setting"
 CLIMATE_HOLD_STATUS_RVM: Final = "comfort.cabin.climate_hold_status"
 SET_CLIMATE_HOLD_RVM: Final = "comfort.cabin.set_climate_hold"
 SET_PET_MODE_RVM: Final = "comfort.cabin.set_pet_mode"
+ENABLE_PRECONDITIONING_RVM: Final = "comfort.cabin.enable_preconditioning"
+DISABLE_PRECONDITIONING_RVM: Final = "comfort.cabin.disable_preconditioning"
+SET_PRECONDITIONING_TEMPERATURE_RVM: Final = (
+    "comfort.cabin.set_preconditioning_temperature"
+)
+SET_DEFROST_DEFOG_RVM: Final = "comfort.cabin.set_defrost_defog"
+SET_CABIN_SURFACE_RVM: Final = "comfort.cabin.set_cabin_surface"
 
 
 @RVMDecoder.register(
@@ -220,6 +227,33 @@ def encode_pet_mode(on: bool) -> bytes:
     """Encode a comfort.cabin.set_pet_mode payload."""
     action = comfort_pb2.ACTION_ON if on else comfort_pb2.ACTION_OFF
     return comfort_pb2.ActionRequest(action=action).SerializeToString()
+
+
+def encode_preconditioning_temperature(celsius: float) -> bytes:
+    """Encode a comfort.cabin.set_preconditioning_temperature payload."""
+    return comfort_pb2.PreconditioningTemperatureRequest(
+        temperature=celsius
+    ).SerializeToString()
+
+
+def encode_defrost_defog(on: bool) -> bytes:
+    """Encode a comfort.cabin.set_defrost_defog payload."""
+    status = comfort_pb2.DEFROST_DEFOG_DEFROST if on else comfort_pb2.DEFROST_OFF
+    return comfort_pb2.DefrostDefogRequest(status=status).SerializeToString()
+
+
+def encode_cabin_surface(
+    surface: comfort_pb2.CabinSurface,
+    conditioning: comfort_pb2.ConditioningType,
+    level: comfort_pb2.ConditioningLevel,
+) -> bytes:
+    """Encode a comfort.cabin.set_cabin_surface payload; level 0 turns it off."""
+    return comfort_pb2.CabinSurfaceRequest(
+        surface=surface,
+        level=level,
+        status=comfort_pb2.CABIN_SURFACE_ON if level else comfort_pb2.CABIN_SURFACE_OFF,
+        type=conditioning,
+    ).SerializeToString()
 
 
 @RVMDecoder.register(CLIMATE_HOLD_SETTING_RVM, comfort_pb2.ClimateHoldSetting)

@@ -8,6 +8,12 @@ from .core import RVMDecoder, _enum, _present
 from .proto import security_pb2
 
 START_LIVE_STREAMING_RVM: Final = "security.video_monitoring.start_live_streaming"
+ENABLE_PANIC_RVM: Final = "security.alarm.enable_panic"
+DISABLE_PANIC_RVM: Final = "security.alarm.disable_panic"
+ENABLE_VIDEO_MONITORING_RVM: Final = "security.video_monitoring.enable_video_monitoring"
+DISABLE_VIDEO_MONITORING_RVM: Final = (
+    "security.video_monitoring.disable_video_monitoring"
+)
 
 GEAR_GUARD_CAMERAS: Final[dict[str, security_pb2.GearGuardCamera]] = {
     "front": security_pb2.GEAR_GUARD_CAMERA_FRONT,

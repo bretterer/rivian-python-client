@@ -103,7 +103,8 @@ def test_feature() -> None:
         == "PVS_COMF_CMD"
     )
     assert vehicle_command_feature(VehicleCommand.START_CHARGING) == "PVS_ENRG_CMD"
-    assert vehicle_command_feature(VehicleCommand.CLOSE_LIFTGATE) == "LIFTGATE_CMD"
+    # Like the app: LIFTGATE_CMD only shows the liftgate controls
+    assert vehicle_command_feature(VehicleCommand.CLOSE_LIFTGATE) == "PVS_BD_CMD"
     assert vehicle_command_feature(VehicleCommand.WAKE_VEHICLE) is None
     assert vehicle_command_feature("NOT_A_COMMAND") is None
 
@@ -114,14 +115,11 @@ def test_feature() -> None:
         (VehicleCommand.WAKE_VEHICLE, None),
         (VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT, {"level": 1}),
         (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": 4}),
-        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 30}),
-        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 40}),
         (VehicleCommand.CHARGING_LIMITS, None),
-        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 80.5}),
-        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": "warm"}),
+        (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {}),
     ],
 )
-def test_invalid(command: VehicleCommand, params: dict[str, Any] | None) -> None:
-    """Commands without an equivalent, or with invalid params, are rejected."""
+def test_no_equivalent(command: VehicleCommand, params: dict[str, Any] | None) -> None:
+    """Commands, levels or missing params with no Parallax equivalent are rejected."""
     with pytest.raises(RivianBadRequestError):
         encode_vehicle_command(command, params)
