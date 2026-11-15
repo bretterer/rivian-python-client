@@ -55,6 +55,22 @@ class _Backoff:
     rate_limited: bool = False  # whether the backoff until retry_at is a rate limit
 
 
+async def _run_callback(
+    callback: Callable[[dict[str, Any]], None], data: dict[str, Any]
+) -> None:
+    """Run a subscription callback, logging instead of raising if it fails.
+
+    A failing callback shouldn't take the connection down.
+    """
+    try:
+        if inspect.iscoroutinefunction(callback):
+            await callback(data)
+        else:
+            callback(data)
+    except Exception:  # pylint: disable=broad-except
+        _LOGGER.exception("Error in a subscription callback")
+
+
 class WebSocketMonitor:
     """Web socket monitor for a vehicle."""
 
@@ -309,21 +325,13 @@ class WebSocketMonitor:
                     elif data_type == "next":
                         self._reset_backoff()
                         if (_id := data.get("id")) in self._subscriptions:
-                            _fn = self._subscriptions[_id][0]
-                            # A failing callback shouldn't take the connection down
-                            try:
-                                if inspect.iscoroutinefunction(_fn):
-                                    await _fn(data)
-                                else:
-                                    _fn(data)
-                            except Exception:  # pylint: disable=broad-except
-                                _LOGGER.exception("Error in a subscription callback")
+                            await _run_callback(self._subscriptions[_id][0], data)
                     elif (
                         data_type == "error"
                         and (subscription := self._subscriptions.get(data.get("id")))
                         and subscription[2]
                     ):
-                        subscription[2](data)
+                        await _run_callback(subscription[2], data)
                     else:
                         self._log_message(msg)
                 elif msg.type == WSMsgType.ERROR:

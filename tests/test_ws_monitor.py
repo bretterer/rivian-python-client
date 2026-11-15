@@ -614,3 +614,26 @@ async def test_subscription_errors_reach_on_error(
     await wait_for(lambda: errors)
     assert errors[0]["type"] == "error"
     assert monitor.connected
+
+
+async def test_failing_on_error_keeps_connection(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """An on_error that raises is logged, and later messages still arrive."""
+    server.error_on_subscribe = True
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: monitor.connection_ack.is_set())
+
+    def failing(_: dict[str, Any]) -> None:
+        raise ValueError("on_error failed")
+
+    errors: list[dict[str, Any]] = []
+    await monitor.start_subscription({"query": "a"}, lambda _: None, failing)
+    await monitor.start_subscription({"query": "b"}, lambda _: None, errors.append)
+    await wait_for(lambda: errors)
+
+    assert "Error in a subscription callback" in caplog.text
+    assert monitor.connected
+    assert server.connections == 1
