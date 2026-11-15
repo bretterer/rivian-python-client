@@ -55,6 +55,22 @@ class _Backoff:
     rate_limited: bool = False  # whether the backoff until retry_at is a rate limit
 
 
+async def _run_callback(
+    callback: Callable[[dict[str, Any]], None], data: dict[str, Any]
+) -> None:
+    """Run a subscription callback, logging instead of raising if it fails.
+
+    A failing callback shouldn't take the connection down.
+    """
+    try:
+        if inspect.iscoroutinefunction(callback):
+            await callback(data)
+        else:
+            callback(data)
+    except Exception:  # pylint: disable=broad-except
+        _LOGGER.exception("Error in a subscription callback")
+
+
 class WebSocketMonitor:
     """Web socket monitor for a vehicle."""
 
@@ -98,8 +114,14 @@ class WebSocketMonitor:
         self._monitor_task: asyncio.Task | None = None
         self._receiver_task: asyncio.Task | None = None
         self._last_received: datetime | None = None
+        # id -> (callback, payload, error callback)
         self._subscriptions: dict[
-            str, tuple[Callable[[dict[str, Any]], None], dict[str, Any]]
+            str,
+            tuple[
+                Callable[[dict[str, Any]], None],
+                dict[str, Any],
+                Callable[[dict[str, Any]], None] | None,
+            ],
         ] = {}
 
     @property
@@ -211,13 +233,20 @@ class WebSocketMonitor:
         return self._connection_ack.is_set()
 
     async def start_subscription(
-        self, payload: dict[str, Any], callback: Callable[[dict[str, Any]], None]
+        self,
+        payload: dict[str, Any],
+        callback: Callable[[dict[str, Any]], None],
+        on_error: Callable[[dict[str, Any]], None] | None = None,
     ) -> Callable[[], Awaitable[None]] | None:
-        """Start a subscription."""
+        """Start a subscription.
+
+        `on_error` gets the subscription's error messages, which are otherwise
+        only logged.
+        """
         if not self.connected:
             return None
         _id = str(uuid4())
-        self._subscriptions[_id] = (callback, payload)
+        self._subscriptions[_id] = (callback, payload, on_error)
         await self._subscribe(_id, payload)
 
         async def unsubscribe() -> None:
@@ -247,7 +276,7 @@ class WebSocketMonitor:
         except TimeoutError:
             _LOGGER.error("A timeout occurred while attempting to resubscribe")
             return
-        for _id, (_, payload) in self._subscriptions.items():
+        for _id, (_, payload, _) in self._subscriptions.items():
             await self._subscribe(_id, payload)
 
     async def _receiver(self) -> None:
@@ -296,15 +325,13 @@ class WebSocketMonitor:
                     elif data_type == "next":
                         self._reset_backoff()
                         if (_id := data.get("id")) in self._subscriptions:
-                            _fn = self._subscriptions[_id][0]
-                            # A failing callback shouldn't take the connection down
-                            try:
-                                if inspect.iscoroutinefunction(_fn):
-                                    await _fn(data)
-                                else:
-                                    _fn(data)
-                            except Exception:  # pylint: disable=broad-except
-                                _LOGGER.exception("Error in a subscription callback")
+                            await _run_callback(self._subscriptions[_id][0], data)
+                    elif (
+                        data_type == "error"
+                        and (subscription := self._subscriptions.get(data.get("id")))
+                        and subscription[2]
+                    ):
+                        await _run_callback(subscription[2], data)
                     else:
                         self._log_message(msg)
                 elif msg.type == WSMsgType.ERROR:

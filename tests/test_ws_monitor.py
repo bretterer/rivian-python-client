@@ -31,6 +31,7 @@ class FakeServer:
         self.ping_once_connections = 0
         self.connections = 0
         self.next_on_subscribe = False
+        self.error_on_subscribe = False
         self.url = ""
 
     async def handler(self, request: web.Request) -> web.WebSocketResponse:
@@ -72,6 +73,10 @@ class FakeServer:
                 data = msg.json()
                 if self.next_on_subscribe and data.get("type") == "subscribe":
                     await ws.send_json({"id": data["id"], "type": "next"})
+                if self.error_on_subscribe and data.get("type") == "subscribe":
+                    await ws.send_json(
+                        {"id": data["id"], "type": "error", "payload": [{}]}
+                    )
         return ws
 
 
@@ -159,7 +164,7 @@ def backoff() -> Iterator[BackoffSleeps]:
 
 def add_subscription(monitor: WebSocketMonitor) -> None:
     """Give the monitor a subscription to resume, so it keeps reconnecting."""
-    monitor._subscriptions["sub"] = (lambda _: None, {"query": "subscription"})
+    monitor._subscriptions["sub"] = (lambda _: None, {"query": "subscription"}, None)
 
 
 async def wait_for(condition: Any, timeout: float = 5) -> None:
@@ -594,3 +599,41 @@ async def test_monitor_stops_when_the_session_closes(
     await wait_for(monitor.monitor.done)
     assert server.connections == 1
     assert not [r for r in caplog.records if r.levelname == "ERROR"]
+
+
+async def test_subscription_errors_reach_on_error(
+    server: FakeServer, monitor: WebSocketMonitor
+) -> None:
+    """A subscription's error message goes to its on_error, if it has one."""
+    server.error_on_subscribe = True
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: monitor.connection_ack.is_set())
+    errors: list[dict[str, Any]] = []
+    await monitor.start_subscription({"query": "a"}, lambda _: None, errors.append)
+    await monitor.start_subscription({"query": "b"}, lambda _: None)
+    await wait_for(lambda: errors)
+    assert errors[0]["type"] == "error"
+    assert monitor.connected
+
+
+async def test_failing_on_error_keeps_connection(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """An on_error that raises is logged, and later messages still arrive."""
+    server.error_on_subscribe = True
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: monitor.connection_ack.is_set())
+
+    def failing(_: dict[str, Any]) -> None:
+        raise ValueError("on_error failed")
+
+    errors: list[dict[str, Any]] = []
+    await monitor.start_subscription({"query": "a"}, lambda _: None, failing)
+    await monitor.start_subscription({"query": "b"}, lambda _: None, errors.append)
+    await wait_for(lambda: errors)
+
+    assert "Error in a subscription callback" in caplog.text
+    assert monitor.connected
+    assert server.connections == 1
