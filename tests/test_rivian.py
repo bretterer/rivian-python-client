@@ -32,7 +32,7 @@ from rivian.exceptions import (
 )
 from rivian.parallax import UNLOCK_RVM, encode_unlock
 from rivian.parallax.proto import command_pb2, operation_pb2
-from rivian.rivian import CHARGING_NETWORKS
+from rivian.rivian import _CHARGING_NETWORK_IDS
 from rivian.utils import generate_key_pair
 
 from .responses import (
@@ -453,7 +453,6 @@ async def test_trips(aresponses: ResponsesMockServer) -> None:
     requests = capture_requests(
         aresponses,
         {"data": {"sendTripToVehicle": True}},
-        {"data": {"sendTripToVehicle": True}},
         {"data": {"sendTripToVehicle": False}},
         {"data": {"sendParallaxPayload": {"success": True}}},
         {"data": {"sendParallaxPayload": None}},
@@ -475,24 +474,18 @@ async def test_trips(aresponses: ResponsesMockServer) -> None:
         ]
         assert waypoints[-1]["minArrivalSoC"] == 30
         assert "minArrivalSoC" not in waypoints[0]
-        assert [n["networkId"] for n in attrs["preferences"]["networks"]] == [
-            network_id for ids in CHARGING_NETWORKS.values() for network_id in ids
-        ]
-
-        assert await rivian.send_trip_to_vehicle(
-            "vehicle_id", (40.1, -92.5), stops, networks=["rivian", "tesla"]
+        assert [n["networkId"] for n in attrs["preferences"]["networks"]] == list(
+            _CHARGING_NETWORK_IDS
         )
-        networks = requests[1]["variables"]["attrs"]["preferences"]["networks"]
-        assert [n["networkId"] for n in networks] == ["10001", "10002", "10050"]
         assert not await rivian.send_trip_to_vehicle("vehicle_id", (40.1, -92.5), stops)
-        for bad in ({"stops": []}, {"networks": ["x"]}, {"min_arrival_soc": 101}):
+        for bad in ({"stops": []}, {"min_arrival_soc": 101}):
             with pytest.raises(RivianBadRequestError):
                 await rivian.send_trip_to_vehicle(
                     "vehicle_id", (0, 0), **({"stops": stops} | bad)
                 )
 
         assert await rivian.end_trip("vehicle_id", "user")
-        assert requests[3]["variables"]["meta"] == {
+        assert requests[2]["variables"]["meta"] == {
             "isVehicleModelOp": False,
             "model": "c2v_navigation.trip_copilot.updated_trip",
             "requiresWakeup": True,

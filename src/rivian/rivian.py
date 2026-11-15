@@ -74,19 +74,22 @@ TEMPLATE_MAP = {
 }
 QUERY_TEMPLATE_MAP = TEMPLATE_MAP | {"gnssLocation": QUERY_LOCATION_TEMPLATE}
 
-# Charging network ids by name, as the Rivian app's charging filter offers them; a
-# trip plans with all of them unless the filter is set
-CHARGING_NETWORKS: dict[str, tuple[str, ...]] = {
-    "rivian": ("10001", "10002"),  # Adventure and Waypoints
-    "chargepoint": ("10025",),
-    "electrify_america": ("10027",),
-    "ev_connect": ("10030",),
-    "evgo": ("10031",),
-    "flo": ("10032", "10033"),
-    "shell_recharge": ("10045",),
-    "tesla": ("10050",),
-    "ionna": ("10056",),
-}
+# Charging network ids the Rivian app sends with a trip. The vehicle plans its own
+# charging stops, and these were a soft preference with no visible effect, so all
+# are always sent.
+_CHARGING_NETWORK_IDS = (
+    "10001",  # Rivian Adventure
+    "10002",  # Rivian Waypoints
+    "10025",  # ChargePoint
+    "10027",  # Electrify America
+    "10030",  # EV Connect
+    "10031",  # EVgo
+    "10032",  # FLO
+    "10033",  # FLO
+    "10045",  # Shell Recharge
+    "10050",  # Tesla
+    "10056",  # IONNA
+)
 
 # Minutes; the durations the Rivian app offers
 CLIMATE_HOLD_DURATIONS = range(120, 481, 15)
@@ -687,23 +690,18 @@ class Rivian:
         origin: tuple[float, float],
         stops: list[tuple[str, float, float]],
         min_arrival_soc: int = 20,
-        networks: list[str] | None = None,
     ) -> bool:
         """Send a trip to the vehicle's navigation, waking it if needed.
 
         `origin` is the vehicle's (latitude, longitude) and `stops` are (name,
         latitude, longitude) in order. The vehicle plans the route and charging
-        stops itself, arriving with at least `min_arrival_soc` percent, at chargers
-        of the `CHARGING_NETWORKS` named in `networks` (default all). It replaces
-        any trip the vehicle is navigating.
+        stops itself, arriving with at least `min_arrival_soc` percent. The vehicle
+        ignores it while navigating another trip, so end that one first.
         """
         if not stops:
             raise RivianBadRequestError("A trip needs at least one stop")
         if not 0 <= min_arrival_soc <= 100:
             raise RivianBadRequestError("Minimum arrival charge must be 0 to 100")
-        names = CHARGING_NETWORKS if networks is None else networks
-        if unknown := set(names) - CHARGING_NETWORKS.keys():
-            raise RivianBadRequestError(f"Unknown charging networks: {sorted(unknown)}")
         url = GRAPHQL_GATEWAY
         headers = BASE_HEADERS | {
             "Csrf-Token": self._csrf_token,
@@ -732,8 +730,7 @@ class Rivian:
                         "avoidAdapterRequired": False,
                         "networks": [
                             {"networkId": network_id}
-                            for name in names
-                            for network_id in CHARGING_NETWORKS[name]
+                            for network_id in _CHARGING_NETWORK_IDS
                         ],
                     },
                     "requiresWakeup": True,
