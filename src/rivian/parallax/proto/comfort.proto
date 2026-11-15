@@ -74,6 +74,18 @@ message ClimateHoldSetting {
   int32 duration = 1; // seconds; empty payload when no hold is set
 }
 
+// comfort.cabin.set_climate_hold and comfort.cabin.set_pet_mode; the names
+// are the app's
+message ActionRequest {
+  Action action = 1;
+}
+
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+  ACTION_ON = 1;
+  ACTION_OFF = 2;
+}
+
 // comfort.cabin.climate_hold_status
 message ClimateHoldStatus {
   ClimateHoldStatusValue status = 1;

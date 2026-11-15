@@ -28,6 +28,12 @@ class PreconditioningType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     PRECONDITIONING_TYPE_SCHEDULED: _ClassVar[PreconditioningType]
     PRECONDITIONING_TYPE_AUTO_CABIN_VENTILATION: _ClassVar[PreconditioningType]
 
+class Action(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ACTION_UNSPECIFIED: _ClassVar[Action]
+    ACTION_ON: _ClassVar[Action]
+    ACTION_OFF: _ClassVar[Action]
+
 class ClimateHoldStatusValue(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     CLIMATE_HOLD_STATUS_UNSPECIFIED: _ClassVar[ClimateHoldStatusValue]
@@ -123,6 +129,9 @@ PRECONDITIONING_TYPE_USER_SELECTED: PreconditioningType
 PRECONDITIONING_TYPE_SCREEN_PROTECTION: PreconditioningType
 PRECONDITIONING_TYPE_SCHEDULED: PreconditioningType
 PRECONDITIONING_TYPE_AUTO_CABIN_VENTILATION: PreconditioningType
+ACTION_UNSPECIFIED: Action
+ACTION_ON: Action
+ACTION_OFF: Action
 CLIMATE_HOLD_STATUS_UNSPECIFIED: ClimateHoldStatusValue
 CLIMATE_HOLD_STATUS_UNAVAILABLE: ClimateHoldStatusValue
 CLIMATE_HOLD_STATUS_OFF: ClimateHoldStatusValue
@@ -237,6 +246,12 @@ class ClimateHoldSetting(_message.Message):
     DURATION_FIELD_NUMBER: _ClassVar[int]
     duration: int
     def __init__(self, duration: _Optional[int] = ...) -> None: ...
+
+class ActionRequest(_message.Message):
+    __slots__ = ("action",)
+    ACTION_FIELD_NUMBER: _ClassVar[int]
+    action: Action
+    def __init__(self, action: _Optional[_Union[Action, str]] = ...) -> None: ...
 
 class ClimateHoldStatus(_message.Message):
     __slots__ = ("status", "availability", "unavailability_reason", "end_time")
