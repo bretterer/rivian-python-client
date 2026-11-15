@@ -3,7 +3,9 @@
 # pylint: disable=protected-access
 from __future__ import annotations
 
+import asyncio
 import base64
+import gc
 import json
 import uuid
 from datetime import UTC, date, datetime
@@ -493,6 +495,90 @@ async def test_trips(aresponses: ResponsesMockServer) -> None:
             "vehicleId": "vehicle_id",
         }
         assert not await rivian.end_trip("vehicle_id", "user")
+
+
+async def test_start_gear_guard_live_stream(aresponses: ResponsesMockServer) -> None:
+    """Test starting a Gear Guard live stream."""
+    requests = capture_requests(
+        aresponses,
+        SEND_PARALLAX_COMMAND_RESPONSE,
+        {"data": {"sendParallaxPayload": None}},
+        SEND_PARALLAX_COMMAND_RESPONSE,
+        SEND_PARALLAX_COMMAND_RESPONSE,
+        {"data": {"sendParallaxPayload": None}},
+    )
+    vehicle_key, private_key = generate_key_pair()
+    keys = {
+        "identity_id": "identity_id",
+        "vehicle_key": vehicle_key,
+        "private_key": private_key,
+    }
+    live = {"endpoint": "wss://kinesis", "role": "VIEWER", "iceServers": []}
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+        subscriptions: list[dict[str, Any]] = []
+        unsubscribe = AsyncMock()
+
+        async def subscribe(
+            payload: dict[str, Any], callback: Any, _: str, on_error: Any
+        ) -> Any:
+            subscriptions.append(payload)
+            callback({"payload": {"data": {"gearGuardLiveConfig": live}}})
+            return unsubscribe
+
+        rivian._start_subscription = subscribe  # type: ignore[method-assign]
+        config = await rivian.start_gear_guard_live_stream("vehicle_id", "rear", **keys)
+        assert config == live
+        _, operation = decode_parallax_command(requests[0])
+        assert operation.rvm == "security.video_monitoring.start_live_streaming"
+        # The config is routed by the start command's id
+        assert subscriptions[0]["variables"]["commandId"] == operation.command_id.hex()
+
+        # A rejected start returns None and still ends the subscription
+        assert not await rivian.start_gear_guard_live_stream("vehicle_id", **keys)
+        assert unsubscribe.await_count == 2
+        with pytest.raises(RivianBadRequestError):
+            await rivian.start_gear_guard_live_stream("vehicle_id", "roof", **keys)
+
+        # A refused start fails straight away instead of timing out
+        async def refuse(
+            payload: dict[str, Any], callback: Any, _: str, on_error: Any
+        ) -> Any:
+            on_error(
+                {"payload": [{"extensions": {"reason": "VEHICLE_COMMAND_FORBIDDEN"}}]}
+            )
+            return unsubscribe
+
+        rivian._start_subscription = refuse  # type: ignore[method-assign]
+        with pytest.raises(RivianApiException, match="VEHICLE_COMMAND_FORBIDDEN"):
+            await rivian.start_gear_guard_live_stream("vehicle_id", timeout=30, **keys)
+
+        # An error payload sent as an object instead of a list still fails the start
+        async def refuse_object(
+            payload: dict[str, Any], callback: Any, _: str, on_error: Any
+        ) -> Any:
+            on_error({"payload": {"extensions": {"reason": "VEHICLE_ASLEEP"}}})
+            return unsubscribe
+
+        rivian._start_subscription = refuse_object  # type: ignore[method-assign]
+        with pytest.raises(RivianApiException, match="VEHICLE_ASLEEP"):
+            await rivian.start_gear_guard_live_stream("vehicle_id", timeout=30, **keys)
+
+        # A refusal before a rejected start is read, so asyncio doesn't log it
+        loop = asyncio.get_running_loop()
+        unread: list[dict[str, Any]] = []
+        loop.set_exception_handler(lambda _, context: unread.append(context))
+        try:
+            rivian._start_subscription = refuse  # type: ignore[method-assign]
+            assert not await rivian.start_gear_guard_live_stream("vehicle_id", **keys)
+            gc.collect()
+        finally:
+            loop.set_exception_handler(None)
+        assert not unread
 
 
 async def test_subscribe_for_departure_schedules() -> None:

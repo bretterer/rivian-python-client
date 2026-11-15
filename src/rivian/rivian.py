@@ -34,10 +34,13 @@ from .exceptions import (
 from .parallax import (
     CLIMATE_HOLD_SETTING_RVM,
     CLIMATE_HOLD_STATUS_RVM,
+    GEAR_GUARD_CAMERAS,
+    START_LIVE_STREAMING_RVM,
     UPDATED_TRIP_MODEL,
     encode_climate_hold_setting,
     encode_command,
     encode_end_trip,
+    encode_live_streaming,
     encode_vehicle_operation,
 )
 from .utils import generate_vehicle_command_hmac, send_deprecation_warning
@@ -788,6 +791,85 @@ class Rivian:
                 (data.get("data", {}).get("sendParallaxPayload") or {}).get("success")
             )
         return False
+
+    async def start_gear_guard_live_stream(
+        self,
+        vehicle_id: str,
+        camera: str = "front",
+        *,
+        identity_id: str,
+        vehicle_key: str,
+        private_key: str,
+        device_id: str = "rivian-python-client",
+        timeout: float = 40,
+    ) -> dict[str, Any] | None:
+        """Start a Gear Guard live stream and return its Kinesis WebRTC config.
+
+        `camera` is a `parallax.GEAR_GUARD_CAMERAS` key. Needs Gear Guard video
+        monitoring on and a paired phone; the vehicle serves one viewer at a time,
+        about 3 minutes each and an hour a day. None if the start fails or no config
+        arrives within `timeout` seconds (a sleeping vehicle may need longer).
+        Raises RivianApiException if the vehicle refuses the stream, e.g. for a
+        camera it doesn't have.
+        """
+        if camera not in GEAR_GUARD_CAMERAS:
+            raise RivianBadRequestError(f"Unknown camera: {camera}")
+        command_id = str(uuid.uuid4())
+        config: asyncio.Future[dict[str, Any]] = (
+            asyncio.get_running_loop().create_future()
+        )
+
+        def on_message(message: dict[str, Any]) -> None:
+            data = (message.get("payload") or {}).get("data") or {}
+            live = data.get("gearGuardLiveConfig") or {}
+            if live.get("endpoint") and not config.done():
+                config.set_result(live)
+
+        def on_error(message: dict[str, Any]) -> None:
+            payload = message.get("payload") or [{}]
+            error = (payload if isinstance(payload, list) else [payload])[0]
+            reason = (error.get("extensions") or {}).get("reason")
+            if not config.done():
+                config.set_exception(
+                    RivianApiException(f"The vehicle refused the stream: {reason}")
+                )
+
+        # The cloud sends the config to the subscription whose commandId is the
+        # start command's id, as hex
+        unsubscribe = await self._start_subscription(
+            {
+                "operationName": "GearGuardLiveConfigSubscription",
+                "query": "subscription GearGuardLiveConfigSubscription($vehicleId: String!, $commandId: String!) { gearGuardLiveConfig(vehicleId: $vehicleId, commandId: $commandId) { __typename endpoint channelArn role iceServers { __typename url username credential ttl } } }",
+                "variables": {
+                    "vehicleId": vehicle_id,
+                    "commandId": uuid.UUID(command_id).hex,
+                },
+            },
+            on_message,
+            f"{vehicle_id} Gear Guard live config",
+            on_error,
+        )
+        if not unsubscribe:
+            return None
+        try:
+            if not await self.send_parallax_command(
+                vehicle_id,
+                START_LIVE_STREAMING_RVM,
+                encode_live_streaming(camera, device_id),
+                identity_id=identity_id,
+                vehicle_key=vehicle_key,
+                private_key=private_key,
+                command_id=command_id,
+            ):
+                return None
+            return await asyncio.wait_for(config, timeout)
+        except TimeoutError:
+            return None
+        finally:
+            await unsubscribe()
+            # Read a refusal left on the future by an early return, or asyncio logs it
+            if config.done() and not config.cancelled():
+                config.exception()
 
     async def get_vehicle_ota_update_details(self, vehicle_id: str) -> ClientResponse:
         """Get vehicle OTA update details."""
