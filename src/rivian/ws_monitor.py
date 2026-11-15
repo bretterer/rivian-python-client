@@ -339,6 +339,11 @@ class WebSocketMonitor:
                 await asyncio.sleep(delay)
             if self._disconnect or self.connected:
                 continue
+            # pylint: disable=protected-access
+            if (session := self._account._session) is None or session.closed:
+                # The HTTP session is gone (e.g. Home Assistant is stopping)
+                self._log_message("web socket monitor stopped, session closed")
+                break
             if not self._disconnect:
                 try:
                     await self.new_connection()
