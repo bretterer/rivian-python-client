@@ -48,3 +48,12 @@ def test_generate_vehicle_command_hmac() -> None:
         command, timestamp, VEHICLE_KEY, PRIVATE_KEY
     )
     assert hmac == "2a68bdda69ff8643e37bac595905f6a481435e00bb63bdd415ecbb425a5bb598"
+
+
+def test_place_url() -> None:
+    """A place link carries the place's name, id, address and coordinates."""
+    assert utils.place_url("place_id", "REI", 41.5, -93.7, "1 Main St") == (
+        "https://telenav.id/entity?geo_coordinates=41.5%2C-93.7&entity_id=place_id"
+        "&name=REI&nav_coordinates=41.5%2C-93.7&address=1+Main+St&source_type=telenav"
+    )
+    assert "address" not in utils.place_url("place_id", "REI", 41.5, -93.7)
