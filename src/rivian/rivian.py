@@ -875,7 +875,7 @@ class Rivian:
         """
         if camera not in GEAR_GUARD_CAMERAS:
             raise RivianBadRequestError(f"Unknown camera: {camera}")
-        command_id = str(uuid.uuid4())
+        command_id = _command_id()
         config: asyncio.Future[dict[str, Any]] = (
             asyncio.get_running_loop().create_future()
         )
