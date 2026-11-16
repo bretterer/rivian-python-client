@@ -996,7 +996,8 @@ class Rivian:
         """
         self.validate_vehicle_command(command, params)
         if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP and params:
-            params["HVAC_set_temp"] = str(params["HVAC_set_temp"])
+            # A copy, so the caller's params can be sent again
+            params = params | {"HVAC_set_temp": str(params["HVAC_set_temp"])}
 
         command = str(command)
         timestamp = str(int(time.time()))
