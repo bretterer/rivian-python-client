@@ -157,7 +157,8 @@ class Rivian:
         self._otp_needed = False
         self._otp_token = ""
 
-        # Held while connecting, so subscribes started together share a connection
+        # Held while connecting, so subscribes started together, or while a closing
+        # connection is replaced, share one connection
         self._ws_connect_lock = asyncio.Lock()
         self._ws_monitor: WebSocketMonitor | None = None
         self._subscriptions: dict[str, str] = {}

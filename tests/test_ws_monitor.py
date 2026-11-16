@@ -524,6 +524,38 @@ async def test_subscribe_while_closing_gets_a_working_connection(
     assert len(monitor._subscriptions) == 1
 
 
+async def test_queued_new_connection_reuses_the_new_one(
+    server: FakeServer, monitor: WebSocketMonitor
+) -> None:
+    """A connect that waited for another (e.g. the monitor's) uses its connection."""
+    await asyncio.gather(monitor.new_connection(), monitor.new_connection())
+
+    assert server.connections == 1
+    assert monitor.connected
+
+
+async def test_close_stops_a_stuck_reconnect(monitor: WebSocketMonitor) -> None:
+    """Closing doesn't wait for a reconnect the monitor is stuck in."""
+    connecting = asyncio.Event()
+
+    async def hang(*_: Any, **__: Any) -> None:
+        connecting.set()
+        await asyncio.Event().wait()
+
+    with patch.object(monitor._account._session, "ws_connect", hang):
+        # As the monitor's own reconnect, which holds the lifecycle lock
+        reconnect = asyncio.ensure_future(monitor.new_connection())
+        monitor._monitor_task = reconnect
+        await connecting.wait()
+        try:
+            async with asyncio.timeout(2):
+                await monitor.close()
+        finally:
+            reconnect.cancel()
+
+    assert reconnect.cancelled()
+
+
 async def test_failing_callback_keeps_connection(
     server: FakeServer,
     monitor: WebSocketMonitor,
