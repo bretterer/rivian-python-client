@@ -7,8 +7,8 @@ category's supported feature as AVAILABLE, and as a legacy
 
 from __future__ import annotations
 
-from collections.abc import Callable, Container
-from typing import Any, Final
+from collections.abc import Callable
+from typing import Any, Final, TypeGuard
 
 from ..const import VehicleCommand
 from ..exceptions import RivianBadRequestError
@@ -62,31 +62,70 @@ _STEERING_WHEEL_LEVELS: Final[dict[int, comfort_pb2.ConditioningLevel]] = {
 _Encode = Callable[[dict[str, Any]], bytes]
 
 
-def _int_param(params: dict[str, Any], key: str, valid: Container[int]) -> int:
-    """Return an int param, as `Rivian.validate_vehicle_command` accepts it."""
-    value = params.get(key)
-    if isinstance(value, bool) or not isinstance(value, int) or value not in valid:
-        raise RivianBadRequestError(f"`{key}` {value!r} has no Parallax equivalent")
-    return value
+# Commands whose `level` param is 0..4: 0 is off, 1 is on, 2..4 are level_1..level_3
+HVAC_LEVEL_COMMANDS: Final[frozenset[str]] = frozenset(
+    {
+        VehicleCommand.CABIN_HVAC_DEFROST_DEFOG,
+        VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT,
+        VehicleCommand.CABIN_HVAC_LEFT_SEAT_VENT,
+        VehicleCommand.CABIN_HVAC_REAR_LEFT_SEAT_HEAT,
+        VehicleCommand.CABIN_HVAC_REAR_RIGHT_SEAT_HEAT,
+        VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT,
+        VehicleCommand.CABIN_HVAC_RIGHT_SEAT_VENT,
+        VehicleCommand.CABIN_HVAC_STEERING_HEAT,
+        VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_LEFT_SEAT_HEAT,
+        VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_RIGHT_SEAT_HEAT,
+    }
+)
 
 
-def _level(
-    params: dict[str, Any], levels: dict[int, comfort_pb2.ConditioningLevel]
-) -> comfort_pb2.ConditioningLevel:
-    return levels[_int_param(params, "level", levels)]
+def _is_int(value: Any) -> TypeGuard[int]:
+    return isinstance(value, int) and not isinstance(value, bool)
 
 
-def _temperature(params: dict[str, Any]) -> float:
-    temp = params.get("HVAC_set_temp")
-    if (
-        isinstance(temp, bool)
-        or not isinstance(temp, (float, int))
-        or not (16 <= temp <= 29 or temp in (0, 63.5))
+def check_charge_limit(params: dict[str, Any] | None) -> int:
+    """Return the `SOC_limit` param, or raise RivianBadRequestError if invalid."""
+    limit = (params or {}).get("SOC_limit")
+    if not (_is_int(limit) and 50 <= limit <= 100):
+        raise RivianBadRequestError(
+            "Charging limit must include parameter `SOC_limit` with a valid value between 50 and 100"
+        )
+    return limit
+
+
+def check_hvac_level(params: dict[str, Any] | None) -> int:
+    """Return the `level` param, or raise RivianBadRequestError if invalid."""
+    level = (params or {}).get("level")
+    if not (_is_int(level) and 0 <= level <= 4):
+        raise RivianBadRequestError(
+            "HVAC setting must include parameter `level` with a valid value between 0 and 4"
+        )
+    return level
+
+
+def check_temperature(params: dict[str, Any] | None) -> float:
+    """Return the `HVAC_set_temp` param, or raise RivianBadRequestError if invalid."""
+    temp = (params or {}).get("HVAC_set_temp")
+    if not (
+        (_is_int(temp) or isinstance(temp, float))
+        and (16 <= temp <= 29 or temp in (0, 63.5))
     ):
         raise RivianBadRequestError(
-            f"`HVAC_set_temp` {temp!r} has no Parallax equivalent"
+            "HVAC setting must include parameter `HVAC_set_temp` with a valid value between 16 and 29 or 0/63.5 for LO/HI, respectively"
         )
     return float(temp)
+
+
+def _surface_level(
+    surface: comfort_pb2.CabinSurface,
+    params: dict[str, Any],
+    levels: dict[int, comfort_pb2.ConditioningLevel],
+) -> comfort_pb2.ConditioningLevel:
+    if (level := check_hvac_level(params)) not in levels:
+        raise RivianBadRequestError(
+            f"{comfort_pb2.CabinSurface.Name(surface)} level {level} has no Parallax equivalent"
+        )
+    return levels[level]
 
 
 def _seat(
@@ -96,7 +135,9 @@ def _seat(
     return (
         "PVS_COMF_CMD",
         SET_CABIN_SURFACE_RVM,
-        lambda p: encode_cabin_surface(surface, conditioning, _level(p, _SEAT_LEVELS)),
+        lambda p: encode_cabin_surface(
+            surface, conditioning, _surface_level(surface, p, _SEAT_LEVELS)
+        ),
     )
 
 
@@ -177,28 +218,31 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
     VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP: (
         "PVS_COMF_CMD",
         SET_PRECONDITIONING_TEMPERATURE_RVM,
-        lambda p: encode_preconditioning_temperature(_temperature(p)),
+        lambda p: encode_preconditioning_temperature(check_temperature(p)),
     ),
     VehicleCommand.CABIN_HVAC_DEFROST_DEFOG: (
         "PVS_COMF_CMD",
         SET_DEFROST_DEFOG_RVM,
-        lambda p: encode_defrost_defog(bool(_int_param(p, "level", range(5)))),
+        # Levels 1..4 all turn it on
+        lambda p: encode_defrost_defog(check_hvac_level(p) != 0),
     ),
     VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_1_LEFT),
     VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_1_RIGHT),
     VehicleCommand.CABIN_HVAC_LEFT_SEAT_VENT: _seat(
-        comfort_pb2.SEAT_ROW_1_LEFT, comfort_pb2.CONDITIONING_VENT
+        comfort_pb2.SEAT_ROW_1_LEFT,
+        comfort_pb2.CONDITIONING_VENT,
     ),
     VehicleCommand.CABIN_HVAC_RIGHT_SEAT_VENT: _seat(
-        comfort_pb2.SEAT_ROW_1_RIGHT, comfort_pb2.CONDITIONING_VENT
+        comfort_pb2.SEAT_ROW_1_RIGHT,
+        comfort_pb2.CONDITIONING_VENT,
     ),
     VehicleCommand.CABIN_HVAC_REAR_LEFT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_2_LEFT),
     VehicleCommand.CABIN_HVAC_REAR_RIGHT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_2_RIGHT),
     VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_LEFT_SEAT_HEAT: _seat(
-        comfort_pb2.SEAT_ROW_3_LEFT
+        comfort_pb2.SEAT_ROW_3_LEFT,
     ),
     VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_RIGHT_SEAT_HEAT: _seat(
-        comfort_pb2.SEAT_ROW_3_RIGHT
+        comfort_pb2.SEAT_ROW_3_RIGHT,
     ),
     VehicleCommand.CABIN_HVAC_STEERING_HEAT: (
         "PVS_COMF_CMD",
@@ -206,7 +250,7 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
         lambda p: encode_cabin_surface(
             comfort_pb2.STEERING_WHEEL,
             comfort_pb2.CONDITIONING_HEAT,
-            _level(p, _STEERING_WHEEL_LEVELS),
+            _surface_level(comfort_pb2.STEERING_WHEEL, p, _STEERING_WHEEL_LEVELS),
         ),
     ),
     VehicleCommand.START_CHARGING: ("PVS_ENRG_CMD", START_CHARGING_RVM, lambda _: b""),
@@ -214,7 +258,7 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
     VehicleCommand.CHARGING_LIMITS: (
         "PVS_ENRG_CMD",
         SET_CHARGE_LIMIT_RVM,
-        lambda p: encode_charge_limit(_int_param(p, "SOC_limit", range(50, 101))),
+        lambda p: encode_charge_limit(check_charge_limit(p)),
     ),
 }
 
@@ -233,9 +277,9 @@ def encode_vehicle_command(
 ) -> tuple[str, bytes]:
     """Return the RVM and payload for a command's Parallax equivalent.
 
-    `params` are those of `send_vehicle_command`, checked as
-    `Rivian.validate_vehicle_command` checks them. Seat level 1 and steering
-    wheel level 4 have no Parallax equivalent.
+    `params` are those of `send_vehicle_command`, checked with the same rules
+    as `Rivian.validate_vehicle_command`. Seat level 1 and steering wheel
+    level 4 have no Parallax equivalent.
     """
     if not (entry := _COMMANDS.get(command)):
         raise RivianBadRequestError(f"{command} has no Parallax equivalent")

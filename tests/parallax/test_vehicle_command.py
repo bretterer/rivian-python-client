@@ -6,9 +6,10 @@ from typing import Any
 
 import pytest
 
-from rivian import VehicleCommand
+from rivian import Rivian, VehicleCommand
 from rivian.exceptions import RivianBadRequestError
 from rivian.parallax import encode_vehicle_command, vehicle_command_feature
+from rivian.parallax.vehicle_command import _COMMANDS
 
 
 @pytest.mark.parametrize(
@@ -115,21 +116,80 @@ def test_feature() -> None:
         (VehicleCommand.WAKE_VEHICLE, None),
         (VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT, {"level": 1}),
         (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": 4}),
-        (VehicleCommand.CHARGING_LIMITS, None),
-        (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {}),
-        # Params `Rivian.validate_vehicle_command` rejects
-        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 150}),
-        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": "80"}),
-        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 80.0}),
-        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 45}),
-        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": "22"}),
-        (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": "0"}),
-        (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": 7}),
-        (VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT, {"level": 3.0}),
-        (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": True}),
     ],
 )
 def test_no_equivalent(command: VehicleCommand, params: dict[str, Any] | None) -> None:
-    """Commands, levels or params with no Parallax equivalent are rejected."""
-    with pytest.raises(RivianBadRequestError):
+    """Valid commands and levels with no Parallax equivalent are rejected."""
+    Rivian.validate_vehicle_command(command, params)
+    with pytest.raises(RivianBadRequestError, match="no Parallax equivalent"):
         encode_vehicle_command(command, params)
+
+
+_INVALID: list[tuple[VehicleCommand, dict[str, Any] | None]] = [
+    (VehicleCommand.CHARGING_LIMITS, None),
+    (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 49}),
+    (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 101}),
+    (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": "80"}),
+    (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 80.0}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 15.5}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 29.5}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": "22"}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": True}),
+    (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {}),
+    (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": "0"}),
+    (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": 5}),
+    (VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT, {"level": 3.0}),
+    (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": True}),
+]
+_VALID: list[tuple[VehicleCommand, dict[str, Any] | None]] = [
+    (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 50}),
+    (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 100}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 16}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 29.0}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 0}),
+    (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 63.5}),
+    (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": 0}),
+    (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": 4}),
+    (VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT, {"level": 4}),
+    (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": 3}),
+]
+
+
+@pytest.mark.parametrize(("command", "params"), _INVALID)
+def test_invalid_params(command: VehicleCommand, params: dict[str, Any] | None) -> None:
+    """Invalid params are rejected either way of sending."""
+    with pytest.raises(RivianBadRequestError, match="must include parameter"):
+        Rivian.validate_vehicle_command(command, params)
+    with pytest.raises(RivianBadRequestError, match="must include parameter"):
+        encode_vehicle_command(command, params)
+
+
+@pytest.mark.parametrize(("command", "params"), _VALID)
+def test_valid_params(command: VehicleCommand, params: dict[str, Any] | None) -> None:
+    """Params at the edges of their ranges are accepted either way of sending."""
+    Rivian.validate_vehicle_command(command, params)
+    encode_vehicle_command(command, params)
+
+
+def test_validation_agrees() -> None:
+    """The validator and the encoder accept the same params for every command."""
+    samples = [params for _, params in _INVALID + _VALID] + [
+        {"level": level} for level in range(5)
+    ]
+    for command in _COMMANDS:
+        for params in samples:
+            try:
+                Rivian.validate_vehicle_command(command, params)
+                valid = True
+            except RivianBadRequestError:
+                valid = False
+            try:
+                encode_vehicle_command(command, params)
+                encoded = True
+            except RivianBadRequestError as err:
+                encoded = False
+                if valid:  # only seat level 1 and steering wheel level 4
+                    assert "no Parallax equivalent" in str(err), (command, params)
+            if encoded:
+                assert valid, (command, params)

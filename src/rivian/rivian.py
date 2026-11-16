@@ -43,6 +43,12 @@ from .parallax import (
     encode_live_streaming,
     encode_vehicle_operation,
 )
+from .parallax.vehicle_command import (
+    HVAC_LEVEL_COMMANDS,
+    check_charge_limit,
+    check_hvac_level,
+    check_temperature,
+)
 from .utils import generate_vehicle_command_hmac, send_deprecation_warning
 from .ws_monitor import WebSocketMonitor
 
@@ -956,44 +962,15 @@ class Rivian:
     ) -> None:
         """Raise RivianBadRequestError if a command's params are invalid.
 
-        Shared by `send_vehicle_command` and callers sending its Parallax
-        equivalent (`parallax.encode_vehicle_command`).
+        Used by `send_vehicle_command`; `parallax.encode_vehicle_command` checks
+        its params with the same rules.
         """
-        if command == VehicleCommand.CHARGING_LIMITS and not (
-            params
-            and isinstance((limit := params.get("SOC_limit")), int)
-            and 50 <= limit <= 100
-        ):
-            raise RivianBadRequestError(
-                "Charging limit must include parameter `SOC_limit` with a valid value between 50 and 100"
-            )
-        if command in (
-            VehicleCommand.CABIN_HVAC_DEFROST_DEFOG,
-            VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT,
-            VehicleCommand.CABIN_HVAC_LEFT_SEAT_VENT,
-            VehicleCommand.CABIN_HVAC_REAR_LEFT_SEAT_HEAT,
-            VehicleCommand.CABIN_HVAC_REAR_RIGHT_SEAT_HEAT,
-            VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT,
-            VehicleCommand.CABIN_HVAC_RIGHT_SEAT_VENT,
-            VehicleCommand.CABIN_HVAC_STEERING_HEAT,
-            VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_LEFT_SEAT_HEAT,
-            VehicleCommand.CABIN_HVAC_3RD_ROW_REAR_RIGHT_SEAT_HEAT,
-        ) and not (
-            params
-            and isinstance((level := params.get("level")), int)
-            and 0 <= level <= 4
-        ):
-            raise RivianBadRequestError(
-                "HVAC setting must include parameter `level` with a valid value between 0 and 4"
-            )
-        if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP and not (
-            params
-            and isinstance((temp := params.get("HVAC_set_temp")), (float, int))
-            and (16 <= temp <= 29 or temp in (0, 63.5))
-        ):
-            raise RivianBadRequestError(
-                "HVAC setting must include parameter `HVAC_set_temp` with a valid value between 16 and 29 or 0/63.5 for LO/HI, respectively"
-            )
+        if command == VehicleCommand.CHARGING_LIMITS:
+            check_charge_limit(params)
+        if command in HVAC_LEVEL_COMMANDS:
+            check_hvac_level(params)
+        if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP:
+            check_temperature(params)
 
     async def send_vehicle_command(
         self,
@@ -1014,7 +991,7 @@ class Rivian:
         Certain commands may require additional details via the `params` mapping.
         Some known examples include:
           - `CABIN_HVAC_*`: params = {"level": 0..4} where 0 is off, 1 is on, 2 is low/level_1, 3 is medium/level_2 and 4 is high/level_3
-          - `CABIN_PRECONDITIONING_SET_TEMP`: params = {"HVAC_set_temp": "deg_C"} where `deg_C` is a string value between 16 and 29 or 0/63.5 for LO/HI, respectively
+          - `CABIN_PRECONDITIONING_SET_TEMP`: params = {"HVAC_set_temp": deg_C} where `deg_C` is a number between 16 and 29 or 0/63.5 for LO/HI, respectively
           - `CHARGING_LIMITS`: params = {"SOC_limit": 50..100}
         """
         self.validate_vehicle_command(command, params)
