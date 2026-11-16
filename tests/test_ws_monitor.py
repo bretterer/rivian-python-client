@@ -466,6 +466,64 @@ async def test_simultaneous_subscribes_share_one_connection(
     assert len(monitor._subscriptions) == 2
 
 
+@pytest.mark.parametrize("phase", ["before_closed", "after_closed"])
+async def test_subscribe_while_closing_gets_a_working_connection(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian, phase: str
+) -> None:
+    """A subscribe started while the last unsubscribe closes the web socket works.
+
+    It waits for the close, then gets its own connection, which the close can't
+    cancel. aiohttp marks the socket closed partway through its close, after
+    breaking the receiver out of receive() and before the close handshake.
+    """
+    unsubscribe = await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    assert unsubscribe
+    old_ws: Any = monitor.websocket
+    gate = asyncio.Event()
+    closing = asyncio.Event()
+    if phase == "after_closed":
+        # Hold the close handshake, when `closed` is already True
+        real_close = old_ws._writer.close
+
+        async def slow_close(*args: Any, **kwargs: Any) -> None:
+            closing.set()
+            await gate.wait()
+            await real_close(*args, **kwargs)
+
+        old_ws._writer.close = slow_close
+    else:
+        # Hold the close before `closed` is True
+        real_ws_close = old_ws.close
+
+        async def held_close(*args: Any, **kwargs: Any) -> bool:
+            closing.set()
+            await gate.wait()
+            return await real_ws_close(*args, **kwargs)
+
+        old_ws.close = held_close
+
+    closer = asyncio.create_task(unsubscribe())
+    await closing.wait()
+    starting = asyncio.create_task(
+        rivian.subscribe_for_parallax_messages("id", lambda _: None)
+    )
+    try:
+        # Waiting for the close to finish, holding the connect lock
+        await wait_for(rivian._ws_connect_lock.locked)
+    finally:
+        gate.set()
+    await closer
+    assert await starting
+
+    # The new subscription is on a live connection with a receiver and monitor
+    assert server.connections == 2
+    assert monitor.connected
+    assert monitor.websocket is not old_ws
+    assert monitor._receiver_task and not monitor._receiver_task.done()
+    assert monitor.monitor and not monitor.monitor.done()
+    assert len(monitor._subscriptions) == 1
+
+
 async def test_failing_callback_keeps_connection(
     server: FakeServer,
     monitor: WebSocketMonitor,

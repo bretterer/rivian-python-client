@@ -98,6 +98,9 @@ class WebSocketMonitor:
         # Set while there's no open connection
         self._closed: asyncio.Event = asyncio.Event()
         self._closed.set()
+        # Held while connecting or closing, so a new connection never starts until
+        # an old one has finished closing, and that close can't touch it
+        self._lifecycle_lock = asyncio.Lock()
         self._disconnect = False
         # Why the current connection is backing off, at most once per connection
         self._backoff_reason: str | None = None
@@ -190,22 +193,24 @@ class WebSocketMonitor:
 
     async def new_connection(self, start_monitor: bool = False) -> None:
         """Create a new connection and, optionally, start the monitor."""
-        await cancel_task(self._receiver_task)
-        self._disconnect = False
-        self._backoff_reason = None
-        self._close_message = None
-        self._forbidden = False
-        self._connection_ack.clear()
-        # pylint: disable=protected-access
-        assert self._account._session
-        self._ws = await self._account._session.ws_connect(
-            url=self._url, headers={"sec-websocket-protocol": "graphql-transport-ws"}
-        )
-        await self._connection_init(self._ws)
-        self._closed.clear()
-        self._receiver_task = asyncio.ensure_future(self._receiver())
-        if start_monitor:
-            await self.start_monitor()
+        async with self._lifecycle_lock:
+            await cancel_task(self._receiver_task)
+            self._disconnect = False
+            self._backoff_reason = None
+            self._close_message = None
+            self._forbidden = False
+            self._connection_ack.clear()
+            # pylint: disable=protected-access
+            assert self._account._session
+            self._ws = await self._account._session.ws_connect(
+                url=self._url,
+                headers={"sec-websocket-protocol": "graphql-transport-ws"},
+            )
+            await self._connection_init(self._ws)
+            self._closed.clear()
+            self._receiver_task = asyncio.ensure_future(self._receiver())
+            if start_monitor:
+                await self.start_monitor()
 
     async def wait_for_ack(self) -> bool:
         """Wait for the connection to be acknowledged or to close.
@@ -425,10 +430,11 @@ class WebSocketMonitor:
 
     async def close(self) -> None:
         """Close the web socket."""
-        self._disconnect = True
-        if self._ws:
-            await self._ws.close()
-        await cancel_task(self._monitor_task, self._receiver_task)
+        async with self._lifecycle_lock:
+            self._disconnect = True
+            if self._ws:
+                await self._ws.close()
+            await cancel_task(self._monitor_task, self._receiver_task)
 
     def _log_message(
         self,

@@ -1326,7 +1326,9 @@ class Rivian:
                     backoff_key=self._user_session_token,
                 )
             ws_monitor = self._ws_monitor
-            if ws_monitor.websocket is None or ws_monitor.websocket.closed:
+            # Includes a connection that's closing: it's replaced once the close
+            # is done
+            if not ws_monitor.connected:
                 # A backoff only holds off new connections, not an open one
                 if remaining := ws_monitor.backoff_remaining:
                     raise RivianApiException(
