@@ -459,6 +459,110 @@ async def test_unsubscribing_last_subscription_closes(
     assert server.connections == 2
 
 
+async def test_simultaneous_subscribes_share_one_connection(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Subscribes started together on a closed web socket open one connection."""
+    first, second = await asyncio.gather(
+        rivian.subscribe_for_vehicle_updates("id", lambda _: None),
+        rivian.subscribe_for_parallax_messages("id", lambda _: None),
+    )
+
+    assert first and second
+    assert server.connections == 1
+    assert len(monitor._subscriptions) == 2
+
+
+@pytest.mark.parametrize("phase", ["before_closed", "after_closed"])
+async def test_subscribe_while_closing_gets_a_working_connection(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian, phase: str
+) -> None:
+    """A subscribe started while the last unsubscribe closes the web socket works.
+
+    It waits for the close, then gets its own connection, which the close can't
+    cancel. aiohttp marks the socket closed partway through its close, after
+    breaking the receiver out of receive() and before the close handshake.
+    """
+    unsubscribe = await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    assert unsubscribe
+    old_ws: Any = monitor.websocket
+    gate = asyncio.Event()
+    closing = asyncio.Event()
+    if phase == "after_closed":
+        # Hold the close handshake, when `closed` is already True
+        real_close = old_ws._writer.close
+
+        async def slow_close(*args: Any, **kwargs: Any) -> None:
+            closing.set()
+            await gate.wait()
+            await real_close(*args, **kwargs)
+
+        old_ws._writer.close = slow_close
+    else:
+        # Hold the close before `closed` is True
+        real_ws_close = old_ws.close
+
+        async def held_close(*args: Any, **kwargs: Any) -> bool:
+            closing.set()
+            await gate.wait()
+            return await real_ws_close(*args, **kwargs)
+
+        old_ws.close = held_close
+
+    closer = asyncio.create_task(unsubscribe())
+    await closing.wait()
+    starting = asyncio.create_task(
+        rivian.subscribe_for_parallax_messages("id", lambda _: None)
+    )
+    try:
+        # Waiting for the close to finish, holding the connect lock
+        await wait_for(rivian._ws_connect_lock.locked)
+    finally:
+        gate.set()
+    await closer
+    assert await starting
+
+    # The new subscription is on a live connection with a receiver and monitor
+    assert server.connections == 2
+    assert monitor.connected
+    assert monitor.websocket is not old_ws
+    assert monitor._receiver_task and not monitor._receiver_task.done()
+    assert monitor.monitor and not monitor.monitor.done()
+    assert len(monitor._subscriptions) == 1
+
+
+async def test_queued_new_connection_reuses_the_new_one(
+    server: FakeServer, monitor: WebSocketMonitor
+) -> None:
+    """A connect that waited for another (e.g. the monitor's) uses its connection."""
+    await asyncio.gather(monitor.new_connection(), monitor.new_connection())
+
+    assert server.connections == 1
+    assert monitor.connected
+
+
+async def test_close_stops_a_stuck_reconnect(monitor: WebSocketMonitor) -> None:
+    """Closing doesn't wait for a reconnect the monitor is stuck in."""
+    connecting = asyncio.Event()
+
+    async def hang(*_: Any, **__: Any) -> None:
+        connecting.set()
+        await asyncio.Event().wait()
+
+    with patch.object(monitor._account._session, "ws_connect", hang):
+        # As the monitor's own reconnect, which holds the lifecycle lock
+        reconnect = asyncio.ensure_future(monitor.new_connection())
+        monitor._monitor_task = reconnect
+        await connecting.wait()
+        try:
+            async with asyncio.timeout(2):
+                await monitor.close()
+        finally:
+            reconnect.cancel()
+
+    assert reconnect.cancelled()
+
+
 async def test_failing_callback_keeps_connection(
     server: FakeServer,
     monitor: WebSocketMonitor,
