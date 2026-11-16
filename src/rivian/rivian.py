@@ -157,6 +157,8 @@ class Rivian:
         self._otp_needed = False
         self._otp_token = ""
 
+        # Held while connecting, so subscribes started together share a connection
+        self._ws_connect_lock = asyncio.Lock()
         self._ws_monitor: WebSocketMonitor | None = None
         self._subscriptions: dict[str, str] = {}
 
@@ -1315,25 +1317,26 @@ class Rivian:
                 }
             )
 
-        if not self._ws_monitor:
-            self._ws_monitor = WebSocketMonitor(
-                self,
-                GRAPHQL_WEBSOCKET,
-                connection_init,
-                backoff_key=self._user_session_token,
-            )
-        ws_monitor = self._ws_monitor
-        if ws_monitor.websocket is None or ws_monitor.websocket.closed:
-            # A backoff only holds off new connections, not an open one
-            if remaining := ws_monitor.backoff_remaining:
-                raise RivianApiException(
-                    "the web socket is waiting to reconnect "
-                    f"({remaining:.0f} seconds left)"
+        async with self._ws_connect_lock:
+            if not self._ws_monitor:
+                self._ws_monitor = WebSocketMonitor(
+                    self,
+                    GRAPHQL_WEBSOCKET,
+                    connection_init,
+                    backoff_key=self._user_session_token,
                 )
-            await ws_monitor.new_connection(True)
-        if ws_monitor.monitor is None or ws_monitor.monitor.done():
-            await ws_monitor.start_monitor()
-        return ws_monitor
+            ws_monitor = self._ws_monitor
+            if ws_monitor.websocket is None or ws_monitor.websocket.closed:
+                # A backoff only holds off new connections, not an open one
+                if remaining := ws_monitor.backoff_remaining:
+                    raise RivianApiException(
+                        "the web socket is waiting to reconnect "
+                        f"({remaining:.0f} seconds left)"
+                    )
+                await ws_monitor.new_connection(True)
+            if ws_monitor.monitor is None or ws_monitor.monitor.done():
+                await ws_monitor.start_monitor()
+            return ws_monitor
 
     async def __graphql_query(
         self, headers: dict[str, str], url: str, body: dict[str, Any]

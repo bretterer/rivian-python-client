@@ -452,6 +452,20 @@ async def test_unsubscribing_last_subscription_closes(
     assert server.connections == 2
 
 
+async def test_simultaneous_subscribes_share_one_connection(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Subscribes started together on a closed web socket open one connection."""
+    first, second = await asyncio.gather(
+        rivian.subscribe_for_vehicle_updates("id", lambda _: None),
+        rivian.subscribe_for_parallax_messages("id", lambda _: None),
+    )
+
+    assert first and second
+    assert server.connections == 1
+    assert len(monitor._subscriptions) == 2
+
+
 async def test_failing_callback_keeps_connection(
     server: FakeServer,
     monitor: WebSocketMonitor,
