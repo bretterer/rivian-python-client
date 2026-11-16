@@ -637,3 +637,56 @@ async def test_failing_on_error_keeps_connection(
     assert "Error in a subscription callback" in caplog.text
     assert monitor.connected
     assert server.connections == 1
+
+
+@pytest.mark.parametrize("keep_existing", [False, True])
+@pytest.mark.parametrize("failure", ["send_error", "cancel"])
+async def test_interrupted_subscribe_is_removed(
+    server: FakeServer, monitor: WebSocketMonitor, failure: str, keep_existing: bool
+) -> None:
+    """A subscribe that fails or is cancelled while sending isn't resubscribed later.
+
+    Only its own registration goes: the connection closes if nothing else is on it.
+    """
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: monitor.connection_ack.is_set())
+    if keep_existing:
+        add_subscription(monitor)
+    existing = dict(monitor._subscriptions)
+    sending = asyncio.Event()
+
+    async def subscribe(*_: Any) -> None:
+        sending.set()
+        if failure == "send_error":
+            raise ConnectionResetError("closing")
+        await asyncio.Event().wait()
+
+    with patch.object(monitor, "_subscribe", side_effect=subscribe):
+        task = asyncio.create_task(monitor.start_subscription({}, lambda _: None))
+        await sending.wait()
+        if failure == "cancel":
+            task.cancel()
+        with pytest.raises(
+            ConnectionResetError if failure == "send_error" else asyncio.CancelledError
+        ):
+            await task
+
+    assert monitor._subscriptions == existing
+    assert monitor.connected is keep_existing
+
+
+async def test_cancelled_subscribe_before_ack_closes(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """A subscribe cancelled while waiting for the ack leaves nothing reconnecting."""
+    server.silent_connections = 1
+    task = asyncio.create_task(
+        rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    )
+    await wait_for(lambda: server.connections == 1)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert not monitor.connected
+    assert monitor.monitor and monitor.monitor.done()
