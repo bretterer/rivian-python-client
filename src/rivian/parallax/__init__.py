@@ -32,7 +32,7 @@ Public API:
     vehicle_command_feature(command) -> str | None
         The supported feature that, when AVAILABLE, sends a `VehicleCommand`
         over Parallax.
-    encode_vehicle_command(command, params=None) -> (rvm, payload)
+    encode_vehicle_command(command, params=None, *, model=None) -> (rvm, payload)
         The command's Parallax equivalent, for `send_parallax_command`.
 
 Layout:
