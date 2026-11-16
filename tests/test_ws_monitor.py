@@ -32,6 +32,10 @@ class FakeServer:
         self.connections = 0
         self.next_on_subscribe = False
         self.error_on_subscribe = False
+        # Set to hold the connection_ack until the event is set
+        self.ack_gate: asyncio.Event | None = None
+        # Messages received after the connection_ack
+        self.received: list[dict[str, Any]] = []
         self.url = ""
 
     async def handler(self, request: web.Request) -> web.WebSocketResponse:
@@ -67,10 +71,13 @@ class FakeServer:
                 code=self.close_code, message=self.close_reasons.pop(0).encode()
             )
         else:
+            if self.ack_gate:
+                await self.ack_gate.wait()
             await ws.send_json({"type": "connection_ack"})
             # Take subscribe requests until the client closes
             async for msg in ws:
                 data = msg.json()
+                self.received.append(data)
                 if self.next_on_subscribe and data.get("type") == "subscribe":
                     await ws.send_json({"id": data["id"], "type": "next"})
                 if self.error_on_subscribe and data.get("type") == "subscribe":
@@ -637,3 +644,121 @@ async def test_failing_on_error_keeps_connection(
     assert "Error in a subscription callback" in caplog.text
     assert monitor.connected
     assert server.connections == 1
+
+
+@pytest.mark.parametrize("keep_existing", [False, True])
+@pytest.mark.parametrize("failure", ["send_error", "cancel"])
+async def test_interrupted_subscribe_is_removed(
+    server: FakeServer, monitor: WebSocketMonitor, failure: str, keep_existing: bool
+) -> None:
+    """A subscribe that fails or is cancelled while sending isn't resubscribed later.
+
+    Only its own registration goes; closing an unused connection is the client's.
+    """
+    await monitor.new_connection(start_monitor=True)
+    await wait_for(lambda: monitor.connection_ack.is_set())
+    if keep_existing:
+        add_subscription(monitor)
+    existing = dict(monitor._subscriptions)
+    sending = asyncio.Event()
+
+    async def subscribe(*_: Any) -> None:
+        sending.set()
+        if failure == "send_error":
+            raise ConnectionResetError("closing")
+        await asyncio.Event().wait()
+
+    with patch.object(monitor, "_subscribe", side_effect=subscribe):
+        task = asyncio.create_task(monitor.start_subscription({}, lambda _: None))
+        await sending.wait()
+        if failure == "cancel":
+            task.cancel()
+        with pytest.raises(
+            ConnectionResetError if failure == "send_error" else asyncio.CancelledError
+        ):
+            await task
+
+    assert monitor._subscriptions == existing
+    assert monitor.connected
+    # The server is told the interrupted one is over, in case its subscribe got through
+    await wait_for(lambda: any(m["type"] == "complete" for m in server.received))
+    completed = [m["id"] for m in server.received if m["type"] == "complete"]
+    assert len(completed) == 1
+    assert completed[0] not in existing
+
+
+@pytest.mark.parametrize("keep_existing", [False, True])
+@pytest.mark.parametrize("failure", ["send_error", "cancel"])
+async def test_interrupted_subscribe_closes_unused_connection(
+    server: FakeServer,
+    monitor: WebSocketMonitor,
+    rivian: Rivian,
+    failure: str,
+    keep_existing: bool,
+) -> None:
+    """The client closes the connection when an interrupted subscribe leaves it unused."""
+    if keep_existing:
+        assert await rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    sending = asyncio.Event()
+
+    async def subscribe(*_: Any) -> None:
+        sending.set()
+        if failure == "send_error":
+            raise ConnectionResetError("closing")
+        await asyncio.Event().wait()
+
+    with patch.object(monitor, "_subscribe", side_effect=subscribe):
+        task = asyncio.create_task(
+            rivian.subscribe_for_parallax_messages("id", lambda _: None)
+        )
+        await sending.wait()
+        if failure == "cancel":
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+        else:
+            assert await task is None
+
+    assert len(monitor._subscriptions) == int(keep_existing)
+    assert monitor.connected is keep_existing
+
+
+async def test_cancelled_subscribe_before_ack_closes(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """A subscribe cancelled while waiting for the ack leaves nothing reconnecting."""
+    server.silent_connections = 1
+    task = asyncio.create_task(
+        rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    )
+    await wait_for(lambda: server.connections == 1)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert not monitor.connected
+    assert monitor.monitor and monitor.monitor.done()
+
+
+async def test_cancelled_subscribe_keeps_another_waiting_for_the_ack(
+    server: FakeServer, monitor: WebSocketMonitor, rivian: Rivian
+) -> None:
+    """Cancelling one of two subscribes waiting for the ack leaves the other working."""
+    server.ack_gate = asyncio.Event()
+    cancelled = asyncio.create_task(
+        rivian.subscribe_for_vehicle_updates("id", lambda _: None)
+    )
+    await wait_for(lambda: server.connections == 1)
+    # Joins the connection the first opened, and waits for its ack too
+    waiting = asyncio.create_task(
+        rivian.subscribe_for_parallax_messages("id", lambda _: None)
+    )
+    await wait_for(lambda: rivian._starting_subscriptions == 2)
+    cancelled.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await cancelled
+    server.ack_gate.set()
+
+    assert await waiting
+    assert monitor.connected
+    assert len(monitor._subscriptions) == 1
