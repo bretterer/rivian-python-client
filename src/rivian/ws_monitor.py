@@ -251,17 +251,17 @@ class WebSocketMonitor:
             await self._subscribe(_id, payload)
         except (Exception, asyncio.CancelledError):
             # Registered before the send, and the caller has no unsubscribe
-            # handle yet: remove it so a reconnect doesn't resubscribe it
+            # handle yet: remove it so a reconnect doesn't resubscribe it. Closing
+            # an unused connection is up to the caller, which knows of others
+            # still starting.
             self._subscriptions.pop(_id, None)
-            try:
-                async with asyncio.timeout(5):
-                    if not self._subscriptions:
-                        await self.close()
-                    elif self.connected:
+            if self.connected:
+                try:
+                    async with asyncio.timeout(5):
                         assert self._ws
                         await self._ws.send_json({"id": _id, "type": "complete"})
-            except (Exception, asyncio.CancelledError):  # noqa: BLE001 - keep the original error
-                _LOGGER.warning("Couldn't clean up an interrupted subscription")
+                except (Exception, asyncio.CancelledError):  # noqa: BLE001 - keep the original error
+                    _LOGGER.warning("Couldn't end an interrupted subscription")
             raise
 
         async def unsubscribe() -> None:

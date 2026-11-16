@@ -159,6 +159,8 @@ class Rivian:
 
         self._ws_monitor: WebSocketMonitor | None = None
         self._subscriptions: dict[str, str] = {}
+        # Subscriptions still being started, which need the connection kept open
+        self._starting_subscriptions = 0
 
     @property
     def ws_backoff_remaining(self) -> float:
@@ -1269,33 +1271,35 @@ class Rivian:
         Returns the unsubscribe function, or None (after logging why) on failure.
         """
         reason: str | Exception
+        self._starting_subscriptions += 1
         try:
-            ws_monitor = await self._ws_connect()
-            # Ends early if the connection closes, e.g. when rate limited
-            if await ws_monitor.wait_for_ack() and (
-                unsubscribe := await ws_monitor.start_subscription(
-                    payload, callback, on_error=on_error
-                )
-            ):
-                _LOGGER.debug("Subscribed to %s", description)
-                return unsubscribe
-            if backoff_reason := ws_monitor.backoff_reason:
-                reason = f"the web socket connection {backoff_reason}"
-            elif close_message := ws_monitor.close_message:
-                reason = f"the web socket connection closed ({close_message})"
-            else:
-                reason = "the web socket connection closed"
-        except asyncio.CancelledError:
-            # Cancelled while connecting or waiting for the ack, before there's an
-            # unsubscribe handle: don't leave a connection open with nothing on it
-            if self._ws_monitor and not self._ws_monitor.has_subscriptions:
-                try:
-                    async with asyncio.timeout(5):
-                        await self._ws_monitor.close()
-                except (Exception, asyncio.CancelledError):  # noqa: BLE001 - keep the cancellation
-                    _LOGGER.warning(
-                        "Couldn't close the web socket after a cancelled subscribe"
+            try:
+                ws_monitor = await self._ws_connect()
+                # Ends early if the connection closes, e.g. when rate limited
+                if await ws_monitor.wait_for_ack() and (
+                    unsubscribe := await ws_monitor.start_subscription(
+                        payload, callback, on_error=on_error
                     )
+                ):
+                    _LOGGER.debug("Subscribed to %s", description)
+                    return unsubscribe
+                if backoff_reason := ws_monitor.backoff_reason:
+                    reason = f"the web socket connection {backoff_reason}"
+                elif close_message := ws_monitor.close_message:
+                    reason = f"the web socket connection closed ({close_message})"
+                else:
+                    reason = "the web socket connection closed"
+            finally:
+                self._starting_subscriptions -= 1
+        except asyncio.CancelledError:
+            # Cancelled before there's an unsubscribe handle
+            try:
+                async with asyncio.timeout(5):
+                    await self._close_unused_ws()
+            except (Exception, asyncio.CancelledError):  # noqa: BLE001 - keep the cancellation
+                _LOGGER.warning(
+                    "Couldn't close the web socket after a cancelled subscribe"
+                )
             raise
         except Exception as ex:  # pylint: disable=broad-except # noqa: BLE001
             reason = ex
@@ -1306,10 +1310,20 @@ class Rivian:
             description,
             reason,
         )
-        if self._ws_monitor and not self._ws_monitor.has_subscriptions:
-            # Don't leave a connection open, or reconnecting, with nothing on it
-            await self._ws_monitor.close()
+        await self._close_unused_ws()
         return None
+
+    async def _close_unused_ws(self) -> None:
+        """Close the web socket if nothing is on it or still being started on it.
+
+        Don't leave a connection open, or reconnecting, with nothing on it.
+        """
+        if (
+            self._ws_monitor
+            and not self._ws_monitor.has_subscriptions
+            and not self._starting_subscriptions
+        ):
+            await self._ws_monitor.close()
 
     async def _ws_connect(self) -> WebSocketMonitor:
         """Connect the web socket if needed and return its monitor."""
