@@ -256,9 +256,9 @@ class WebSocketMonitor:
             # still starting.
             self._subscriptions.pop(_id, None)
             if self.connected:
+                assert self._ws
                 try:
                     async with asyncio.timeout(5):
-                        assert self._ws
                         await self._ws.send_json({"id": _id, "type": "complete"})
                 except (Exception, asyncio.CancelledError):  # noqa: BLE001 - keep the original error
                     _LOGGER.warning("Couldn't end an interrupted subscription")

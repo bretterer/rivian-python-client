@@ -34,6 +34,8 @@ class FakeServer:
         self.error_on_subscribe = False
         # Set to hold the connection_ack until the event is set
         self.ack_gate: asyncio.Event | None = None
+        # Messages received after the connection_ack
+        self.received: list[dict[str, Any]] = []
         self.url = ""
 
     async def handler(self, request: web.Request) -> web.WebSocketResponse:
@@ -75,6 +77,7 @@ class FakeServer:
             # Take subscribe requests until the client closes
             async for msg in ws:
                 data = msg.json()
+                self.received.append(data)
                 if self.next_on_subscribe and data.get("type") == "subscribe":
                     await ws.send_json({"id": data["id"], "type": "next"})
                 if self.error_on_subscribe and data.get("type") == "subscribe":
@@ -677,6 +680,11 @@ async def test_interrupted_subscribe_is_removed(
 
     assert monitor._subscriptions == existing
     assert monitor.connected
+    # The server is told the interrupted one is over, in case its subscribe got through
+    await wait_for(lambda: any(m["type"] == "complete" for m in server.received))
+    completed = [m["id"] for m in server.received if m["type"] == "complete"]
+    assert len(completed) == 1
+    assert completed[0] not in existing
 
 
 @pytest.mark.parametrize("keep_existing", [False, True])
@@ -745,7 +753,7 @@ async def test_cancelled_subscribe_keeps_another_waiting_for_the_ack(
     waiting = asyncio.create_task(
         rivian.subscribe_for_parallax_messages("id", lambda _: None)
     )
-    await asyncio.sleep(0.1)
+    await wait_for(lambda: rivian._starting_subscriptions == 2)
     cancelled.cancel()
     with pytest.raises(asyncio.CancelledError):
         await cancelled

@@ -1314,10 +1314,7 @@ class Rivian:
         return None
 
     async def _close_unused_ws(self) -> None:
-        """Close the web socket if nothing is on it or still being started on it.
-
-        Don't leave a connection open, or reconnecting, with nothing on it.
-        """
+        """Close the web socket unless something is on it or still starting on it."""
         if (
             self._ws_monitor
             and not self._ws_monitor.has_subscriptions
