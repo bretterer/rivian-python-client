@@ -959,6 +959,36 @@ def test_validate_vehicle_command_keeps_params() -> None:
     assert params == {"HVAC_set_temp": 21}
 
 
+async def test_send_vehicle_command_keeps_params(
+    aresponses: ResponsesMockServer,
+) -> None:
+    """The temperature is sent as a string, and the caller's params can be sent again."""
+    response = {"data": {"sendVehicleCommand": {"id": "command_id"}}}
+    requests = capture_requests(aresponses, response, response)
+    vehicle_key, private_key = generate_key_pair()
+    params = {"HVAC_set_temp": 21}
+    async with aiohttp.ClientSession():
+        rivian = parallax_rivian()
+        for _ in range(2):
+            assert (
+                await rivian.send_vehicle_command(
+                    VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP,
+                    "vehicle_id",
+                    "phone_id",
+                    "identity_id",
+                    vehicle_key,
+                    private_key,
+                    params=params,
+                )
+                == "command_id"
+            )
+        await rivian.close()
+    assert params == {"HVAC_set_temp": 21}
+    assert [r["variables"]["attrs"]["params"] for r in requests] == [
+        {"HVAC_set_temp": "21"}
+    ] * 2
+
+
 async def test_graphql_errors(aresponses: ResponsesMockServer) -> None:
     """Test GraphQL error responses."""
     host = "rivian.com"
