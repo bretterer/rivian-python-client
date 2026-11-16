@@ -173,10 +173,17 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
         CLOSE_CLOSURES_RVM,
         lambda _: encode_closures(body_pb2.FRUNK),
     ),
-    VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE: (
+    # The vehicle reports a timeout if the released bin doesn't clear its latch,
+    # though body.closures.states then reports it open
+    VehicleCommand.RELEASE_LEFT_SIDE_BIN: (
         "PVS_BD_CMD",
         OPEN_CLOSURES_RVM,
-        lambda _: encode_closures(body_pb2.LIFTGATE),
+        lambda _: encode_closures(body_pb2.SIDE_BIN_LEFT),
+    ),
+    VehicleCommand.RELEASE_RIGHT_SIDE_BIN: (
+        "PVS_BD_CMD",
+        OPEN_CLOSURES_RVM,
+        lambda _: encode_closures(body_pb2.SIDE_BIN_RIGHT),
     ),
     VehicleCommand.CLOSE_LIFTGATE: (
         "PVS_BD_CMD",
@@ -263,24 +270,47 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
 }
 
 
+# Commands that open a closure depending on the model, like the Rivian app's:
+# command -> (closure on an R1T, closure on any other model)
+_BY_MODEL: Final[dict[str, tuple[body_pb2.ClosureId, body_pb2.ClosureId]]] = {
+    VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE: (
+        body_pb2.TAILGATE,
+        body_pb2.LIFTGATE,
+    ),
+}
+
+
 def vehicle_command_feature(command: VehicleCommand | str) -> str | None:
     """Return the supported feature that sends a command over Parallax.
 
     None if the command has no Parallax equivalent, e.g. honk or wake.
     """
+    if command in _BY_MODEL:
+        return "PVS_BD_CMD"
     return entry[0] if (entry := _COMMANDS.get(command)) else None
 
 
 def encode_vehicle_command(
     command: VehicleCommand | str,
     params: dict[str, Any] | None = None,
+    *,
+    model: str | None = None,
 ) -> tuple[str, bytes]:
     """Return the RVM and payload for a command's Parallax equivalent.
 
     `params` are those of `send_vehicle_command`, checked with the same rules
     as `Rivian.validate_vehicle_command`. Seat level 1 and steering wheel
     level 4 have no Parallax equivalent.
+
+    `model` is the vehicle's model (e.g. "R1T"), needed for
+    `OPEN_LIFTGATE_UNLATCH_TAILGATE`: like the Rivian app, it opens an R1T's
+    tailgate and any other model's liftgate.
     """
+    if closures := _BY_MODEL.get(command):
+        if not model:
+            raise RivianBadRequestError(f"{command} needs the vehicle's `model`")
+        closure = closures[0] if model.upper() == "R1T" else closures[1]
+        return OPEN_CLOSURES_RVM, encode_closures(closure)
     if not (entry := _COMMANDS.get(command)):
         raise RivianBadRequestError(f"{command} has no Parallax equivalent")
     _, rvm, encode = entry

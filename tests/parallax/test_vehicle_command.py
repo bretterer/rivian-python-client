@@ -35,10 +35,16 @@ from rivian.parallax.vehicle_command import _COMMANDS
             b"\x0a\x01\x05",
         ),
         (
-            VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE,
+            VehicleCommand.RELEASE_LEFT_SIDE_BIN,
             None,
             "body.closures.open",
-            b"\x0a\x01\x07",
+            b"\x0a\x01\x08",
+        ),
+        (
+            VehicleCommand.RELEASE_RIGHT_SIDE_BIN,
+            None,
+            "body.closures.open",
+            b"\x0a\x01\x09",
         ),
         (VehicleCommand.PANIC_ON, None, "security.alarm.enable_panic", b""),
         (
@@ -95,6 +101,28 @@ def test_encode(
     assert encode_vehicle_command(command, params) == (rvm, payload)
 
 
+@pytest.mark.parametrize(
+    ("model", "payload"),
+    [
+        ("R1T", b"\x0a\x01\x06"),  # tailgate
+        ("r1t", b"\x0a\x01\x06"),
+        ("R1S", b"\x0a\x01\x07"),  # liftgate
+        ("R2", b"\x0a\x01\x07"),
+    ],
+)
+def test_open_liftgate_unlatch_tailgate(model: str, payload: bytes) -> None:
+    """Like the Rivian app, it opens an R1T's tailgate and any other liftgate."""
+    assert encode_vehicle_command(
+        VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE, model=model
+    ) == ("body.closures.open", payload)
+
+
+def test_open_liftgate_unlatch_tailgate_needs_model() -> None:
+    """Without the model, it's unknown which one to open."""
+    with pytest.raises(RivianBadRequestError, match="model"):
+        encode_vehicle_command(VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE)
+
+
 def test_feature() -> None:
     """Each command is sent over Parallax per its category's feature."""
     assert vehicle_command_feature(VehicleCommand.UNLOCK_ALL_CLOSURES) == "PVS_BD_CMD"
@@ -106,6 +134,11 @@ def test_feature() -> None:
     assert vehicle_command_feature(VehicleCommand.START_CHARGING) == "PVS_ENRG_CMD"
     # Like the app: LIFTGATE_CMD only shows the liftgate controls
     assert vehicle_command_feature(VehicleCommand.CLOSE_LIFTGATE) == "PVS_BD_CMD"
+    assert (
+        vehicle_command_feature(VehicleCommand.OPEN_LIFTGATE_UNLATCH_TAILGATE)
+        == "PVS_BD_CMD"
+    )
+    assert vehicle_command_feature(VehicleCommand.RELEASE_LEFT_SIDE_BIN) == "PVS_BD_CMD"
     assert vehicle_command_feature(VehicleCommand.WAKE_VEHICLE) is None
     assert vehicle_command_feature("NOT_A_COMMAND") is None
 
