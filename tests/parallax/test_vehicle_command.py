@@ -117,9 +117,19 @@ def test_feature() -> None:
         (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": 4}),
         (VehicleCommand.CHARGING_LIMITS, None),
         (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {}),
+        # Params `Rivian.validate_vehicle_command` rejects
+        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 150}),
+        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": "80"}),
+        (VehicleCommand.CHARGING_LIMITS, {"SOC_limit": 80.0}),
+        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": 45}),
+        (VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP, {"HVAC_set_temp": "22"}),
+        (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": "0"}),
+        (VehicleCommand.CABIN_HVAC_DEFROST_DEFOG, {"level": 7}),
+        (VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT, {"level": 3.0}),
+        (VehicleCommand.CABIN_HVAC_STEERING_HEAT, {"level": True}),
     ],
 )
 def test_no_equivalent(command: VehicleCommand, params: dict[str, Any] | None) -> None:
-    """Commands, levels or missing params with no Parallax equivalent are rejected."""
+    """Commands, levels or params with no Parallax equivalent are rejected."""
     with pytest.raises(RivianBadRequestError):
         encode_vehicle_command(command, params)

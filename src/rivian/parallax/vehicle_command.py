@@ -7,7 +7,7 @@ category's supported feature as AVAILABLE, and as a legacy
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Container
 from typing import Any, Final
 
 from ..const import VehicleCommand
@@ -62,6 +62,33 @@ _STEERING_WHEEL_LEVELS: Final[dict[int, comfort_pb2.ConditioningLevel]] = {
 _Encode = Callable[[dict[str, Any]], bytes]
 
 
+def _int_param(params: dict[str, Any], key: str, valid: Container[int]) -> int:
+    """Return an int param, as `Rivian.validate_vehicle_command` accepts it."""
+    value = params.get(key)
+    if isinstance(value, bool) or not isinstance(value, int) or value not in valid:
+        raise RivianBadRequestError(f"`{key}` {value!r} has no Parallax equivalent")
+    return value
+
+
+def _level(
+    params: dict[str, Any], levels: dict[int, comfort_pb2.ConditioningLevel]
+) -> comfort_pb2.ConditioningLevel:
+    return levels[_int_param(params, "level", levels)]
+
+
+def _temperature(params: dict[str, Any]) -> float:
+    temp = params.get("HVAC_set_temp")
+    if (
+        isinstance(temp, bool)
+        or not isinstance(temp, (float, int))
+        or not (16 <= temp <= 29 or temp in (0, 63.5))
+    ):
+        raise RivianBadRequestError(
+            f"`HVAC_set_temp` {temp!r} has no Parallax equivalent"
+        )
+    return float(temp)
+
+
 def _seat(
     surface: comfort_pb2.CabinSurface,
     conditioning: comfort_pb2.ConditioningType = comfort_pb2.CONDITIONING_HEAT,
@@ -69,7 +96,7 @@ def _seat(
     return (
         "PVS_COMF_CMD",
         SET_CABIN_SURFACE_RVM,
-        lambda p: encode_cabin_surface(surface, conditioning, _SEAT_LEVELS[p["level"]]),
+        lambda p: encode_cabin_surface(surface, conditioning, _level(p, _SEAT_LEVELS)),
     )
 
 
@@ -150,12 +177,12 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
     VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP: (
         "PVS_COMF_CMD",
         SET_PRECONDITIONING_TEMPERATURE_RVM,
-        lambda p: encode_preconditioning_temperature(float(p["HVAC_set_temp"])),
+        lambda p: encode_preconditioning_temperature(_temperature(p)),
     ),
     VehicleCommand.CABIN_HVAC_DEFROST_DEFOG: (
         "PVS_COMF_CMD",
         SET_DEFROST_DEFOG_RVM,
-        lambda p: encode_defrost_defog(bool(p["level"])),
+        lambda p: encode_defrost_defog(bool(_int_param(p, "level", range(5)))),
     ),
     VehicleCommand.CABIN_HVAC_LEFT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_1_LEFT),
     VehicleCommand.CABIN_HVAC_RIGHT_SEAT_HEAT: _seat(comfort_pb2.SEAT_ROW_1_RIGHT),
@@ -179,7 +206,7 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
         lambda p: encode_cabin_surface(
             comfort_pb2.STEERING_WHEEL,
             comfort_pb2.CONDITIONING_HEAT,
-            _STEERING_WHEEL_LEVELS[p["level"]],
+            _level(p, _STEERING_WHEEL_LEVELS),
         ),
     ),
     VehicleCommand.START_CHARGING: ("PVS_ENRG_CMD", START_CHARGING_RVM, lambda _: b""),
@@ -187,7 +214,7 @@ _COMMANDS: Final[dict[str, tuple[str, str, _Encode]]] = {
     VehicleCommand.CHARGING_LIMITS: (
         "PVS_ENRG_CMD",
         SET_CHARGE_LIMIT_RVM,
-        lambda p: encode_charge_limit(p["SOC_limit"]),
+        lambda p: encode_charge_limit(_int_param(p, "SOC_limit", range(50, 101))),
     ),
 }
 
@@ -206,16 +233,11 @@ def encode_vehicle_command(
 ) -> tuple[str, bytes]:
     """Return the RVM and payload for a command's Parallax equivalent.
 
-    `params` are those of `send_vehicle_command`, already checked with
-    `Rivian.validate_vehicle_command`. Seat level 1 and steering wheel level 4
-    have no Parallax equivalent.
+    `params` are those of `send_vehicle_command`, checked as
+    `Rivian.validate_vehicle_command` checks them. Seat level 1 and steering
+    wheel level 4 have no Parallax equivalent.
     """
     if not (entry := _COMMANDS.get(command)):
         raise RivianBadRequestError(f"{command} has no Parallax equivalent")
     _, rvm, encode = entry
-    try:
-        return rvm, encode(params or {})
-    except KeyError as err:
-        raise RivianBadRequestError(
-            f"{command} {params} has no Parallax equivalent"
-        ) from err
+    return rvm, encode(params or {})
