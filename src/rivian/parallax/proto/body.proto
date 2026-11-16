@@ -48,6 +48,11 @@ enum ClosureId {
   GROUP_WINDOWS = 10000; // all windows together
 }
 
+// body.closures.open and body.closures.close
+message ClosuresRequest {
+  repeated ClosureId closures = 1;
+}
+
 enum ClosureState {
   CLOSURE_STATE_UNSPECIFIED = 0;
   CLOSURE_STATE_OPEN = 1;

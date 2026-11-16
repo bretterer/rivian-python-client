@@ -950,10 +950,15 @@ class Rivian:
 
         return await self.__graphql_query(headers, url, graphql_json)
 
-    def _validate_vehicle_command(
-        self, command: VehicleCommand | str, params: dict[str, Any] | None = None
+    @staticmethod
+    def validate_vehicle_command(
+        command: VehicleCommand | str, params: dict[str, Any] | None = None
     ) -> None:
-        """Validate certian vehicle command/param combos."""
+        """Raise RivianBadRequestError if a command's params are invalid.
+
+        Shared by `send_vehicle_command` and callers sending its Parallax
+        equivalent (`parallax.encode_vehicle_command`).
+        """
         if command == VehicleCommand.CHARGING_LIMITS and not (
             params
             and isinstance((limit := params.get("SOC_limit")), int)
@@ -981,16 +986,14 @@ class Rivian:
             raise RivianBadRequestError(
                 "HVAC setting must include parameter `level` with a valid value between 0 and 4"
             )
-        if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP:
-            if not (
-                params
-                and isinstance((temp := params.get("HVAC_set_temp")), (float, int))
-                and (16 <= temp <= 29 or temp in (0, 63.5))
-            ):
-                raise RivianBadRequestError(
-                    "HVAC setting must include parameter `HVAC_set_temp` with a valid value between 16 and 29 or 0/63.5 for LO/HI, respectively"
-                )
-            params["HVAC_set_temp"] = str(params["HVAC_set_temp"])
+        if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP and not (
+            params
+            and isinstance((temp := params.get("HVAC_set_temp")), (float, int))
+            and (16 <= temp <= 29 or temp in (0, 63.5))
+        ):
+            raise RivianBadRequestError(
+                "HVAC setting must include parameter `HVAC_set_temp` with a valid value between 16 and 29 or 0/63.5 for LO/HI, respectively"
+            )
 
     async def send_vehicle_command(
         self,
@@ -1014,7 +1017,9 @@ class Rivian:
           - `CABIN_PRECONDITIONING_SET_TEMP`: params = {"HVAC_set_temp": "deg_C"} where `deg_C` is a string value between 16 and 29 or 0/63.5 for LO/HI, respectively
           - `CHARGING_LIMITS`: params = {"SOC_limit": 50..100}
         """
-        self._validate_vehicle_command(command, params)
+        self.validate_vehicle_command(command, params)
+        if command == VehicleCommand.CABIN_PRECONDITIONING_SET_TEMP and params:
+            params["HVAC_set_temp"] = str(params["HVAC_set_temp"])
 
         command = str(command)
         timestamp = str(int(time.time()))

@@ -64,6 +64,12 @@ class DefrostStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DEFROST_DEFOG_DEFROST: _ClassVar[DefrostStatus]
     DEFROST_OFF: _ClassVar[DefrostStatus]
 
+class CabinSurfaceStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CABIN_SURFACE_STATUS_UNSPECIFIED: _ClassVar[CabinSurfaceStatus]
+    CABIN_SURFACE_OFF: _ClassVar[CabinSurfaceStatus]
+    CABIN_SURFACE_ON: _ClassVar[CabinSurfaceStatus]
+
 class PetModeCabinClimate(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     PET_MODE_CABIN_CLIMATE_COMFORTABLE: _ClassVar[PetModeCabinClimate]
@@ -150,6 +156,9 @@ DEFROST_DEFOG: DefrostStatus
 DEFROST_ACTIVE: DefrostStatus
 DEFROST_DEFOG_DEFROST: DefrostStatus
 DEFROST_OFF: DefrostStatus
+CABIN_SURFACE_STATUS_UNSPECIFIED: CabinSurfaceStatus
+CABIN_SURFACE_OFF: CabinSurfaceStatus
+CABIN_SURFACE_ON: CabinSurfaceStatus
 PET_MODE_CABIN_CLIMATE_COMFORTABLE: PetModeCabinClimate
 PET_MODE_CABIN_CLIMATE_COLD: PetModeCabinClimate
 PET_MODE_CABIN_CLIMATE_HOT: PetModeCabinClimate
@@ -275,6 +284,30 @@ class DefrostDefogStatus(_message.Message):
     STATUS_FIELD_NUMBER: _ClassVar[int]
     status: DefrostStatus
     def __init__(self, status: _Optional[_Union[DefrostStatus, str]] = ...) -> None: ...
+
+class DefrostDefogRequest(_message.Message):
+    __slots__ = ("status",)
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    status: DefrostStatus
+    def __init__(self, status: _Optional[_Union[DefrostStatus, str]] = ...) -> None: ...
+
+class PreconditioningTemperatureRequest(_message.Message):
+    __slots__ = ("temperature",)
+    TEMPERATURE_FIELD_NUMBER: _ClassVar[int]
+    temperature: float
+    def __init__(self, temperature: _Optional[float] = ...) -> None: ...
+
+class CabinSurfaceRequest(_message.Message):
+    __slots__ = ("surface", "level", "status", "type")
+    SURFACE_FIELD_NUMBER: _ClassVar[int]
+    LEVEL_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    surface: CabinSurface
+    level: ConditioningLevel
+    status: CabinSurfaceStatus
+    type: ConditioningType
+    def __init__(self, surface: _Optional[_Union[CabinSurface, str]] = ..., level: _Optional[_Union[ConditioningLevel, str]] = ..., status: _Optional[_Union[CabinSurfaceStatus, str]] = ..., type: _Optional[_Union[ConditioningType, str]] = ...) -> None: ...
 
 class PetModeStatus(_message.Message):
     __slots__ = ("status", "temperature_status", "cabin_climate")

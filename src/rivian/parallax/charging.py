@@ -8,6 +8,16 @@ from ..utils import from_epoch
 from .core import RVMDecoder, _enum, _present
 from .proto import charging_pb2
 
+START_CHARGING_RVM: Final = "charging.energy.start_charging"
+STOP_CHARGING_RVM: Final = "charging.energy.stop_charging"
+SET_CHARGE_LIMIT_RVM: Final = "charging.energy.set_charge_limit"
+
+
+def encode_charge_limit(percent: int) -> bytes:
+    """Encode a charging.energy.set_charge_limit payload."""
+    return charging_pb2.ChargeLimitRequest(limit=percent).SerializeToString()
+
+
 _DAY_OF_WEEK_MAP: Final[dict[int, str]] = {
     charging_pb2.ScheduleTimeWindow.SUNDAY: "sunday",
     charging_pb2.ScheduleTimeWindow.MONDAY: "monday",

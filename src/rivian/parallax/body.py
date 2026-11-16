@@ -9,6 +9,8 @@ from .proto import body_pb2
 
 LOCK_RVM: Final = "body.locks.lock"
 UNLOCK_RVM: Final = "body.locks.unlock"
+OPEN_CLOSURES_RVM: Final = "body.closures.open"
+CLOSE_CLOSURES_RVM: Final = "body.closures.close"
 
 _CLOSURE_MAP: Final[dict[int, str]] = {
     body_pb2.DOOR_FRONT_LEFT: "doorFrontLeftClosed",
@@ -184,6 +186,11 @@ def encode_lock() -> bytes:
 def encode_unlock() -> bytes:
     """Encode a body.locks.unlock payload that unlocks everything."""
     return body_pb2.UnlockCommand(all=True).SerializeToString()
+
+
+def encode_closures(closure: body_pb2.ClosureId) -> bytes:
+    """Encode a body.closures.open or body.closures.close payload."""
+    return body_pb2.ClosuresRequest(closures=[closure]).SerializeToString()
 
 
 @RVMDecoder.register("body.locks.states", body_pb2.LocksState)
