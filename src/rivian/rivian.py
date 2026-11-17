@@ -1176,8 +1176,15 @@ class Rivian:
         vehicle_id: str,
         callback: Callable[[dict[str, Any]], None],
         properties: set[str] | None = None,
+        *,
+        on_error: Callable[[dict[str, Any]], None] | None = None,
     ) -> Callable | None:
-        """Open a web socket connection to receive updates."""
+        """Open a web socket connection to receive updates.
+
+        `on_error` gets the subscription's error messages, such as a field that
+        fails GraphQL validation (the subscription then ends without data);
+        without it they're only logged at debug level.
+        """
         if not properties:
             properties = VEHICLE_STATES_SUBSCRIPTION_PROPERTIES
 
@@ -1187,15 +1194,23 @@ class Rivian:
             "variables": {"vehicleID": vehicle_id},
         }
         return await self._start_subscription(
-            payload, callback, f"{vehicle_id} vehicle updates"
+            payload, callback, f"{vehicle_id} vehicle updates", on_error
         )
 
     async def subscribe_for_departure_schedules(
-        self, vehicle_id: str, callback: Callable[[dict[str, Any]], None]
+        self,
+        vehicle_id: str,
+        callback: Callable[[dict[str, Any]], None],
+        *,
+        on_error: Callable[[dict[str, Any]], None] | None = None,
     ) -> Callable[[], Awaitable[None]] | None:
         """Open a web socket connection to receive departure schedules.
 
         The current schedules are sent right after subscribing.
+
+        `on_error` gets the subscription's error messages, such as a field that
+        fails GraphQL validation (the subscription then ends without data);
+        without it they're only logged at debug level.
         """
         payload = {
             "operationName": "VehicleDepartureSchedules",
@@ -1203,7 +1218,7 @@ class Rivian:
             "variables": {"vehicleId": vehicle_id},
         }
         return await self._start_subscription(
-            payload, callback, f"{vehicle_id} departure schedules"
+            payload, callback, f"{vehicle_id} departure schedules", on_error
         )
 
     async def subscribe_for_parallax_messages(
@@ -1211,6 +1226,8 @@ class Rivian:
         vehicle_id: str,
         callback: Callable[[dict[str, Any]], None],
         rvms: list[str] | None = None,
+        *,
+        on_error: Callable[[dict[str, Any]], None] | None = None,
     ) -> Callable[[], Awaitable[None]] | None:
         """Open a web socket connection to receive Parallax message updates.
 
@@ -1218,6 +1235,10 @@ class Rivian:
         the server sends every RVM topic for the vehicle, including ones with
         no decoder yet (`decode_parallax_message` returns None for those).
         Pass a list, e.g. `PARALLAX_RVMS`, to only receive those topics.
+
+        `on_error` gets the subscription's error messages, such as a field that
+        fails GraphQL validation (the subscription then ends without data);
+        without it they're only logged at debug level.
         """
         variables: dict[str, Any] = {"vehicleId": vehicle_id}
         if rvms is not None:
@@ -1229,7 +1250,7 @@ class Rivian:
         }
         topics = "all Parallax RVMs" if rvms is None else f"{len(rvms)} Parallax RVMs"
         return await self._start_subscription(
-            payload, callback, f"{vehicle_id} {topics}"
+            payload, callback, f"{vehicle_id} {topics}", on_error
         )
 
     async def subscribe_for_parallax_command_state(
