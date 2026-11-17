@@ -866,3 +866,31 @@ async def test_cancelled_subscribe_keeps_another_waiting_for_the_ack(
     assert await waiting
     assert monitor.connected
     assert len(monitor._subscriptions) == 1
+
+
+@pytest.mark.parametrize(
+    "subscribe",
+    [
+        lambda rivian, on_error: rivian.subscribe_for_vehicle_updates(
+            "id", lambda _: None, {"gnssLocation"}, on_error=on_error
+        ),
+        lambda rivian, on_error: rivian.subscribe_for_departure_schedules(
+            "id", lambda _: None, on_error=on_error
+        ),
+        lambda rivian, on_error: rivian.subscribe_for_parallax_messages(
+            "id", lambda _: None, on_error=on_error
+        ),
+    ],
+    ids=["vehicle updates", "departure schedules", "parallax messages"],
+)
+async def test_subscriptions_pass_errors_to_on_error(
+    server: FakeServer, rivian: Rivian, subscribe: Any
+) -> None:
+    """A subscription's error, e.g. a field failing validation, reaches on_error."""
+    server.error_on_subscribe = True
+    errors: list[dict[str, Any]] = []
+
+    assert await subscribe(rivian, errors.append)
+    await wait_for(lambda: errors)
+
+    assert errors[0]["type"] == "error"
