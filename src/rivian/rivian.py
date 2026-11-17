@@ -1183,7 +1183,9 @@ class Rivian:
 
         `on_error` gets the subscription's error messages, such as a field that
         fails GraphQL validation (the subscription then ends without data);
-        without it they're only logged at debug level.
+        without it they're only logged at debug level. It can be called more than
+        once, including after each reconnect, which subscribes again, until the
+        subscription is unsubscribed.
         """
         if not properties:
             properties = VEHICLE_STATES_SUBSCRIPTION_PROPERTIES
@@ -1210,7 +1212,9 @@ class Rivian:
 
         `on_error` gets the subscription's error messages, such as a field that
         fails GraphQL validation (the subscription then ends without data);
-        without it they're only logged at debug level.
+        without it they're only logged at debug level. It can be called more than
+        once, including after each reconnect, which subscribes again, until the
+        subscription is unsubscribed.
         """
         payload = {
             "operationName": "VehicleDepartureSchedules",
@@ -1238,7 +1242,9 @@ class Rivian:
 
         `on_error` gets the subscription's error messages, such as a field that
         fails GraphQL validation (the subscription then ends without data);
-        without it they're only logged at debug level.
+        without it they're only logged at debug level. It can be called more than
+        once, including after each reconnect, which subscribes again, until the
+        subscription is unsubscribed.
         """
         variables: dict[str, Any] = {"vehicleId": vehicle_id}
         if rvms is not None:
