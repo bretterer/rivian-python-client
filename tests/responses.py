@@ -84,6 +84,11 @@ USER_INFORMATION_RESPONSE = {
                                 "optionId": "INT-GYP",
                                 "optionName": "Ocean Coast + Dark Ash Wood",
                             },
+                            "tonneauOption": {
+                                "__typename": "VehicleMobileConfigurationOption",
+                                "optionId": "TON-P01",
+                                "optionName": "Power Tonneau Cover",
+                            },
                         },
                         "vehicleState": {
                             "__typename": "VehicleState",
