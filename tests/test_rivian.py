@@ -46,6 +46,7 @@ from .responses import (
     DEPART_NOW_RESPONSE,
     OTP_TOKEN_RESPONSE,
     PLACES_RESPONSE,
+    PLAN_TRIP_RESPONSE,
     SEND_LOCATION_TO_VEHICLE_RESPONSE,
     SEND_PARALLAX_COMMAND_RESPONSE,
     SEND_VEHICLE_OPERATION_RESPONSE,
@@ -496,6 +497,44 @@ async def test_trips(aresponses: ResponsesMockServer) -> None:
             "vehicleId": "vehicle_id",
         }
         assert not await rivian.end_trip("vehicle_id", "user")
+
+
+async def test_plan_trip(aresponses: ResponsesMockServer) -> None:
+    """Test planning a trip."""
+    requests = capture_requests(
+        aresponses,
+        PLAN_TRIP_RESPONSE,
+        {"data": {"planTrip2": {"plans": [], "status": "NO_ROUTE_FOUND"}}},
+    )
+    async with aiohttp.ClientSession():
+        rivian = Rivian(
+            csrf_token="csrf",
+            app_session_token="token",
+            user_session_token="token",
+        )
+
+        stops = [(34.428, -119.875), (37.775, -122.419)]
+        plans = await rivian.plan_trip("vehicle_id", (34.421, -119.698), stops, 30, 60)
+        assert plans == PLAN_TRIP_RESPONSE["data"]["planTrip2"]["plans"]
+        assert requests[0]["variables"] == {
+            "vehicle": "vehicle_id",
+            "waypoints": [
+                {"latitude": 34.421, "longitude": -119.698},
+                {"latitude": 34.428, "longitude": -119.875},
+                {"latitude": 37.775, "longitude": -122.419},
+            ],
+            "targetArrivalSocPercent": 30,
+            "startingSoc": 60,
+        }
+
+        assert await rivian.plan_trip("vehicle_id", (34.421, -119.698), stops) == []
+        # the planner takes a full battery when it isn't told the charge
+        assert requests[1]["variables"]["targetArrivalSocPercent"] == 20
+        assert "startingSoc" not in requests[1]["variables"]
+
+        for bad in ({"stops": []}, {"min_arrival_soc": 101}):
+            with pytest.raises(RivianBadRequestError):
+                await rivian.plan_trip("vehicle_id", (0, 0), **({"stops": stops} | bad))
 
 
 async def test_start_gear_guard_live_stream(aresponses: ResponsesMockServer) -> None:

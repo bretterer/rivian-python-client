@@ -764,6 +764,58 @@ class Rivian:
         }
         return await self.__graphql_query(headers, url, graphql_json)
 
+    async def plan_trip(
+        self,
+        vehicle_id: str,
+        origin: tuple[float, float],
+        stops: list[tuple[float, float]],
+        min_arrival_soc: int = 20,
+        starting_soc: float | None = None,
+    ) -> list[dict[str, Any]]:
+        """Plan a trip with Rivian's trip planner, without sending it to a vehicle.
+
+        `origin` and `stops` are (latitude, longitude), in order. The planner adds
+        charging stops to arrive with at least `min_arrival_soc` percent, leaving
+        with `starting_soc` percent, or a full battery without one.
+
+        Returns the plans, so far one, or none when there is no route. A plan's
+        `summary` has the drive, charging and total time in seconds, the distance in
+        meters and the charge on arrival. Its `waypoints` are the origin, the stops
+        and the added charging stops, each of those with its `charger`. Drive times
+        don't account for traffic.
+        """
+        if not stops:
+            raise RivianBadRequestError("A trip needs at least one stop")
+        if not 0 <= min_arrival_soc <= 100:
+            raise RivianBadRequestError("Minimum arrival charge must be 0 to 100")
+        url = GRAPHQL_GATEWAY
+        headers = BASE_HEADERS | {
+            "Csrf-Token": self._csrf_token,
+            "A-Sess": self._app_session_token,
+            "U-Sess": self._user_session_token,
+        }
+        variables: dict[str, Any] = {
+            "vehicle": vehicle_id,
+            "waypoints": [
+                {"latitude": latitude, "longitude": longitude}
+                for latitude, longitude in [origin, *stops]
+            ],
+            "targetArrivalSocPercent": min_arrival_soc,
+        }
+        if starting_soc is not None:
+            variables["startingSoc"] = starting_soc
+        graphql_json = {
+            "operationName": "planTripWithMultiStopV2",
+            "query": "query planTripWithMultiStopV2($waypoints: [RequestWaypointInput!]!, $vehicle: String!, $startingSoc: Float, $targetArrivalSocPercent: Float) { planTrip2(waypoints: $waypoints, vehicle: $vehicle, startingSoc: $startingSoc, targetArrivalSocPercent: $targetArrivalSocPercent) { plans { driveLegs { distanceMeters durationSeconds energyConsumptionKwh } waypoints { waypointType latitude longitude charger { entityId name maxPowerKw chargeDurationSeconds adapterRequired } arrivalSOCPercent departureSOCPercent arrivalTimeUTC departureTimeUTC distanceFromOriginMeters } summary { destinationReachable totalChargeDurationSeconds totalDriveDurationSeconds totalDriveDistanceMeters totalTripDurationSeconds arrivalSOCPercent arrivalRangeMeters } } status } }",
+            "variables": variables,
+        }
+
+        response = await self.__graphql_query(headers, url, graphql_json)
+        if response.status == 200:
+            data = await response.json()
+            return (data.get("data", {}).get("planTrip2") or {}).get("plans") or []
+        return []
+
     async def send_trip_to_vehicle(
         self,
         vehicle_id: str,
