@@ -673,6 +673,80 @@ PLACES_RESPONSE = {
     }
 }
 
+PLAN_TRIP_RESPONSE = {
+    "data": {
+        "planTrip2": {
+            "plans": [
+                {
+                    "driveLegs": [
+                        {
+                            "distanceMeters": 130629,
+                            "durationSeconds": 5394,
+                            "energyConsumptionKwh": 40.064617,
+                        },
+                        {
+                            "distanceMeters": 394936,
+                            "durationSeconds": 13981,
+                            "energyConsumptionKwh": 109.2556,
+                        },
+                    ],
+                    "waypoints": [
+                        {
+                            "waypointType": "OTHER",
+                            "latitude": 34.420815,
+                            "longitude": -119.698169,
+                            "charger": None,
+                            "arrivalSOCPercent": 60.000004,
+                            "departureSOCPercent": 60.000004,
+                            "arrivalTimeUTC": "2026-11-26T19:24:58Z",
+                            "departureTimeUTC": "2026-11-26T19:24:58Z",
+                            "distanceFromOriginMeters": 0,
+                        },
+                        {
+                            "waypointType": "DC_CHARGE_STATION",
+                            "latitude": 35.135562896728516,
+                            "longitude": -120.62577056884766,
+                            "charger": {
+                                "entityId": "US-RIV-L4075861308012401216",
+                                "name": "Pismo Beach, CA [Rivian Adventure Network]",
+                                "maxPowerKw": 300,
+                                "chargeDurationSeconds": 2418,
+                                "adapterRequired": False,
+                            },
+                            "arrivalSOCPercent": 28.748352,
+                            "departureSOCPercent": 87.22277,
+                            "arrivalTimeUTC": "2026-11-26T20:54:52Z",
+                            "departureTimeUTC": "2026-11-26T21:38:53Z",
+                            "distanceFromOriginMeters": 130629,
+                        },
+                        {
+                            "waypointType": "OTHER",
+                            "latitude": 37.7749,
+                            "longitude": -122.4194,
+                            "charger": None,
+                            "arrivalSOCPercent": 2,
+                            "departureSOCPercent": 2,
+                            "arrivalTimeUTC": "2026-11-27T01:31:54Z",
+                            "departureTimeUTC": "2026-11-27T01:31:54Z",
+                            "distanceFromOriginMeters": 525565,
+                        },
+                    ],
+                    "summary": {
+                        "destinationReachable": True,
+                        "totalChargeDurationSeconds": 2418,
+                        "totalDriveDurationSeconds": 19375,
+                        "totalDriveDistanceMeters": 525565,
+                        "totalTripDurationSeconds": 22016,
+                        "arrivalSOCPercent": 2,
+                        "arrivalRangeMeters": 10389.434,
+                    },
+                }
+            ],
+            "status": "OK",
+        }
+    }
+}
+
 SEND_VEHICLE_OPERATION_RESPONSE = {
     "data": {
         "sendVehicleOperation": {
